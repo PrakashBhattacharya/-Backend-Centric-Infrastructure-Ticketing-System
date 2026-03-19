@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfraTick - Enterprise Admin Governance</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo-icon"></div>
+                <span class="logo-text">InfraTick</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-view="overview"><i
+                        class="fas fa-globe"></i><span>Overview</span></a>
+                <a href="#" class="nav-item" data-view="operations"><i
+                        class="fas fa-cogs"></i><span>Operations</span></a>
+                <a href="#" class="nav-item" data-view="security"><i class="fas fa-shield-alt"></i><span>Risk &
+                        Security</span></a>
+                <a href="#" class="nav-item" data-view="tools"><i class="fas fa-wrench"></i><span>Admin Tools</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="profile-avatar">A</div>
+                    <div class="user-info">
+                        <span class="user-name">Admin Prakash</span>
+                        <span class="user-role">ENTERPRISE ADMIN</span>
+                    </div>
+                </div>
+                <a href="login.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Global multi-tenant search, audit IDs, or engineer names...">
+                </div>
+                <div class="header-actions">
+                    <div class="system-status">
+                        <span class="label">GLOBAL COMPLIANCE: 98.4%</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- VIEW: OVERVIEW (Governance & Executive KPIs) -->
+            <div id="overview" class="dashboard-view active">
+                <div class="view-header">
+                    <h2>Executive Governance</h2>
+                    <p>Organization-wide infrastructure visibility and SLA compliance metrics.</p>
+                </div>
+
+                <!-- 1. Expanded Executive KPI Bar -->
+                <div class="stats-grid admin-stats-grid">
+
+                    <div class="kpi-card kpi-blue">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-blue"><i class="fas fa-layer-group"></i></div>
+                            <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 24</span>
+                        </div>
+                        <div class="kpi-value">342</div>
+                        <div class="kpi-label">Total Open Tickets</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">All active incidents across the organization currently awaiting
+                            resolution.</div>
+                    </div>
+
+                    <div class="kpi-card kpi-red">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-red"><i class="fas fa-fire"></i></div>
+                            <span class="kpi-trend trend-warn"><i class="fas fa-arrow-up"></i> 4</span>
+                        </div>
+                        <div class="kpi-value">12</div>
+                        <div class="kpi-label">SLA Breaches (Today)</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">Tickets that missed their contracted SLA deadline in the past 24 hours.
+                        </div>
+                    </div>
+
+                    <div class="kpi-card kpi-orange">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-orange"><i class="fas fa-level-up-alt"></i></div>
+                            <span class="kpi-trend trend-warn"><i class="fas fa-arrow-up"></i> 2</span>
+                        </div>
+                        <div class="kpi-value">8</div>
+                        <div class="kpi-label">Escalated Incidents</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">Incidents escalated to senior engineers or management for urgent
+                            intervention.</div>
+                    </div>
+
+                    <div class="kpi-card kpi-cyan">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-cyan"><i class="fas fa-stopwatch"></i></div>
+                            <span class="kpi-trend trend-down"><i class="fas fa-arrow-down"></i> 0.3h</span>
+                        </div>
+                        <div class="kpi-value">1.2h</div>
+                        <div class="kpi-label">MTTR (Org-wide)</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">Organization-wide Mean Time To Resolution across all engineers and teams.
+                        </div>
+                    </div>
+
+                    <div class="kpi-card kpi-purple">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-purple"><i class="fas fa-redo-alt"></i></div>
+                            <span class="kpi-trend trend-down"><i class="fas fa-arrow-down"></i> 0.2%</span>
+                        </div>
+                        <div class="kpi-value">1.4%</div>
+                        <div class="kpi-label">Reopen Rate</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">Percentage of resolved tickets reopened due to incomplete or failed fixes.
+                        </div>
+                    </div>
+
+                    <div class="kpi-card kpi-green">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-green"><i class="fas fa-calendar-alt"></i></div>
+                            <span class="kpi-trend trend-neutral"><i class="fas fa-minus"></i> 0d</span>
+                        </div>
+                        <div class="kpi-value">2.4d</div>
+                        <div class="kpi-label">Incident Aging (Avg)</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">Average age of all currently open tickets — higher values indicate backlog
+                            risk.</div>
+                    </div>
+
+                </div>
+
+                <!-- 2. Governance Row -->
+                <div class="content-grid-ecosystem">
+                    <div class="span-sm">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-balance-scale"></i> Enterprise SLA Health
+                                </h3>
+                            </div>
+                            <div style="height: 220px; position: relative;">
+                                <canvas id="slaComplianceChart"></canvas>
+                            </div>
+                            <div class="telemetry-compact" style="margin-top: 15px;">
+                                <div class="tel-row">
+                                    <span>Critical Compliance</span>
+                                    <div class="tel-bar-wrap">
+                                        <div class="tel-bar" style="width: 98%; background: #10b981;"></div>
+                                    </div>
+                                    <span class="tel-val">98%</span>
+                                </div>
+                                <div class="tel-row">
+                                    <span>High Compliance</span>
+                                    <div class="tel-bar-wrap">
+                                        <div class="tel-bar" style="width: 94%; background: #22d3ee;"></div>
+                                    </div>
+                                    <span class="tel-val">94%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="span-sm">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-sort-amount-down"></i> Ticket Aging Dist.
+                                </h3>
+                            </div>
+                            <div style="height: 250px;">
+                                <canvas id="agingChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="span-sm">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-chart-line"></i> Backlog Growth (6M)</h3>
+                            </div>
+                            <div style="height: 250px;">
+                                <canvas id="backlogTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: OPERATIONS (Service & Oversight) -->
+            <div id="operations" class="dashboard-view">
+                <div class="view-header">
+                    <h2>Operations & Oversight</h2>
+                    <p>Workforce performance matrix and active service impacts.</p>
+                </div>
+
+                <!-- Service Impact Row -->
+                <div class="content-grid-ecosystem">
+                    <div class="span-md">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-network-wired"></i> Tickets by Service</h3>
+                            </div>
+                            <div style="height: 250px;">
+                                <canvas id="serviceImpactChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span-md">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-globe-americas"></i> Regional Load</h3>
+                            </div>
+                            <div style="height: 250px;">
+                                <canvas id="regionLoadChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Engineer Matrix -->
+                <div class="content-grid-ecosystem">
+                    <div class="span-full">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-users-cog"></i> Engineer Performance Matrix
+                                </h3>
+                                <div class="widget-actions">
+                                    <button class="icon-btn" title="Sort by SLA"><i class="fas fa-filter"></i></button>
+                                </div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="professional-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ENGINEER</th>
+                                            <th>ASSIGNED</th>
+                                            <th>RESOLVED (MTD)</th>
+                                            <th>MTTR</th>
+                                            <th>SLA %</th>
+                                            <th>REOPENS</th>
+                                            <th>STATUS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="engineer-matrix-body">
+                                        <!-- Populated via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: RISK & SECURITY -->
+            <div id="security" class="dashboard-view">
+                <div class="view-header">
+                    <h2>Risk & Compliance</h2>
+                    <p>Security event auditing, access controls, and cluster health visibility.</p>
+                </div>
+
+                <div class="content-grid-ecosystem">
+                    <!-- Left Column: Audits -->
+                    <div class="span-lg">
+                        <div class="widget-v2" style="flex-grow: 1;">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-fingerprint"></i> Live Audit Feed</h3>
+                                <span class="tag">SECURE</span>
+                            </div>
+                            <div class="density-list" id="audit-feed">
+                                <!-- Populated via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Compliance & Health -->
+                    <div class="span-sm">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-shield-check"></i> Security Posture</h3>
+                            </div>
+                            <div class="perf-metric" style="margin-bottom: 20px;">
+                                <span class="perf-label">Enterprise Security Score</span>
+                                <div class="score-display" style="font-size: 32px; color: #10b981;">A+<span> (98)</span>
+                                </div>
+                            </div>
+                            <div class="sla-monitor-list">
+                                <div class="sla-item">
+                                    <div class="sla-info">
+                                        <span>ISO 27001 Compliance</span>
+                                        <span class="status-dot green"></span>
+                                    </div>
+                                </div>
+                                <div class="sla-item">
+                                    <div class="sla-info">
+                                        <span>SOC 2 Type II Auditable</span>
+                                        <span class="status-dot green"></span>
+                                    </div>
+                                </div>
+                                <div class="sla-item">
+                                    <div class="sla-info">
+                                        <span>Unauthorized Access Attempts</span>
+                                        <span class="badge badge-urgent">2 Blocked</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-server"></i> High-Risk Clusters</h3>
+                            </div>
+                            <div class="telemetry-compact">
+                                <div class="tel-row">
+                                    <span>EU-Central-1</span>
+                                    <div class="tel-bar-wrap">
+                                        <div class="tel-bar" style="width: 88%; background: #f59e0b;"></div>
+                                    </div>
+                                    <span class="tel-val">WARN</span>
+                                </div>
+                                <div class="tel-row">
+                                    <span>Auth-Gateway-Primary</span>
+                                    <div class="tel-bar-wrap">
+                                        <div class="tel-bar" style="width: 95%; background: #ef4444;"></div>
+                                    </div>
+                                    <span class="tel-val">CRIT</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: ADMIN TOOLS -->
+            <div id="tools" class="dashboard-view">
+                <div class="view-header">
+                    <h2>Admin Tools & Export</h2>
+                    <p>Escalation routing, user management overlays, and reporting exports.</p>
+                </div>
+
+                <div class="content-grid-ecosystem">
+                    <div class="span-md">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-siren-on"></i> Escalation Management</h3>
+                            </div>
+                            <div class="activity-timeline" id="escalation-feed">
+                                <div class="activity-entry warning">
+                                    <span class="activity-time">T-10m</span>
+                                    <span class="activity-desc">#INC-445 Auto-escalated to Tier 3 (Database
+                                        Unreachable)</span>
+                                </div>
+                                <div class="activity-entry">
+                                    <span class="activity-time">2h ago</span>
+                                    <span class="activity-desc">#INC-319 Manager Notification Sent (Stale Ticket)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="span-md">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-users"></i> Access Control Snapshot</h3>
+                            </div>
+                            <div class="performance-grid">
+                                <div class="perf-metric">
+                                    <span class="perf-label">Active Users</span>
+                                    <div class="score-display">1,402</div>
+                                </div>
+                                <div class="perf-metric">
+                                    <span class="perf-label">Engineers Online</span>
+                                    <div class="score-display">48</div>
+                                </div>
+                                <div class="perf-metric">
+                                    <span class="perf-label">Pending Access</span>
+                                    <div class="score-display" style="color: #f59e0b;">12</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="span-full">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-file-export"></i> Organization Reports</h3>
+                            </div>
+                            <div class="resource-grid">
+                                <div class="resource-card" style="cursor: pointer;"
+                                    onclick="alert('Generating SLA Report PDF...')">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <h4>Export SLA Report</h4>
+                                    <p>Monthly compliance metrics (PDF).</p>
+                                </div>
+                                <div class="resource-card" style="cursor: pointer;"
+                                    onclick="alert('Downloading Data CSV...')">
+                                    <i class="fas fa-file-csv"></i>
+                                    <h4>Download Incident Summary</h4>
+                                    <p>Raw ticket data export (CSV).</p>
+                                </div>
+                                <div class="resource-card" style="cursor: pointer;"
+                                    onclick="alert('Preparing Audit Vault Export...')">
+                                    <i class="fas fa-file-signature"></i>
+                                    <h4>Compliance Certification</h4>
+                                    <p>SOC 2 auditable event log dump.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .system-status {
+            border: 1px solid var(--accent-blue);
+            padding: 4px 12px;
+            border-radius: 4px;
+            color: var(--accent-blue);
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .audit-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .audit-item i {
+            color: var(--accent-blue);
+        }
+
+        .audit-item small {
+            margin-left: auto;
+            font-size: 10px;
+            opacity: 0.6;
+        }
+
+        .text-red {
+            color: #ef4444;
+        }
+
+        .matrix-alert {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        /* ── KPI Cards ─────────────────────────────────────────── */
+        .admin-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: rgba(16, 24, 40, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 22px 22px 18px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 14px 14px 0 0;
+        }
+
+        .kpi-blue::before {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+
+        .kpi-green::before {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        .kpi-cyan::before {
+            background: linear-gradient(90deg, #06b6d4, #22d3ee);
+        }
+
+        .kpi-purple::before {
+            background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+        }
+
+        .kpi-orange::before {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .kpi-red::before {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .kpi-blue:hover {
+            border-color: rgba(59, 130, 246, 0.35);
+            box-shadow: 0 12px 32px rgba(59, 130, 246, 0.15);
+        }
+
+        .kpi-green:hover {
+            border-color: rgba(16, 185, 129, 0.35);
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.15);
+        }
+
+        .kpi-cyan:hover {
+            border-color: rgba(6, 182, 212, 0.35);
+            box-shadow: 0 12px 32px rgba(6, 182, 212, 0.15);
+        }
+
+        .kpi-purple:hover {
+            border-color: rgba(139, 92, 246, 0.35);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.15);
+        }
+
+        .kpi-orange:hover {
+            border-color: rgba(245, 158, 11, 0.35);
+            box-shadow: 0 12px 32px rgba(245, 158, 11, 0.15);
+        }
+
+        .kpi-red:hover {
+            border-color: rgba(239, 68, 68, 0.35);
+            box-shadow: 0 12px 32px rgba(239, 68, 68, 0.15);
+        }
+
+        .kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .kpi-icon-wrap {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .kpi-icon-blue {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        .kpi-icon-green {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .kpi-icon-cyan {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+        }
+
+        .kpi-icon-purple {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+        }
+
+        .kpi-icon-orange {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+        }
+
+        .kpi-icon-red {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .kpi-trend {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .trend-up {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+        }
+
+        .trend-down {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+        }
+
+        .trend-warn {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+        }
+
+        .trend-neutral {
+            background: rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: #f1f5f9;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .kpi-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            margin: 12px 0 10px;
+        }
+
+        .kpi-desc {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.55;
+        }
+    </style>
+    <script src="dashboard_admin.js"></script>
+</body>
+
+</html>

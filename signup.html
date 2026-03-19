@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfraTick - Sign Up</title>
+    <link rel="stylesheet" href="signup.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <div class="logo-section">
+                <div class="logo-icon"></div>
+                <span class="logo-text">InfraTick</span>
+            </div>
+
+            <h1>Backend-Centric<br><span>Infrastructure Ticketing System</span></h1>
+            <p>
+                A centralized platform for managing infrastructure incidents,
+                tracking ticket lifecycles, enforcing role-based access,
+                and monitoring SLA compliance across enterprise environments.
+            </p>
+
+            <div class="card">
+                <div class="card-icon ticket-icon"></div>
+                <div class="card-content">
+                    <h3>Ticket Lifecycle Management</h3>
+                    <p>Create, assign, track, and resolve infrastructure incidents with structured workflow states.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon sla-icon"></div>
+                <div class="card-content">
+                    <h3>SLA Monitoring</h3>
+                    <p>Automatically track resolution timelines and identify SLA breaches in real time.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon audit-icon"></div>
+                <div class="card-content">
+                    <h3>Audit Logging</h3>
+                    <p>Maintain complete change history with action tracking for accountability and compliance.</p>
+                </div>
+            </div>
+
+            <div class="footer">
+                <span>© 2024 INFRATICK OPS</span>
+                <span>·</span>
+                <span>UPTIME: 99.99%</span>
+                <span>·</span>
+                <a href="#">DOCS</a>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="logo-section">
+                <div class="logo-icon"></div>
+                <span class="logo-text">InfraTick</span>
+            </div>
+
+            <div id="signup-page">
+                <h2>Create Your Account</h2>
+                <p class="subtitle">Sign up to gain access to our infrastructure ticketing platform.</p>
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon user-icon"></span>
+                        <input type="text" placeholder="Enter your full name">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Work Email</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon email-icon"></span>
+                        <input type="email" placeholder="Enter your work email" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon lock-icon"></span>
+                        <input type="password" id="signup-password" placeholder="Enter your password"
+                            autocomplete="new-password" oninput="checkPasswordStrength(this.value)">
+                        <span class="password-strength">Strong</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Role</label>
+                    <div class="input-wrapper select-wrapper">
+                        <span class="input-icon user-icon"></span>
+                        <select>
+                            <option>Select your role</option>
+                            <option>Member</option>
+                            <option>Engineer</option>
+                            <option>Admin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="primary-btn">Sign Up →</button>
+
+                <p class="switch">Already have an account? <a href="login.html">Log in</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="signup.js"></script>
+</body>
+
+</html>
