@@ -64,8 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
             labels: ['FEB 14', 'FEB 15', 'FEB 16', 'FEB 17', 'FEB 18', 'FEB 19', 'FEB 20'],
             datasets: [
-                { label: 'URGENT', data: [2, 5, 3, 8, 4, 6, 3], backgroundColor: gradMuted, borderColor: '#3b82f6', borderWidth: 2, borderRadius: 4, stack: 'S0' },
-                { label: 'STANDARD', data: [12, 18, 11, 15, 14, 11, 8], backgroundColor: gradAccent, borderColor: '#22d3ee', borderWidth: 2, borderRadius: 4, stack: 'S0' }
+                { label: 'URGENT', data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: gradMuted, borderColor: '#3b82f6', borderWidth: 2, borderRadius: 4, stack: 'S0' },
+                { label: 'STANDARD', data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: gradAccent, borderColor: '#22d3ee', borderWidth: 2, borderRadius: 4, stack: 'S0' }
             ]
         },
         options: {
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
             labels: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'],
             datasets: [{
-                data: [12, 28, 45, 15],
+                data: [0, 0, 0, 0],
                 backgroundColor: ['#f87171', '#3b82f6', '#1d4ed8', '#1e293b'],
                 borderColor: '#0a0c14',
                 borderWidth: 4,
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             labels: ['WEEK 1', 'WEEK 2', 'WEEK 3', 'WEEK 4', 'WEEK 5', 'WEEK 6', 'WEEK 7', 'WEEK 8'],
             datasets: [{
                 label: 'PENDING VOLUME',
-                data: [120, 145, 110, 130, 95, 85, 70, 58],
+                data: [0, 0, 0, 0, 0, 0, 0, 0],
                 borderColor: '#22d3ee',
                 backgroundColor: 'rgba(34, 211, 238, 0.03)',
                 borderWidth: 3,
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
             labels: ['MET SLA', 'NEAR BREACH', 'BREACHED'],
             datasets: [{
-                data: [88, 7, 5],
+                data: [0, 0, 0],
                 backgroundColor: ['#10b981', '#fbbf24', '#f87171'],
                 borderColor: '#0a0c14',
                 borderWidth: 3

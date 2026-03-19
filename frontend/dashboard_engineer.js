@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         labels: ['NETWORK', 'DATABASE', 'STORAGE', 'COMPUTE', 'SECURITY'],
                         datasets: [{
                             label: 'TICKETS RESOLVED (MTD)',
-                            data: [35, 42, 28, 56, 18],
+                            data: [0, 0, 0, 0, 0],
                             backgroundColor: gradientResolved,
                             borderColor: '#0a0c14',
                             borderWidth: 2,
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     data: {
                         labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
                         datasets: [{
-                            data: [2.1, 1.8, 1.4, 1.6, 1.2, 0.9, 0.8],
+                            data: [0, 0, 0, 0, 0, 0, 0],
                             borderColor: '#22d3ee',
                             backgroundColor: 'rgba(34, 211, 238, 0.05)',
                             borderWidth: 2,
@@ -149,12 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const body = document.getElementById('resolved-tickets-body');
             if (!body) return;
 
-            const resolvedData = [
-                { id: '1012', title: 'Memory Leak: API-Gateway', time: '14m', status: 'RESOLVED' },
-                { id: '1008', title: 'Auth Service Latency', time: '28m', status: 'RESOLVED' },
-                { id: '0995', title: 'S3 Sync Timeout', time: '1.5h', status: 'RESOLVED' },
-                { id: '0990', title: 'VPN Tunnel Re-init', time: '12m', status: 'RESOLVED' }
-            ];
+            const resolvedData = [];
+
+            if (resolvedData.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 30px;">No recently resolved tickets.</td></tr>';
+                return;
+            }
 
             body.innerHTML = resolvedData.map(ticket => `
                 <tr>

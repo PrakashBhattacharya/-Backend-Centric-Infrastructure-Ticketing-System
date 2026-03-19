@@ -62,7 +62,7 @@
                             <div class="kpi-icon-wrap kpi-icon-blue"><i class="fas fa-ticket-alt"></i></div>
                             <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 3</span>
                         </div>
-                        <div class="kpi-value">12</div>
+                        <div class="kpi-value">0</div>
                         <div class="kpi-label">Active Tickets</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">Tickets currently open or being worked on by an assigned engineer.</div>
@@ -73,7 +73,7 @@
                             <div class="kpi-icon-wrap kpi-icon-green"><i class="fas fa-check-circle"></i></div>
                             <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 8</span>
                         </div>
-                        <div class="kpi-value">45</div>
+                        <div class="kpi-value">0</div>
                         <div class="kpi-label">Resolved Total</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">All tickets successfully closed and confirmed resolved since account
@@ -85,7 +85,7 @@
                             <div class="kpi-icon-wrap kpi-icon-cyan"><i class="fas fa-bolt"></i></div>
                             <span class="kpi-trend trend-down"><i class="fas fa-arrow-down"></i> 0.3h</span>
                         </div>
-                        <div class="kpi-value">2.4h</div>
+                        <div class="kpi-value">0.0h</div>
                         <div class="kpi-label">Avg. Response Time</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">Average time from ticket submission to first engineer acknowledgment.
@@ -97,7 +97,7 @@
                             <div class="kpi-icon-wrap kpi-icon-purple"><i class="fas fa-shield-alt"></i></div>
                             <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 2%</span>
                         </div>
-                        <div class="kpi-value">94%</div>
+                        <div class="kpi-value">0%</div>
                         <div class="kpi-label">SLA Compliance</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">Percentage of your tickets resolved within the contracted service-level
@@ -109,7 +109,7 @@
                             <div class="kpi-icon-wrap kpi-icon-orange"><i class="fas fa-exclamation-triangle"></i></div>
                             <span class="kpi-trend trend-neutral"><i class="fas fa-minus"></i> 0</span>
                         </div>
-                        <div class="kpi-value">3</div>
+                        <div class="kpi-value">0</div>
                         <div class="kpi-label">Urgent Tickets</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">High or critical priority issues requiring immediate engineer
@@ -121,7 +121,7 @@
                             <div class="kpi-icon-wrap kpi-icon-red"><i class="fas fa-hourglass-end"></i></div>
                             <span class="kpi-trend trend-warn"><i class="fas fa-arrow-up"></i> 1</span>
                         </div>
-                        <div class="kpi-value">1</div>
+                        <div class="kpi-value">0</div>
                         <div class="kpi-label">Breached SLA</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">Tickets that exceeded the agreed resolution deadline and require
@@ -224,21 +224,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr onclick="openTicketDetail('#INC-982')">
-                                    <td>#INC-982</td>
-                                    <td>VPN Connection Timeout</td>
-                                    <td><span class="badge badge-urgent">High</span></td>
-                                    <td><span class="status prog">In Progress</span></td>
-                                    <td><span class="status open">On Time</span></td>
-                                    <td>2026-02-12</td>
-                                </tr>
-                                <tr onclick="openTicketDetail('#INC-983')">
-                                    <td>#INC-983</td>
-                                    <td>Server Downtime Issue</td>
-                                    <td><span class="badge badge-critical">Critical</span></td>
-                                    <td><span class="status open">Open</span></td>
-                                    <td><span class="status breached">Breached</span></td>
-                                    <td>2026-02-10</td>
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 30px;">No tickets found. You haven't submitted any incidents yet.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -971,7 +958,7 @@
             closeModal('ticket-modal');
         }
     </script>
-    <script src="dashboard_member.js?v=1.1"></script>
+    <script src="dashboard_member.js?v=2.0"></script>
 </body>
 
 </html>

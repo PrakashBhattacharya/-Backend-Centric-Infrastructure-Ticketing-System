@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'doughnut',
             data: {
                 labels: ['Critical Met', 'High Met', 'Breached'],
-                datasets: [{ data: [85, 12, 3], backgroundColor: ['#10b981', '#22d3ee', '#ef4444'], borderWidth: 0, hoverOffset: 4 }]
+                datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#22d3ee', '#ef4444'], borderWidth: 0, hoverOffset: 4 }]
             },
             options: {
                 cutout: '72%', responsive: true, maintainAspectRatio: false,
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'bar',
             data: {
                 labels: ['0-1d', '1-3d', '3-7d', '7d+'],
-                datasets: [{ label: 'Tickets', data: [145, 85, 42, 18], backgroundColor: '#3b82f6', borderRadius: 4 }]
+                datasets: [{ label: 'Tickets', data: [0, 0, 0, 0], backgroundColor: '#3b82f6', borderRadius: 4 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
                 datasets: [{
-                    label: 'Open Backlog', data: [420, 390, 450, 480, 410, 342],
+                    label: 'Open Backlog', data: [0, 0, 0, 0, 0, 0],
                     borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.12)',
                     borderWidth: 2, tension: 0.4, fill: true
                 }]
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'bar',
             data: {
                 labels: ['Database', 'Network', 'Auth', 'Storage', 'Compute'],
-                datasets: [{ label: 'Tickets MTD', data: [124, 98, 75, 54, 32], backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#64748b'], borderRadius: 4 }]
+                datasets: [{ label: 'Tickets MTD', data: [0, 0, 0, 0, 0], backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#64748b'], borderRadius: 4 }]
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'pie',
             data: {
                 labels: ['NA-East', 'EU-Central', 'APAC-South', 'NA-West'],
-                datasets: [{ data: [45, 25, 20, 10], backgroundColor: ['#3b82f6', '#22d3ee', '#8b5cf6', '#f43f5e'], borderWidth: 0 }]
+                datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#3b82f6', '#22d3ee', '#8b5cf6', '#f43f5e'], borderWidth: 0 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
@@ -149,6 +149,12 @@ document.addEventListener('DOMContentLoaded', function () {
             { name: 'David Chen', assigned: 9, resolved: 15, mttr: '4.2h', sla: 75, reopens: '5.1%', status: 'critical' },
             { name: 'Aisha Patel', assigned: 11, resolved: 51, mttr: '0.9h', sla: 99, reopens: '0.2%', status: 'excellent' }
         ];
+        engineers = []; // Clear engineers array for an empty platform
+        if (engineers.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:30px;">No engineers onboarded yet.</td></tr>';
+            return;
+        }
+
         var statusMap = {
             excellent: '<span class="status resolved">Excellent</span>',
             good: '<span class="status open">Good</span>',
@@ -183,6 +189,12 @@ document.addEventListener('DOMContentLoaded', function () {
             { icon: 'fa-key', color: '#10b981', text: 'SSH Jump Box Certificate Auto-Rotated', time: '5h ago' },
             { icon: 'fa-lock-open', color: '#8b5cf6', text: 'Sudo Privileges Escalated → Marcus Cole', time: '6h ago' }
         ];
+        logs = []; // Clear audit logs
+        if (logs.length === 0) {
+            feed.innerHTML = '<div class="audit-item"><span style="color:var(--text-secondary); width:100%; text-align:center;">No audit events found.</span></div>';
+            return;
+        }
+
         feed.innerHTML = logs.map(function (l) {
             return '<div class="audit-item">'
                 + '<i class="fas ' + l.icon + '" style="color:' + l.color + ';min-width:16px;"></i>'

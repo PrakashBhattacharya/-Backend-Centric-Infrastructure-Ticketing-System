@@ -62,7 +62,7 @@
                             <div class="kpi-icon-wrap kpi-icon-blue"><i class="fas fa-tasks"></i></div>
                             <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 2</span>
                         </div>
-                        <div class="kpi-value">14</div>
+                        <div class="kpi-value">0</div>
                         <div class="kpi-label">Tickets Assigned</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">Total incidents currently assigned to you and awaiting resolution.</div>
@@ -73,7 +73,7 @@
                             <div class="kpi-icon-wrap kpi-icon-red"><i class="fas fa-exclamation-circle"></i></div>
                             <span class="kpi-trend trend-warn"><i class="fas fa-arrow-up"></i> 1</span>
                         </div>
-                        <div class="kpi-value">3</div>
+                        <div class="kpi-value">0</div>
                         <div class="kpi-label">Overdue</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">Tickets that have exceeded their SLA deadline and need immediate action.
@@ -85,7 +85,7 @@
                             <div class="kpi-icon-wrap kpi-icon-orange"><i class="fas fa-hourglass-half"></i></div>
                             <span class="kpi-trend trend-neutral"><i class="fas fa-minus"></i> 0</span>
                         </div>
-                        <div class="kpi-value">5</div>
+                        <div class="kpi-value">0</div>
                         <div class="kpi-label">Due Today</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">Tickets with SLA resolution deadlines expiring within the next 24 hours.
@@ -97,7 +97,7 @@
                             <div class="kpi-icon-wrap kpi-icon-cyan"><i class="fas fa-bolt"></i></div>
                             <span class="kpi-trend trend-down"><i class="fas fa-arrow-down"></i> 0.2h</span>
                         </div>
-                        <div class="kpi-value">1.4h</div>
+                        <div class="kpi-value">0.0h</div>
                         <div class="kpi-label">Avg. MTTR</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">Mean Time To Resolution — average time from assignment to confirmed fix.
@@ -109,7 +109,7 @@
                             <div class="kpi-icon-wrap kpi-icon-green"><i class="fas fa-check-double"></i></div>
                             <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 3%</span>
                         </div>
-                        <div class="kpi-value">94%</div>
+                        <div class="kpi-value">0%</div>
                         <div class="kpi-label">SLA Compliance</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">Percentage of your resolved tickets that met the contracted SLA deadline.
@@ -121,7 +121,7 @@
                             <div class="kpi-icon-wrap kpi-icon-purple"><i class="fas fa-level-up-alt"></i></div>
                             <span class="kpi-trend trend-warn"><i class="fas fa-arrow-up"></i> 1</span>
                         </div>
-                        <div class="kpi-value">2</div>
+                        <div class="kpi-value">0</div>
                         <div class="kpi-label">Escalated</div>
                         <div class="kpi-divider"></div>
                         <div class="kpi-desc">Tickets escalated to a higher tier due to complexity or missed response
@@ -153,68 +153,7 @@
                                     </thead>
                                     <tbody id="engineer-queue-body">
                                         <tr>
-                                            <td>#INC-1024</td>
-                                            <td>
-                                                <div class="incident-cell">
-                                                    <span class="inc-title">DB Lag: Prod-Alpha</span>
-                                                    <span class="inc-subtext">Service: SQL-A • Latency > 200ms</span>
-                                                </div>
-                                            </td>
-                                            <td><span class="badge badge-critical">Critical</span></td>
-                                            <td>
-                                                <span class="status breached sla-timer" data-expiry="1200">19:59</span>
-                                            </td>
-                                            <td><span class="tag">PROD</span></td>
-                                            <td>
-                                                <div class="action-group">
-                                                    <button class="primary-btn sm"
-                                                        onclick="assignTicket('1024')">Assign</button>
-                                                    <button class="icon-btn sm"><i
-                                                            class="fas fa-ellipsis-v"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>#INC-1020</td>
-                                            <td>
-                                                <div class="incident-cell">
-                                                    <span class="inc-title">Firewall Rule Block</span>
-                                                    <span class="inc-subtext">Global Policy • Security-Hub</span>
-                                                </div>
-                                            </td>
-                                            <td><span class="badge badge-urgent">High</span></td>
-                                            <td>
-                                                <span class="status open sla-timer" data-expiry="7200">01:59:59</span>
-                                            </td>
-                                            <td><span class="tag">STAGE</span></td>
-                                            <td>
-                                                <div class="action-group">
-                                                    <button class="primary-btn sm">Investigate</button>
-                                                    <button class="icon-btn sm"><i
-                                                            class="fas fa-ellipsis-v"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>#INC-998</td>
-                                            <td>
-                                                <div class="incident-cell">
-                                                    <span class="inc-title">Mirroring Delay</span>
-                                                    <span class="inc-subtext">Asia-South Region • Storage-X</span>
-                                                </div>
-                                            </td>
-                                            <td><span class="badge badge-urgent">High</span></td>
-                                            <td>
-                                                <span class="status prog">In Progress</span>
-                                            </td>
-                                            <td><span class="tag">PROD</span></td>
-                                            <td>
-                                                <div class="action-group">
-                                                    <button class="primary-btn sm secondary">Mark Fixed</button>
-                                                    <button class="icon-btn sm"><i
-                                                            class="fas fa-ellipsis-v"></i></button>
-                                                </div>
-                                            </td>
+                                            <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 30px;">Queue is clear. No active incidents.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -234,11 +173,11 @@
                                 </div>
                                 <div class="perf-metric">
                                     <span class="perf-label">Res. Score</span>
-                                    <div class="score-display" style="font-size: 20px;">9.8<span>/10</span></div>
+                                    <div class="score-display" style="font-size: 20px;">0.0<span>/10</span></div>
                                 </div>
                                 <div class="perf-metric">
                                     <span class="perf-label">Reopen</span>
-                                    <div class="score-display" style="font-size: 20px;">0.8%</div>
+                                    <div class="score-display" style="font-size: 20px;">0.0%</div>
                                 </div>
                             </div>
                         </div>
@@ -294,24 +233,7 @@
                                 <h3 class="widget-v2-title"><i class="fas fa-stopwatch"></i> Live SLA Monitor</h3>
                             </div>
                             <div class="sla-monitor-list">
-                                <div class="sla-item critical">
-                                    <div class="sla-info">
-                                        <span class="sla-id">#INC-1024</span>
-                                        <span class="sla-time">20m left</span>
-                                    </div>
-                                    <div class="sla-progress">
-                                        <div class="sla-fill red" style="width: 85%;"></div>
-                                    </div>
-                                </div>
-                                <div class="sla-item warning">
-                                    <div class="sla-info">
-                                        <span class="sla-id">#INC-1020</span>
-                                        <span class="sla-time">2h left</span>
-                                    </div>
-                                    <div class="sla-progress">
-                                        <div class="sla-fill orange" style="width: 40%;"></div>
-                                    </div>
-                                </div>
+                                <div style="text-align: center; color: var(--text-secondary); padding: 20px;">No Active SLAs</div>
                             </div>
                         </div>
 
@@ -321,18 +243,7 @@
                                 <h3 class="widget-v2-title"><i class="fas fa-stream"></i> Recent Activity</h3>
                             </div>
                             <div class="activity-timeline">
-                                <div class="activity-entry">
-                                    <span class="activity-time">12:32</span>
-                                    <span class="activity-desc">#INC-1024 assigned to Sarah J.</span>
-                                </div>
-                                <div class="activity-entry">
-                                    <span class="activity-time">12:35</span>
-                                    <span class="activity-desc">Status changed to Investigating</span>
-                                </div>
-                                <div class="activity-entry warning">
-                                    <span class="activity-time">12:50</span>
-                                    <span class="activity-desc">SLA Warning: T-30m breach</span>
-                                </div>
+                                <div style="text-align: center; color: var(--text-secondary); padding: 20px;">No Recent Activity</div>
                             </div>
                         </div>
                     </div>
@@ -631,7 +542,7 @@
             line-height: 1.55;
         }
     </style>
-    <script src="dashboard_engineer.js"></script>
+    <script src="dashboard_engineer.js?v=2.0"></script>
 </body>
 
 </html>
