@@ -19,3 +19,52 @@ function checkPasswordStrength(password) {
         strengthElement.style.color = "#10b981";
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const signupBtn = document.querySelector('.primary-btn');
+    
+    if (signupBtn) {
+        signupBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            // Get values
+            const inputs = document.querySelectorAll('input');
+            const fullName = inputs[0].value.trim();
+            const email = inputs[1].value.trim();
+            const password = inputs[2].value;
+            const roleSelect = document.querySelector('select');
+            const role = roleSelect.value;
+            
+            if (!fullName || !email || !password || role === 'Select your role') {
+                alert('Please fill out all fields and select a role.');
+                return;
+            }
+            
+            signupBtn.textContent = 'Signing up...';
+            signupBtn.disabled = true;
+            
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullName, email, password, role })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Signup successful! Please log in.');
+                    window.location.href = 'login.html';
+                } else {
+                    alert('Signup failed: ' + data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error connecting to backend.');
+            } finally {
+                signupBtn.textContent = 'Sign Up →';
+                signupBtn.disabled = false;
+            }
+        });
+    }
+});

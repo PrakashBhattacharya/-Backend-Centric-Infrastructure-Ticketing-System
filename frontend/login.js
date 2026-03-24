@@ -33,16 +33,47 @@ document.addEventListener('DOMContentLoaded', function () {
   setTimeout(clearLoginFields, 100);
   setTimeout(clearLoginFields, 500);
 
-  // Link Login button to Dashboard
+  // Link Login button to Dashboard via backend API
   const loginBtn = document.querySelector('.primary-btn');
   if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-      // Get current active role
-      const activeRoleCard = document.querySelector('.role-card.active');
-      const role = activeRoleCard ? activeRoleCard.dataset.role : 'member';
+    loginBtn.addEventListener('click', async () => {
+      const emailInput = document.querySelector('#login-page input[type="email"]');
+      const passwordInput = document.getElementById('login-password');
+      
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      
+      if (!email || !password) {
+        alert('Please enter both email and password.');
+        return;
+      }
 
-      // Redirect based on role
-      window.location.href = `dashboard_${role}.html`;
+      loginBtn.textContent = 'Authenticating...';
+      loginBtn.disabled = true;
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Save token if needed, then redirect based on role
+            localStorage.setItem('auth_token', data.token);
+            window.location.href = `dashboard_${data.role}.html`;
+        } else {
+            alert('Login failed: ' + data.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error connecting to backend.');
+      } finally {
+        loginBtn.textContent = 'Login';
+        loginBtn.disabled = false;
+      }
     });
   }
 });
