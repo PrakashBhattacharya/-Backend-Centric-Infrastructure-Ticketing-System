@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Clear login fields on load and after a short delay
   function clearLoginFields() {
-    const loginEmail = document.querySelector('#login-page input[type="email"]');
+    const loginEmail = document.getElementById('login-email');
     const loginPassword = document.getElementById('login-password');
     if (loginEmail) loginEmail.value = '';
     if (loginPassword) loginPassword.value = '';
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const loginBtn = document.querySelector('.primary-btn');
   if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
-      const emailInput = document.querySelector('#login-page input[type="email"]');
+      const emailInput = document.getElementById('login-email');
       const passwordInput = document.getElementById('login-password');
       
       const email = emailInput.value.trim();

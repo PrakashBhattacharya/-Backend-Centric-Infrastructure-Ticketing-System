@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             
             // Get values
-            const inputs = document.querySelectorAll('input');
-            const fullName = inputs[0].value.trim();
-            const email = inputs[1].value.trim();
-            const password = inputs[2].value;
+            const inputs = document.querySelectorAll('input'); // Fallback in case ID is missing
+            const fullName = (document.getElementById('signup-fullname') || inputs[0]).value.trim();
+            const email = (document.getElementById('signup-email') || inputs[1]).value.trim();
+            const password = (document.getElementById('signup-password') || inputs[2]).value;
             const roleSelect = document.querySelector('select');
             const role = roleSelect.value;
             
