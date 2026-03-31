@@ -34,7 +34,22 @@ function openTicketDetail(id) {
     modal.style.display = 'flex';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // FETCH DATA
+    let dbData = {
+        velocityData: { urgent: [0,0,0,0,0,0,0], standard: [0,0,0,0,0,0,0] },
+        priorityData: [0, 0, 0, 0],
+        backlogData: [0, 0, 0, 0, 0, 0, 0, 0],
+        slaData: [0, 0, 0]
+    };
+    try {
+        const res = await fetch('http://127.0.0.1:5000/api/member/dashboard');
+        const json = await res.json();
+        if (json.success) dbData = json;
+    } catch(err) {
+        console.error("Backend fetch failed:", err);
+    }
+
     // Shared chart options
     const commonOptions = {
         responsive: true,
@@ -64,8 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
             labels: ['FEB 14', 'FEB 15', 'FEB 16', 'FEB 17', 'FEB 18', 'FEB 19', 'FEB 20'],
             datasets: [
-                { label: 'URGENT', data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: gradMuted, borderColor: '#3b82f6', borderWidth: 2, borderRadius: 4, stack: 'S0' },
-                { label: 'STANDARD', data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: gradAccent, borderColor: '#22d3ee', borderWidth: 2, borderRadius: 4, stack: 'S0' }
+                { label: 'URGENT', data: dbData.velocityData.urgent, backgroundColor: gradMuted, borderColor: '#3b82f6', borderWidth: 2, borderRadius: 4, stack: 'S0' },
+                { label: 'STANDARD', data: dbData.velocityData.standard, backgroundColor: gradAccent, borderColor: '#22d3ee', borderWidth: 2, borderRadius: 4, stack: 'S0' }
             ]
         },
         options: {
@@ -84,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
             labels: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'],
             datasets: [{
-                data: [0, 0, 0, 0],
+                data: dbData.priorityData,
                 backgroundColor: ['#f87171', '#3b82f6', '#1d4ed8', '#1e293b'],
                 borderColor: '#0a0c14',
                 borderWidth: 4,
@@ -102,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             labels: ['WEEK 1', 'WEEK 2', 'WEEK 3', 'WEEK 4', 'WEEK 5', 'WEEK 6', 'WEEK 7', 'WEEK 8'],
             datasets: [{
                 label: 'PENDING VOLUME',
-                data: [0, 0, 0, 0, 0, 0, 0, 0],
+                data: dbData.backlogData,
                 borderColor: '#22d3ee',
                 backgroundColor: 'rgba(34, 211, 238, 0.03)',
                 borderWidth: 3,
@@ -131,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
             labels: ['MET SLA', 'NEAR BREACH', 'BREACHED'],
             datasets: [{
-                data: [0, 0, 0],
+                data: dbData.slaData,
                 backgroundColor: ['#10b981', '#fbbf24', '#f87171'],
                 borderColor: '#0a0c14',
                 borderWidth: 3

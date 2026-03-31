@@ -1,4 +1,21 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+
+    let dbData = {
+        slaComplianceData: [0,0,0],
+        agingData: [0,0,0,0],
+        backlogTrendData: [0,0,0,0,0,0],
+        serviceImpactData: [0,0,0,0,0],
+        regionLoadData: [0,0,0,0],
+        engineers: [],
+        auditLogs: []
+    };
+    try {
+        const res = await fetch('http://127.0.0.1:5000/api/admin/overview');
+        const json = await res.json();
+        if (json.success) dbData = json;
+    } catch(err) {
+        console.error("Backend fetch failed:", err);
+    }
 
     // ─── STEP 1: TAB SWITCHING ───────────────────────────────────────────────
     var navItems = document.querySelectorAll('.nav-item[data-view]');
@@ -38,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'doughnut',
             data: {
                 labels: ['Critical Met', 'High Met', 'Breached'],
-                datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#22d3ee', '#ef4444'], borderWidth: 0, hoverOffset: 4 }]
+                datasets: [{ data: dbData.slaComplianceData, backgroundColor: ['#10b981', '#22d3ee', '#ef4444'], borderWidth: 0, hoverOffset: 4 }]
             },
             options: {
                 cutout: '72%', responsive: true, maintainAspectRatio: false,
@@ -53,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'bar',
             data: {
                 labels: ['0-1d', '1-3d', '3-7d', '7d+'],
-                datasets: [{ label: 'Tickets', data: [0, 0, 0, 0], backgroundColor: '#3b82f6', borderRadius: 4 }]
+                datasets: [{ label: 'Tickets', data: dbData.agingData, backgroundColor: '#3b82f6', borderRadius: 4 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
@@ -70,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
                 datasets: [{
-                    label: 'Open Backlog', data: [0, 0, 0, 0, 0, 0],
+                    label: 'Open Backlog', data: dbData.backlogTrendData,
                     borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.12)',
                     borderWidth: 2, tension: 0.4, fill: true
                 }]
@@ -89,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'bar',
             data: {
                 labels: ['Database', 'Network', 'Auth', 'Storage', 'Compute'],
-                datasets: [{ label: 'Tickets MTD', data: [0, 0, 0, 0, 0], backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#64748b'], borderRadius: 4 }]
+                datasets: [{ label: 'Tickets MTD', data: dbData.serviceImpactData, backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#64748b'], borderRadius: 4 }]
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
@@ -105,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'pie',
             data: {
                 labels: ['NA-East', 'EU-Central', 'APAC-South', 'NA-West'],
-                datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#3b82f6', '#22d3ee', '#8b5cf6', '#f43f5e'], borderWidth: 0 }]
+                datasets: [{ data: dbData.regionLoadData, backgroundColor: ['#3b82f6', '#22d3ee', '#8b5cf6', '#f43f5e'], borderWidth: 0 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
@@ -142,14 +159,9 @@ document.addEventListener('DOMContentLoaded', function () {
     (function populateEngineers() {
         var tbody = document.getElementById('engineer-matrix-body');
         if (!tbody) return;
-        var engineers = [
-            { name: 'Sarah Jenkins', assigned: 14, resolved: 56, mttr: '1.2h', sla: 98, reopens: '0.5%', status: 'excellent' },
-            { name: 'Marcus Cole', assigned: 18, resolved: 42, mttr: '1.8h', sla: 94, reopens: '1.2%', status: 'good' },
-            { name: 'Elena Rostova', assigned: 22, resolved: 38, mttr: '2.5h', sla: 88, reopens: '3.4%', status: 'warning' },
-            { name: 'David Chen', assigned: 9, resolved: 15, mttr: '4.2h', sla: 75, reopens: '5.1%', status: 'critical' },
-            { name: 'Aisha Patel', assigned: 11, resolved: 51, mttr: '0.9h', sla: 99, reopens: '0.2%', status: 'excellent' }
-        ];
-        engineers = []; // Clear engineers array for an empty platform
+        
+        var engineers = dbData.engineers;
+
         if (engineers.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:30px;">No engineers onboarded yet.</td></tr>';
             return;
@@ -181,15 +193,9 @@ document.addEventListener('DOMContentLoaded', function () {
     (function populateAuditFeed() {
         var feed = document.getElementById('audit-feed');
         if (!feed) return;
-        var logs = [
-            { icon: 'fa-shield-alt', color: '#3b82f6', text: 'Global IAM Role Policy Updated', time: '2m ago' },
-            { icon: 'fa-user-times', color: '#94a3b8', text: 'Offboarded Engineer ID #4092', time: '14m ago' },
-            { icon: 'fa-exclamation-triangle', color: '#ef4444', text: 'Login Failure Spike Detected — IP Segment A', time: '1h ago', danger: true },
-            { icon: 'fa-database', color: '#f59e0b', text: 'Production DB Snapshot Triggered Manually', time: '3h ago' },
-            { icon: 'fa-key', color: '#10b981', text: 'SSH Jump Box Certificate Auto-Rotated', time: '5h ago' },
-            { icon: 'fa-lock-open', color: '#8b5cf6', text: 'Sudo Privileges Escalated → Marcus Cole', time: '6h ago' }
-        ];
-        logs = []; // Clear audit logs
+        
+        var logs = dbData.auditLogs;
+
         if (logs.length === 0) {
             feed.innerHTML = '<div class="audit-item"><span style="color:var(--text-secondary); width:100%; text-align:center;">No audit events found.</span></div>';
             return;

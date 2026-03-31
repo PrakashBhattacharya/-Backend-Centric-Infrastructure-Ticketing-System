@@ -1,4 +1,19 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // FETCH DATA
+    let dbData = {
+        resolvedData: [0, 0, 0, 0, 0],
+        mttrData: [0, 0, 0, 0, 0, 0, 0],
+        telemetryData: [0, 0, 0],
+        resolvedTickets: []
+    };
+    try {
+        const res = await fetch('http://127.0.0.1:5000/api/engineer/queue');
+        const json = await res.json();
+        if (json.success) dbData = json;
+    } catch(err) {
+        console.error("Backend fetch failed:", err);
+    }
+
     // 1. Performance Charts
     const initPerformanceCharts = () => {
         try {
@@ -16,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         labels: ['NETWORK', 'DATABASE', 'STORAGE', 'COMPUTE', 'SECURITY'],
                         datasets: [{
                             label: 'TICKETS RESOLVED (MTD)',
-                            data: [0, 0, 0, 0, 0],
+                            data: dbData.resolvedData,
                             backgroundColor: gradientResolved,
                             borderColor: '#0a0c14',
                             borderWidth: 2,
@@ -56,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     data: {
                         labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
                         datasets: [{
-                            data: [0, 0, 0, 0, 0, 0, 0],
+                            data: dbData.mttrData,
                             borderColor: '#22d3ee',
                             backgroundColor: 'rgba(34, 211, 238, 0.05)',
                             borderWidth: 2,
@@ -87,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setInterval(() => {
                 timers.forEach(timer => {
+                    if (!timer.hasAttribute('data-expiry')) return;
                     let seconds = parseInt(timer.getAttribute('data-expiry'));
                     if (seconds > 0) {
                         seconds--;
@@ -120,6 +136,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const bars = document.querySelectorAll('.tel-bar');
             const vals = document.querySelectorAll('.tel-val');
 
+            // Set initial telemetry data from backend instead of reading DOM style if available
+            bars.forEach((bar, index) => {
+                const initialVal = dbData.telemetryData[index] || 50;
+                bar.style.width = initialVal + '%';
+                if (vals[index]) vals[index].textContent = initialVal + '%';
+            });
+
             setInterval(() => {
                 bars.forEach((bar, index) => {
                     const currentWidth = parseInt(bar.style.width);
@@ -149,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const body = document.getElementById('resolved-tickets-body');
             if (!body) return;
 
-            const resolvedData = [];
+            const resolvedData = dbData.resolvedTickets;
 
             if (resolvedData.length === 0) {
                 body.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 30px;">No recently resolved tickets.</td></tr>';
