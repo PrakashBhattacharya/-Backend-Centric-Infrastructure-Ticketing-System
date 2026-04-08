@@ -1,7 +1,7 @@
 import urllib.request
 import urllib.error
 
-url = 'https://backend-centric-infrastructure-ticketing-system-8aqixx5hn.vercel.app/api/status'
+url = 'https://backend-centric-infrastructure-tick-ten.vercel.app/api/status'
 try:
     response = urllib.request.urlopen(url)
     print("STATUS", response.status)
