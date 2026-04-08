@@ -1,15 +1,12 @@
 import sys
-import traceback
+import os
 
-def application(environ, start_response):
-    start_response('500 Internal Server Error', [('Content-Type', 'text/plain')])
-    return [b"CRITICAL BOOT ERROR:\n\n" + traceback.format_exc().encode()]
+# Ensure the backend directory is in the Python path
+sys.path.insert(0, os.path.dirname(__file__))
 
-try:
-    from app import create_app
-    app = create_app()
-except Exception as e:
-    app = application
+from app import create_app
+
+app = create_app()
 
 if __name__ == "__main__":
     app.run()
