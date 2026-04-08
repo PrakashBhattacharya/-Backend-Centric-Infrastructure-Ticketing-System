@@ -12,9 +12,12 @@ class Config:
     
     SECRET_KEY = os.environ.get('SECRET_KEY', 'infratick-enterprise-secret-2026')
     
-    # Database path in instance folder
+    # Database path in instance folder (Legacy SQLite)
     INSTANCE_PATH = os.path.join(BACKEND_ROOT, 'instance')
     DB_PATH = os.environ.get('DB_PATH', os.path.join(INSTANCE_PATH, 'infratick.db'))
+    
+    # Provide Postgres URL from Vercel env
+    POSTGRES_URL = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
     
     DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
     
