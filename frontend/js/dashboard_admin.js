@@ -302,7 +302,7 @@ async function openTicketDetail(ticketId) {
 
         const slaEl = document.getElementById('modal-sla-countdown');
         const now = new Date();
-        const slaDeadline = new Date(t.sla_deadline + 'Z');
+        const slaDeadline = parseDate(t.sla_deadline);
         if (t.status === 'Resolved' || t.status === 'Closed') {
             slaEl.textContent = 'Resolved';
             slaEl.style.color = '#10b981';
@@ -317,7 +317,7 @@ async function openTicketDetail(ticketId) {
             slaEl.style.color = hours < 2 ? '#f59e0b' : '#10b981';
         }
 
-        document.getElementById('modal-created').textContent = new Date(t.created_at + 'Z').toLocaleDateString();
+        document.getElementById('modal-created').textContent = parseDate(t.created_at).toLocaleDateString();
 
         // Comments
         const commentsDiv = document.getElementById('modal-comments');
@@ -325,7 +325,7 @@ async function openTicketDetail(ticketId) {
             commentsDiv.innerHTML = data.comments.map(c => `
                 <div class="timeline-item">
                     <div class="timeline-point"></div>
-                    <div class="timeline-info">${c.author_name} | ${new Date(c.created_at + 'Z').toLocaleString()}</div>
+                    <div class="timeline-info">${c.author_name} | ${parseDate(c.created_at).toLocaleString()}</div>
                     <div class="timeline-action">${c.text}</div>
                 </div>
             `).join('');

@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             let matchSla = true;
             if (sla !== 'All') {
                 const now = new Date();
-                const deadline = new Date(t.sla_deadline + 'Z');
+                const deadline = parseDate(t.sla_deadline);
                 const isBreached = now > deadline && t.status !== 'Resolved' && t.status !== 'Closed';
                 matchSla = (sla === 'Breached' ? isBreached : !isBreached);
             }
@@ -328,7 +328,7 @@ function populateTicketTable(tickets) {
         const priorityClass = t.priority === 'Critical' ? 'critical' : (t.priority === 'High' ? 'high' : (t.priority === 'Medium' ? 'med' : 'low'));
         const statusClass = t.status === 'Resolved' ? 'resolved' : (t.status === 'In Progress' ? 'prog' : (t.status === 'Open' ? 'open' : 'resolved'));
         const now = new Date();
-        const slaDeadline = new Date(t.sla_deadline + 'Z');
+        const slaDeadline = parseDate(t.sla_deadline);
         const slaBreached = now > slaDeadline && t.status !== 'Resolved' && t.status !== 'Closed';
         const slaText = slaBreached ? 'Breached' : (t.status === 'Resolved' || t.status === 'Closed' ? 'Met' : 'On Track');
         const slaClass = slaBreached ? 'breached' : (t.status === 'Resolved' || t.status === 'Closed' ? 'resolved' : 'open');
@@ -339,7 +339,7 @@ function populateTicketTable(tickets) {
             <td><span class="priority ${priorityClass}">${t.priority}</span></td>
             <td><span class="status ${statusClass}">${t.status}</span></td>
             <td><span class="status ${slaClass}">${slaText}</span></td>
-            <td>${new Date(t.created_at + 'Z').toLocaleDateString()}</td>
+            <td>${parseDate(t.created_at).toLocaleDateString()}</td>
         </tr>`;
     }).join('');
 }
@@ -370,7 +370,7 @@ async function openTicketDetail(ticketId) {
 
         const slaEl = document.getElementById('modal-sla-countdown');
         const now = new Date();
-        const slaDeadline = new Date(t.sla_deadline + 'Z');
+        const slaDeadline = parseDate(t.sla_deadline);
         if (t.status === 'Resolved' || t.status === 'Closed') {
             slaEl.textContent = 'Resolved';
             slaEl.style.color = '#10b981';
@@ -385,7 +385,7 @@ async function openTicketDetail(ticketId) {
             slaEl.style.color = hours < 2 ? '#f59e0b' : '#10b981';
         }
 
-        document.getElementById('modal-created').textContent = new Date(t.created_at + 'Z').toLocaleDateString();
+        document.getElementById('modal-created').textContent = parseDate(t.created_at).toLocaleDateString();
 
         modal.style.display = 'flex';
     } catch (err) {
@@ -429,7 +429,7 @@ async function submitNewTicket(e) {
         const data = await res.json();
 
         if (data.success) {
-            alert(`✅ Ticket #INC-${data.ticket.id} created successfully!\n\nPriority: ${priority}\nSLA Deadline: ${new Date(data.ticket.sla_deadline + 'Z').toLocaleString()}`);
+            alert(`✅ Ticket #INC-${data.ticket.id} created successfully!\n\nPriority: ${priority}\nSLA Deadline: ${parseDate(data.ticket.sla_deadline).toLocaleString()}`);
 
             // Reset form
             document.getElementById('new-ticket-form').reset();
