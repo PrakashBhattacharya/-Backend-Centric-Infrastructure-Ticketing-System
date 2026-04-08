@@ -36,7 +36,12 @@ def admin_overview(current_user):
     formatted_logs = []
     for log in audit_logs:
         from datetime import datetime
-        dt = datetime.strptime(log['created_at'], '%Y-%m-%d %H:%M:%S')
+        created_at = log['created_at']
+        # PostgreSQL returns a datetime object; SQLite returns a string
+        if isinstance(created_at, str):
+            dt = datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S')
+        else:
+            dt = created_at
         formatted_logs.append({
             'text': log['action'],
             'time': dt.strftime('%H:%M • %b %d'),
