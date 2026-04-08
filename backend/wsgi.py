@@ -1,16 +1,15 @@
+import sys
 import traceback
-from flask import Flask
+
+def application(environ, start_response):
+    start_response('500 Internal Server Error', [('Content-Type', 'text/plain')])
+    return [b"CRITICAL BOOT ERROR:\n\n" + traceback.format_exc().encode()]
 
 try:
     from app import create_app
     app = create_app()
 except Exception as e:
-    err_msg = traceback.format_exc()
-    app = Flask(__name__)
-    @app.route('/', defaults={'path': ''})
-    @app.route('/<path:path>')
-    def error_handler(path):
-        return f"CRITICAL BOOT ERROR:\n\n{err_msg}", 500
+    app = application
 
 if __name__ == "__main__":
     app.run()
