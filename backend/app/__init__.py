@@ -3,6 +3,15 @@ from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from .config import Config
 from .models import init_db
+from datetime import datetime, date
+import json
+
+class DateTimeEncoder(json.JSONEncoder):
+    """Custom JSON encoder that handles PostgreSQL datetime objects."""
+    def default(self, obj):
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        return super().default(obj)
 
 def create_app(config_class=Config):
     """
@@ -11,6 +20,7 @@ def create_app(config_class=Config):
     """
     app = Flask(__name__, static_folder=config_class.FRONTEND_DIR)
     app.config.from_object(config_class)
+    app.json_encoder = DateTimeEncoder
 
     # Initialize CORS
     CORS(app)
