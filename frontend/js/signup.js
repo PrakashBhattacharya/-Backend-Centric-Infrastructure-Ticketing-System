@@ -28,10 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             
             // Get values
-            const inputs = document.querySelectorAll('input'); // Fallback in case ID is missing
-            const fullName = (document.getElementById('signup-fullname') || inputs[0]).value.trim();
-            const email = (document.getElementById('signup-email') || inputs[1]).value.trim();
-            const password = (document.getElementById('signup-password') || inputs[2]).value;
+            const fullName = document.getElementById('signup-fullname').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
             const roleSelect = document.querySelector('select');
             const role = roleSelect.value;
             
@@ -44,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             signupBtn.disabled = true;
             
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/signup', {
+                const response = await fetch(`${window.API_BASE}/api/signup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ fullName, email, password, role })

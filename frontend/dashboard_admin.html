@@ -42,7 +42,7 @@
             <header class="top-bar">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Global multi-tenant search, audit IDs, or engineer names...">
+                    <input type="text" id="global-search" placeholder="Global multi-tenant search, audit IDs, or engineer names...">
                 </div>
                 <div class="header-actions">
                     <div class="system-status">
@@ -333,79 +333,45 @@
                     </div>
                 </div>
             </div>
-
             <!-- VIEW: ADMIN TOOLS -->
             <div id="tools" class="dashboard-view">
                 <div class="view-header">
-                    <h2>Admin Tools & Export</h2>
-                    <p>Escalation routing, user management overlays, and reporting exports.</p>
+                    <h2>Admin Tools &amp; Ticket Management</h2>
+                    <p>Assign tickets, manage escalations, and export reports.</p>
                 </div>
 
+                <!-- All Tickets Management Table -->
                 <div class="content-grid-ecosystem">
-                    <div class="span-md">
-                        <div class="widget-v2">
-                            <div class="widget-v2-header">
-                                <h3 class="widget-v2-title"><i class="fas fa-siren-on"></i> Escalation Management</h3>
-                            </div>
-                            <div class="activity-timeline" id="escalation-feed">
-                                <div style="text-align: center; color: var(--text-secondary); padding: 20px;">No Recent Escalations</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="span-md">
-                        <div class="widget-v2">
-                            <div class="widget-v2-header">
-                                <h3 class="widget-v2-title"><i class="fas fa-users"></i> Access Control Snapshot</h3>
-                            </div>
-                            <div class="performance-grid">
-                                <div class="perf-metric">
-                                    <span class="perf-label">Active Users</span>
-                                    <div class="score-display">0</div>
-                                </div>
-                                <div class="perf-metric">
-                                    <span class="perf-label">Engineers Online</span>
-                                    <div class="score-display">0</div>
-                                </div>
-                                <div class="perf-metric">
-                                    <span class="perf-label">Pending Access</span>
-                                    <div class="score-display" style="color: #f59e0b;">0</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="span-full">
                         <div class="widget-v2">
                             <div class="widget-v2-header">
-                                <h3 class="widget-v2-title"><i class="fas fa-file-export"></i> Organization Reports</h3>
+                                <h3 class="widget-v2-title"><i class="fas fa-clipboard-list"></i> All Tickets — Assignment Control</h3>
                             </div>
-                            <div class="resource-grid">
-                                <div class="resource-card" style="cursor: pointer;"
-                                    onclick="alert('Generating SLA Report PDF...')">
-                                    <i class="fas fa-file-pdf"></i>
-                                    <h4>Export SLA Report</h4>
-                                    <p>Monthly compliance metrics (PDF).</p>
-                                </div>
-                                <div class="resource-card" style="cursor: pointer;"
-                                    onclick="alert('Downloading Data CSV...')">
-                                    <i class="fas fa-file-csv"></i>
-                                    <h4>Download Incident Summary</h4>
-                                    <p>Raw ticket data export (CSV).</p>
-                                </div>
-                                <div class="resource-card" style="cursor: pointer;"
-                                    onclick="alert('Preparing Audit Vault Export...')">
-                                    <i class="fas fa-file-signature"></i>
-                                    <h4>Compliance Certification</h4>
-                                    <p>SOC 2 auditable event log dump.</p>
-                                </div>
+                            <div class="table-wrapper">
+                                <table class="professional-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>SUBJECT</th>
+                                            <th>PRIORITY</th>
+                                            <th>STATUS</th>
+                                            <th>SUBMITTED BY</th>
+                                            <th>ASSIGNED TO</th>
+                                            <th>ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="all-tickets-body">
+                                        <tr>
+                                            <td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 30px;">No tickets found.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+
 
     <style>
         .system-status {
@@ -437,16 +403,7 @@
             opacity: 0.6;
         }
 
-        .text-red {
-            color: #ef4444;
-        }
-
-        .matrix-alert {
-            color: #ef4444;
-            font-weight: 700;
-        }
-
-        /* ── KPI Cards ─────────────────────────────────────────── */
+        /* ── KPI Grid ─────────────────────────────────────────── */
         .admin-stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -462,7 +419,7 @@
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(12px);
-            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
             display: flex;
             flex-direction: column;
             gap: 4px;
@@ -471,70 +428,16 @@
         .kpi-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
+            top: 0; left: 0; right: 0; height: 3px;
             border-radius: 14px 14px 0 0;
         }
 
-        .kpi-blue::before {
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
-        }
-
-        .kpi-green::before {
-            background: linear-gradient(90deg, #10b981, #34d399);
-        }
-
-        .kpi-cyan::before {
-            background: linear-gradient(90deg, #06b6d4, #22d3ee);
-        }
-
-        .kpi-purple::before {
-            background: linear-gradient(90deg, #8b5cf6, #a78bfa);
-        }
-
-        .kpi-orange::before {
-            background: linear-gradient(90deg, #f59e0b, #fbbf24);
-        }
-
-        .kpi-red::before {
-            background: linear-gradient(90deg, #ef4444, #f87171);
-        }
-
-        .kpi-card:hover {
-            transform: translateY(-3px);
-        }
-
-        .kpi-blue:hover {
-            border-color: rgba(59, 130, 246, 0.35);
-            box-shadow: 0 12px 32px rgba(59, 130, 246, 0.15);
-        }
-
-        .kpi-green:hover {
-            border-color: rgba(16, 185, 129, 0.35);
-            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.15);
-        }
-
-        .kpi-cyan:hover {
-            border-color: rgba(6, 182, 212, 0.35);
-            box-shadow: 0 12px 32px rgba(6, 182, 212, 0.15);
-        }
-
-        .kpi-purple:hover {
-            border-color: rgba(139, 92, 246, 0.35);
-            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.15);
-        }
-
-        .kpi-orange:hover {
-            border-color: rgba(245, 158, 11, 0.35);
-            box-shadow: 0 12px 32px rgba(245, 158, 11, 0.15);
-        }
-
-        .kpi-red:hover {
-            border-color: rgba(239, 68, 68, 0.35);
-            box-shadow: 0 12px 32px rgba(239, 68, 68, 0.15);
-        }
+        .kpi-blue::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+        .kpi-green::before { background: linear-gradient(90deg, #10b981, #34d399); }
+        .kpi-cyan::before { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+        .kpi-purple::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+        .kpi-orange::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .kpi-red::before { background: linear-gradient(90deg, #ef4444, #f87171); }
 
         .kpi-top {
             display: flex;
@@ -553,35 +456,12 @@
             font-size: 16px;
         }
 
-        .kpi-icon-blue {
-            background: rgba(59, 130, 246, 0.15);
-            color: #60a5fa;
-        }
-
-        .kpi-icon-green {
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-        }
-
-        .kpi-icon-cyan {
-            background: rgba(6, 182, 212, 0.15);
-            color: #22d3ee;
-        }
-
-        .kpi-icon-purple {
-            background: rgba(139, 92, 246, 0.15);
-            color: #a78bfa;
-        }
-
-        .kpi-icon-orange {
-            background: rgba(245, 158, 11, 0.12);
-            color: #fbbf24;
-        }
-
-        .kpi-icon-red {
-            background: rgba(239, 68, 68, 0.15);
-            color: #f87171;
-        }
+        .kpi-icon-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .kpi-icon-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .kpi-icon-cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+        .kpi-icon-purple { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+        .kpi-icon-orange { background: rgba(245, 158, 11, 0.12); color: #fbbf24; }
+        .kpi-icon-red { background: rgba(239, 68, 68, 0.15); color: #f87171; }
 
         .kpi-trend {
             font-size: 11px;
@@ -593,25 +473,10 @@
             gap: 4px;
         }
 
-        .trend-up {
-            background: rgba(16, 185, 129, 0.12);
-            color: #34d399;
-        }
-
-        .trend-down {
-            background: rgba(16, 185, 129, 0.12);
-            color: #34d399;
-        }
-
-        .trend-warn {
-            background: rgba(239, 68, 68, 0.12);
-            color: #f87171;
-        }
-
-        .trend-neutral {
-            background: rgba(148, 163, 184, 0.1);
-            color: #94a3b8;
-        }
+        .trend-up { background: rgba(16, 185, 129, 0.12); color: #34d399; }
+        .trend-down { background: rgba(16, 185, 129, 0.12); color: #34d399; }
+        .trend-warn { background: rgba(239, 68, 68, 0.12); color: #f87171; }
+        .trend-neutral { background: rgba(148, 163, 184, 0.1); color: #94a3b8; }
 
         .kpi-value {
             font-size: 32px;
@@ -642,7 +507,94 @@
             line-height: 1.55;
         }
     </style>
-    <script src="dashboard_admin.js?v=2.0"></script>
+    <!-- Ticket detail Modal -->
+    <div id="ticket-detail-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h3 id="modal-ticket-id">#TKT-ID</h3>
+                    <span class="badge" id="modal-priority">Priority</span>
+                </div>
+                <button class="close-btn" onclick="closeModal('ticket-detail-modal')">&times;</button>
+            </div>
+            <div class="modal-body" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; padding: 20px 0;">
+                <div class="ticket-main-info">
+                    <h2 id="modal-title" style="margin-bottom: 10px;">Subject</h2>
+                    <div style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
+                        Status: <span class="status" id="modal-status">Status</span> |
+                        Created: <span id="modal-created">Date</span>
+                    </div>
+
+                    <h4 style="margin-bottom: 8px;">Description</h4>
+                    <p id="modal-desc" style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
+                        Description text...
+                    </p>
+
+                    <h4 style="margin-bottom: 10px;">Activity Log</h4>
+                    <div class="timeline" id="modal-comments">
+                        <div style="color:var(--text-secondary); font-size:12px;">No comments yet.</div>
+                    </div>
+                </div>
+
+                <div class="ticket-side-info" style="border-left: 1px solid rgba(255,255,255,0.06); padding-left: 24px;">
+                    <div class="stat-card" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                        <div class="stat-details">
+                            <span class="stat-label" style="display:block; font-size:11px; color:var(--text-secondary); text-transform:uppercase;">SLA Status</span>
+                            <span class="stat-value" id="modal-sla-countdown" style="font-size:18px; font-weight:700;">—</span>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-bottom: 10px;">Assignment Info</h4>
+                    <div class="density-list">
+                        <div class="density-item">
+                            <div class="density-content">
+                                <div class="density-label">Requested by</div>
+                                <div class="density-sub" id="modal-creator">—</div>
+                            </div>
+                        </div>
+                        <div class="density-item">
+                            <div class="density-content">
+                                <div class="density-label">Assigned to</div>
+                                <div class="density-sub" id="modal-assignee">—</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('ticket-detail-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Ticket Modal [NEW] -->
+    <div id="assign-ticket-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Assign Ticket <span id="assign-ticket-id">#0</span></h3>
+                <button class="close-btn" onclick="closeModal('assign-ticket-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary);">Select Engineer</label>
+                    <select id="engineer-select" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; cursor: pointer;">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; background: rgba(59, 130, 246, 0.05); padding: 12px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                    <i class="fas fa-info-circle" style="color: #60a5fa; margin-right: 6px;"></i>
+                    Assigning a ticket will automatically update its status to <strong>In Progress</strong> and notify the engineer.
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px;">
+                <button class="secondary-btn" onclick="closeModal('assign-ticket-modal')" style="flex: 1;">Cancel</button>
+                <button class="primary-btn" id="confirm-assign-btn" style="flex: 1;">Confirm Assignment</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/dashboard_admin.js?v=2.3"></script>
 </body>
 
 </html>

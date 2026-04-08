@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+backend/infratick.db
+frontend/.DS_Store
+.git/
+.gitignore
+.vscode/
+.gemini/

@@ -10,6 +10,7 @@ __pycache__/
 *.so
 .Python
 *.log
+*.db
 pip-log.txt
 
 # Local Server and node

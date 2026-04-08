@@ -41,7 +41,7 @@
             <header class="top-bar">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search my tickets, resources, docs...">
+                    <input type="text" id="global-search" placeholder="Search my tickets, resources, docs...">
                 </div>
                 <button class="primary-btn" onclick="openModal('ticket-modal')">
                     <i class="fas fa-plus"></i> New Ticket
@@ -183,7 +183,7 @@
                 <div class="filter-bar">
                     <div class="filter-group">
                         <label>Status</label>
-                        <select class="filter-select">
+                        <select class="filter-select" id="filter-status">
                             <option>All Status</option>
                             <option>Open</option>
                             <option>In Progress</option>
@@ -192,7 +192,7 @@
                     </div>
                     <div class="filter-group">
                         <label>Priority</label>
-                        <select class="filter-select">
+                        <select class="filter-select" id="filter-priority">
                             <option>All Priorities</option>
                             <option>Critical</option>
                             <option>High</option>
@@ -202,9 +202,9 @@
                     </div>
                     <div class="filter-group">
                         <label>SLA Status</label>
-                        <select class="filter-select">
+                        <select class="filter-select" id="filter-sla">
                             <option>All</option>
-                            <option>On Time</option>
+                            <option>On Track</option>
                             <option>Breached</option>
                         </select>
                     </div>
@@ -240,7 +240,7 @@
                     <p>Browse internal guides and infrastructure protocols.</p>
                 </div>
                 <div class="resource-grid">
-                    <div class="resource-card">
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('Getting Started')" style="cursor:pointer;">
                         <i class="fas fa-rocket"></i>
                         <h4>Getting Started</h4>
                         <p>How to create tickets and manage your infrastructure requests efficiently.</p>
@@ -248,7 +248,7 @@
                             <span class="tag">Guide</span><span class="tag">Basics</span>
                         </div>
                     </div>
-                    <div class="resource-card">
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('SLA Guidelines')" style="cursor:pointer;">
                         <i class="fas fa-shield-alt"></i>
                         <h4>SLA Guidelines</h4>
                         <p>Response time policies and escalation workflows for critical incidents.</p>
@@ -256,7 +256,7 @@
                             <span class="tag">Policy</span><span class="tag">SLA</span>
                         </div>
                     </div>
-                    <div class="resource-card">
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('Troubleshooting')" style="cursor:pointer;">
                         <i class="fas fa-tools"></i>
                         <h4>Troubleshooting</h4>
                         <p>Common database, server, and connectivity issue resolution steps.</p>
@@ -264,7 +264,7 @@
                             <span class="tag">Technical</span><span class="tag">Fixes</span>
                         </div>
                     </div>
-                    <div class="resource-card">
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('FAQs')" style="cursor:pointer;">
                         <i class="fas fa-question-circle"></i>
                         <h4>FAQs</h4>
                         <p>Most common questions about infrastructure management.</p>
@@ -958,7 +958,26 @@
             closeModal('ticket-modal');
         }
     </script>
-    <script src="dashboard_member.js?v=2.0"></script>
+    <!-- Knowledge detail Modal -->
+    <div id="knowledge-detail-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <div>
+                    <h3 id="knowledge-title">Resource Detail</h3>
+                    <p id="knowledge-subtitle" style="font-size:12px; color:var(--text-secondary); margin-top:3px;"></p>
+                </div>
+                <button class="close-btn" onclick="closeModal('knowledge-detail-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="knowledge-body" style="line-height:1.6; color:var(--text-primary); padding: 20px;">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="primary-btn" onclick="closeModal('knowledge-detail-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/dashboard_member.js?v=2.0"></script>
 </body>
 
 </html>

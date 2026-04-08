@@ -1,31 +1,31 @@
- Infrastructure Monitoring Dashboard:-
--------------------------------------------
-A Flask and React-based infrastructure monitoring dashboard that provides real-time insights into system performance. It tracks key metrics like CPU, memory, disk usage, and error rates, helping users easily monitor and understand system health.
+# InfraTick — Backend-Centric Infrastructure Ticketing System
 
- a)Features:-
----------------
- 1)Real-time system performance monitoring
+A premium infrastructure ticketing system built with Flask (Backend) and Vanilla JS (Frontend). Fully deployment-ready.
 
- 2)Tracks CPU, memory, disk usage, and error rates
+## 🚀 Deployment Features
+- **Unified Deployment**: Flask backend serves all frontend static files.
+- **Production-Ready**: Uses Gunicorn WSGI and environment variables.
+- **Docker Support**: Multi-stage build for containerized environments.
+- **Centralized Config**: API URLs and database paths are globally configurable.
 
- 3)Secure authentication using JWT
+## 🛠️ Local Setup (Development)
+1. Clone the repository.
+2. `cd backend`
+3. `pip install -r requirements.txt`
+4. `python app.py`
+5. Access the app at `http://127.0.0.1:5000`
 
- 4)Fast and interactive UI built with React
+## 🐳 Docker Deployment
+1. Build the image: `docker build -t infratick .`
+2. Run the container: `docker run -p 5000:5000 infratick`
 
- 5)Data storage using PostgreSQL / SQLite
+## ☁️ Production Hosting (Heroku / Render)
+1. Set the following environment variables:
+   - `SECRET_KEY`: A complex secret string.
+   - `DEBUG`: False
+2. The `Procfile` (or Render `Start Command`) should use:
+   `gunicorn --bind 0.0.0.0:$PORT backend.wsgi:app`
 
- 6)Clean and intuitive dashboard interface
-
- b)Tech Stack:-
------------------
-1)Frontend: React.js
-
-2)Backend: Flask (Python)
-
-3)Database: PostgreSQL / SQLite
-
-4)Authentication: JWT (JSON Web Tokens)
-
- c)Workflow:-
-----------------
-The system collects system performance data, processes it through a Flask backend, stores it in a database, and displays it on a React-based dashboard for real-time monitoring.
+## 🔑 Admin Credentials
+- **Email**: manik102@gmail.com
+- **Password**: 123456

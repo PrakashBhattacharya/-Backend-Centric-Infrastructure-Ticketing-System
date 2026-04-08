@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
       loginBtn.disabled = true;
 
       try {
-        const response = await fetch('http://127.0.0.1:5000/api/login', {
+        const response = await fetch(`${window.API_BASE}/api/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -61,9 +61,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const data = await response.json();
         
         if (data.success) {
-            // Save token if needed, then redirect based on role
+            // Save full user info and token to localStorage
             localStorage.setItem('auth_token', data.token);
-            window.location.href = `dashboard_${data.role}.html`;
+            localStorage.setItem('user_name', data.user.fullName);
+            localStorage.setItem('user_email', data.user.email);
+            localStorage.setItem('user_role', data.user.role);
+            localStorage.setItem('user_id', data.user.id);
+            window.location.href = `dashboard_${data.user.role}.html`;
         } else {
             alert('Login failed: ' + data.message);
         }

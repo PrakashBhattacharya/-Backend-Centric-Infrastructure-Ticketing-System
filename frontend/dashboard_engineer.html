@@ -41,7 +41,7 @@
             <header class="top-bar">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Filter my queue, logs, or assets...">
+                    <input type="text" id="global-search" placeholder="Filter my queue, logs, or assets...">
                 </div>
                 <div class="status-indicator">
                     <span class="status resolved">SYSTEMS NOMINAL</span>
@@ -307,17 +307,17 @@
                     <p>Internal documentation and console access links.</p>
                 </div>
                 <div class="resource-grid">
-                    <div class="resource-card">
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('Edge Console')" style="cursor:pointer;">
                         <i class="fas fa-terminal"></i>
                         <h4>Edge Console</h4>
                         <p>Direct ssh access to edge nodes.</p>
                     </div>
-                    <div class="resource-card">
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('API Docs')" style="cursor:pointer;">
                         <i class="fas fa-book-code"></i>
                         <h4>API Docs</h4>
                         <p>Internal ticketing API endpoints.</p>
                     </div>
-                    <div class="resource-card">
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('Debug Suite')" style="cursor:pointer;">
                         <i class="fas fa-bug"></i>
                         <h4>Debug Suite</h4>
                         <p>Diagnostic tools for log tracing.</p>
@@ -542,7 +542,78 @@
             line-height: 1.55;
         }
     </style>
-    <script src="dashboard_engineer.js?v=2.0"></script>
+    <div id="knowledge-detail-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <div>
+                    <h3 id="knowledge-title">Engineer Resource</h3>
+                    <p id="knowledge-subtitle" style="font-size:12px; color:var(--text-secondary); margin-top:3px;"></p>
+                </div>
+                <button class="close-btn" onclick="closeModal('knowledge-detail-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="knowledge-body" style="line-height:1.6; color:var(--text-primary); padding: 20px;">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="primary-btn" onclick="closeModal('knowledge-detail-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ticket-detail-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h3 id="modal-ticket-id">#TKT-ID</h3>
+                    <span class="badge" id="modal-priority">Priority</span>
+                </div>
+                <button class="close-btn" onclick="closeModal('ticket-detail-modal')">&times;</button>
+            </div>
+            <div class="modal-body" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; padding: 20px 0;">
+                <div class="ticket-main-info">
+                    <h2 id="modal-title" style="margin-bottom: 10px;">Subject</h2>
+                    <div style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
+                        Status: <span class="status" id="modal-status">Status</span> |
+                        Created: <span id="modal-created">Date</span>
+                    </div>
+
+                    <h4 style="margin-bottom: 8px;">Description</h4>
+                    <p id="modal-desc" style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
+                        Description text...
+                    </p>
+
+                    <h4 style="margin-bottom: 10px;">Activity Log</h4>
+                    <div class="timeline" id="modal-comments">
+                        <div style="color:var(--text-secondary); font-size:12px;">No activity logged yet.</div>
+                    </div>
+                </div>
+
+                <div class="ticket-side-info" style="border-left: 1px solid rgba(255,255,255,0.06); padding-left: 24px;">
+                    <div class="stat-card" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                        <div class="stat-details">
+                            <span class="stat-label" style="display:block; font-size:11px; color:var(--text-secondary); text-transform:uppercase;">SLA Outcome</span>
+                            <span class="stat-value" id="modal-sla-countdown" style="font-size:18px; font-weight:700;">—</span>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-bottom: 10px;">Originator Info</h4>
+                    <div class="density-list">
+                        <div class="density-item">
+                            <div class="density-content">
+                                <div class="density-label">Member Name</div>
+                                <div class="density-sub" id="modal-creator">—</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('ticket-detail-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/dashboard_engineer.js?v=2.0"></script>
 </body>
 
 </html>
