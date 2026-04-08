@@ -103,6 +103,16 @@ def init_db():
     cursor.close()
     conn.close()
 
+def _serialize_row(row):
+    """Convert datetime objects in a RealDictRow to ISO format strings."""
+    if row is None:
+        return None
+    result = dict(row)
+    for key, value in result.items():
+        if isinstance(value, datetime):
+            result[key] = value.strftime('%Y-%m-%d %H:%M:%S')
+    return result
+
 def execute_query(query, params=(), commit=False, fetchone=False):
     conn = get_db()
     if not conn: return None
@@ -113,12 +123,15 @@ def execute_query(query, params=(), commit=False, fetchone=False):
             conn.commit()
         if cursor.description:
             if fetchone:
-                return cursor.fetchone()
-            return cursor.fetchall()
+                row = cursor.fetchone()
+                return _serialize_row(row)
+            rows = cursor.fetchall()
+            return [_serialize_row(r) for r in rows]
         return None
     finally:
         cursor.close()
         conn.close()
+
 
 def create_user(full_name, email, password, role):
     try:
