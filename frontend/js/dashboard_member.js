@@ -234,13 +234,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 4. SLA Status Chart (Donut)
     const ctxSla = document.getElementById('slaDonutChart');
     if (ctxSla) {
-        const metSla = dbData.resolved > 0 ? dbData.resolved - dbData.breached : 0;
+        const metSla = Math.max(0, Number(dbData.sla_met || 0));
+        const breachedResolved = Math.max(0, Number(dbData.breached_resolved || 0));
         new Chart(ctxSla.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: ['MET SLA', 'BREACHED'],
                 datasets: [{
-                    data: [metSla, dbData.breached],
+                    data: [metSla, breachedResolved],
                     backgroundColor: ['#10b981', '#f87171'],
                     borderColor: '#0a0c14',
                     borderWidth: 3
