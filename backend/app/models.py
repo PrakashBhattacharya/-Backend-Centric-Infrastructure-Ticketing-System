@@ -6,6 +6,7 @@ Uses PostgreSQL via psycopg2 for persistence.
 import psycopg2
 import psycopg2.extras
 import os
+import json
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from .config import Config
@@ -17,6 +18,23 @@ SLA_HOURS = {
     'Medium': 20,
     'Low': 50
 }
+
+
+def _debug_log(hypothesis_id, location, message, data, run_id='initial'):
+    try:
+        log_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'debug-c9a78c.log'))
+        with open(log_path, 'a', encoding='utf-8') as f:
+            f.write(json.dumps({
+                'sessionId': 'c9a78c',
+                'runId': run_id,
+                'hypothesisId': hypothesis_id,
+                'location': location,
+                'message': message,
+                'data': data,
+                'timestamp': int(datetime.utcnow().timestamp() * 1000)
+            }) + '\n')
+    except Exception:
+        pass
 
 def get_db():
     try:
@@ -173,7 +191,21 @@ def create_ticket(subject, description, service_area, environment, priority, cre
     return dict(ticket)
 
 def get_tickets(filters=None):
-    query = "SELECT t.*, u1.full_name as creator_name, u1.email as creator_email, u2.full_name as assignee_name, u2.email as assignee_email FROM tickets t LEFT JOIN users u1 ON t.created_by = u1.id LEFT JOIN users u2 ON t.assigned_to = u2.id"
+    query = """
+        SELECT
+            t.*,
+            u1.full_name as creator_name,
+            u1.email as creator_email,
+            u2.full_name as assignee_name,
+            u2.email as assignee_email,
+            CASE
+                WHEN t.status IN ('Resolved', 'Closed') THEN t.updated_at > t.sla_deadline
+                ELSE t.sla_deadline < CURRENT_TIMESTAMP
+            END as sla_breached
+        FROM tickets t
+        LEFT JOIN users u1 ON t.created_by = u1.id
+        LEFT JOIN users u2 ON t.assigned_to = u2.id
+    """
     conditions = []
     params = []
     if filters:
@@ -186,7 +218,24 @@ def get_tickets(filters=None):
     return [dict(t) for t in (tickets or [])]
 
 def get_ticket_by_id(ticket_id):
-    ticket = execute_query("SELECT t.*, u1.full_name as creator_name, u2.full_name as assignee_name FROM tickets t LEFT JOIN users u1 ON t.created_by = u1.id LEFT JOIN users u2 ON t.assigned_to = u2.id WHERE t.id = %s", (ticket_id,), fetchone=True)
+    ticket = execute_query(
+        """
+        SELECT
+            t.*,
+            u1.full_name as creator_name,
+            u2.full_name as assignee_name,
+            CASE
+                WHEN t.status IN ('Resolved', 'Closed') THEN t.updated_at > t.sla_deadline
+                ELSE t.sla_deadline < CURRENT_TIMESTAMP
+            END as sla_breached
+        FROM tickets t
+        LEFT JOIN users u1 ON t.created_by = u1.id
+        LEFT JOIN users u2 ON t.assigned_to = u2.id
+        WHERE t.id = %s
+        """,
+        (ticket_id,),
+        fetchone=True
+    )
     return dict(ticket) if ticket else None
 
 def update_ticket_status(ticket_id, new_status, user_id):
@@ -237,33 +286,112 @@ def get_member_stats(user_id):
     resolved = execute_query("SELECT COUNT(*) as count FROM tickets WHERE created_by = %s AND status IN ('Resolved', 'Closed')", (user_id,), fetchone=True)['count']
     total = execute_query("SELECT COUNT(*) as count FROM tickets WHERE created_by = %s", (user_id,), fetchone=True)['count']
     urgent = execute_query("SELECT COUNT(*) as count FROM tickets WHERE created_by = %s AND priority IN ('Critical', 'High') AND status IN ('Open', 'In Progress')", (user_id,), fetchone=True)['count']
-    breached = execute_query("SELECT COUNT(*) as count FROM tickets WHERE created_by = %s AND sla_deadline < %s::timestamp AND status NOT IN ('Resolved', 'Closed')", (user_id, now), fetchone=True)['count']
+    breached = execute_query(
+        "SELECT COUNT(*) as count FROM tickets WHERE created_by = %s AND ((status IN ('Open', 'In Progress') AND sla_deadline < %s::timestamp) OR (status IN ('Resolved', 'Closed') AND updated_at > sla_deadline))",
+        (user_id, now),
+        fetchone=True
+    )['count']
     sla_met = execute_query("SELECT COUNT(*) as count FROM tickets WHERE created_by = %s AND status IN ('Resolved', 'Closed') AND updated_at <= sla_deadline", (user_id,), fetchone=True)['count']
+    breached_lifetime = execute_query("SELECT COUNT(*) as count FROM tickets WHERE created_by = %s AND sla_deadline < %s::timestamp", (user_id, now), fetchone=True)['count']
     sla_pct = round((sla_met / resolved * 100), 1) if resolved > 0 else 0
     priority_counts = {p: execute_query("SELECT COUNT(*) as count FROM tickets WHERE created_by = %s AND priority = %s", (user_id, p), fetchone=True)['count'] for p in ['Critical', 'High', 'Medium', 'Low']}
-    tickets = execute_query("SELECT t.*, u.full_name as assignee_name FROM tickets t LEFT JOIN users u ON t.assigned_to = u.id WHERE t.created_by = %s ORDER BY t.created_at DESC", (user_id,))
+    tickets = execute_query(
+        """
+        SELECT
+            t.*,
+            u.full_name as assignee_name,
+            CASE
+                WHEN t.status IN ('Resolved', 'Closed') THEN t.updated_at > t.sla_deadline
+                ELSE t.sla_deadline < CURRENT_TIMESTAMP
+            END as sla_breached
+        FROM tickets t
+        LEFT JOIN users u ON t.assigned_to = u.id
+        WHERE t.created_by = %s
+        ORDER BY t.created_at DESC
+        """,
+        (user_id,)
+    )
+    # #region agent log
+    _debug_log('H1', 'backend/app/models.py:get_member_stats', 'member breach counters', {
+        'userId': user_id,
+        'active': active,
+        'resolved': resolved,
+        'breachedOpenOnly': breached,
+        'breachedLifetime': breached_lifetime
+    })
+    # #endregion
     return {'active': active, 'resolved': resolved, 'total': total, 'urgent': urgent, 'breached': breached, 'sla_pct': sla_pct, 'priorityData': list(priority_counts.values()), 'tickets': [dict(t) for t in (tickets or [])]}
 
 def get_engineer_stats(user_id):
     now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     assigned = execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND status IN ('Open', 'In Progress')", (user_id,), fetchone=True)['count']
-    overdue = execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND sla_deadline < %s::timestamp AND status NOT IN ('Resolved', 'Closed')", (user_id, now), fetchone=True)['count']
+    overdue = execute_query(
+        "SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND ((status IN ('Open', 'In Progress') AND sla_deadline < %s::timestamp) OR (status IN ('Resolved', 'Closed') AND updated_at > sla_deadline))",
+        (user_id, now),
+        fetchone=True
+    )['count']
     resolved_total = execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND status IN ('Resolved', 'Closed')", (user_id,), fetchone=True)['count']
     sla_met = execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND status IN ('Resolved', 'Closed') AND updated_at <= sla_deadline", (user_id,), fetchone=True)['count']
+    breached_lifetime = execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND sla_deadline < %s::timestamp", (user_id, now), fetchone=True)['count']
     sla_pct = round((sla_met / resolved_total * 100), 1) if resolved_total > 0 else 0
-    queue = execute_query("SELECT t.*, u.full_name as creator_name FROM tickets t LEFT JOIN users u ON t.created_by = u.id WHERE t.assigned_to = %s AND t.status IN ('Open', 'In Progress') ORDER BY CASE t.priority WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END, t.created_at ASC", (user_id,))
-    resolved_list = execute_query("SELECT t.*, u.full_name as creator_name FROM tickets t LEFT JOIN users u ON t.created_by = u.id WHERE t.assigned_to = %s AND t.status IN ('Resolved', 'Closed') ORDER BY t.updated_at DESC LIMIT 10", (user_id,))
+    queue = execute_query(
+        """
+        SELECT
+            t.*,
+            u.full_name as creator_name,
+            CASE
+                WHEN t.status IN ('Resolved', 'Closed') THEN t.updated_at > t.sla_deadline
+                ELSE t.sla_deadline < CURRENT_TIMESTAMP
+            END as sla_breached
+        FROM tickets t
+        LEFT JOIN users u ON t.created_by = u.id
+        WHERE t.assigned_to = %s AND t.status IN ('Open', 'In Progress')
+        ORDER BY CASE t.priority WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END, t.created_at ASC
+        """,
+        (user_id,)
+    )
+    resolved_list = execute_query(
+        """
+        SELECT
+            t.*,
+            u.full_name as creator_name,
+            CASE
+                WHEN t.status IN ('Resolved', 'Closed') THEN t.updated_at > t.sla_deadline
+                ELSE t.sla_deadline < CURRENT_TIMESTAMP
+            END as sla_breached
+        FROM tickets t
+        LEFT JOIN users u ON t.created_by = u.id
+        WHERE t.assigned_to = %s AND t.status IN ('Resolved', 'Closed')
+        ORDER BY t.updated_at DESC
+        LIMIT 10
+        """,
+        (user_id,)
+    )
+    # #region agent log
+    _debug_log('H2', 'backend/app/models.py:get_engineer_stats', 'engineer breach counters', {
+        'userId': user_id,
+        'assignedOpen': assigned,
+        'resolvedTotal': resolved_total,
+        'overdueOpenOnly': overdue,
+        'breachedLifetime': breached_lifetime
+    })
+    # #endregion
     return {'assigned': assigned, 'overdue': overdue, 'resolved_total': resolved_total, 'sla_pct': sla_pct, 'queue': [dict(t) for t in (queue or [])], 'resolved_list': [dict(t) for t in (resolved_list or [])]}
 
 def get_admin_stats():
     now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     total_open = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress')", fetchone=True)['count']
-    breaches_today = execute_query("SELECT COUNT(*) as count FROM tickets WHERE sla_deadline < %s::timestamp AND status NOT IN ('Resolved', 'Closed')", (now,), fetchone=True)['count']
+    open_breached = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress') AND sla_deadline < %s::timestamp", (now,), fetchone=True)['count']
+    resolved_breached = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed') AND updated_at > sla_deadline", fetchone=True)['count']
+    breaches_today = open_breached + resolved_breached
     escalated = execute_query("SELECT COUNT(*) as count FROM tickets WHERE priority = 'Critical' AND status IN ('Open', 'In Progress')", fetchone=True)['count']
     total_resolved = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed')", fetchone=True)['count']
     total_all = execute_query("SELECT COUNT(*) as count FROM tickets", fetchone=True)['count']
     sla_met = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed') AND updated_at <= sla_deadline", fetchone=True)['count']
+    breached_total_lifetime = execute_query("SELECT COUNT(*) as count FROM tickets WHERE sla_deadline < %s::timestamp", (now,), fetchone=True)['count']
+    breached_resolved = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed') AND updated_at > sla_deadline", fetchone=True)['count']
     near_breach = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress') AND sla_deadline > %s::timestamp AND sla_deadline < %s::timestamp + interval '2 hours'", (now, now), fetchone=True)['count']
+    compliant = max(0, total_all - near_breach - breaches_today)
     aging = [execute_query(f"SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress') AND {q}", fetchone=True)['count'] for q in ["created_at >= CURRENT_TIMESTAMP - interval '1 day'", "created_at < CURRENT_TIMESTAMP - interval '1 day' AND created_at >= CURRENT_TIMESTAMP - interval '3 days'", "created_at < CURRENT_TIMESTAMP - interval '3 days' AND created_at >= CURRENT_TIMESTAMP - interval '7 days'", "created_at < CURRENT_TIMESTAMP - interval '7 days'"]]
     services = ['Database', 'Networking', 'Compute / VM', 'Security / IAM', 'Storage']
     service_counts = [execute_query("SELECT COUNT(*) as count FROM tickets WHERE service_area = %s AND status IN ('Open', 'In Progress')", (svc,), fetchone=True)['count'] for svc in services]
@@ -274,6 +402,47 @@ def get_admin_stats():
         er = execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND status IN ('Resolved', 'Closed')", (eng['id'],), fetchone=True)['count']
         esm = execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND status IN ('Resolved', 'Closed') AND updated_at <= sla_deadline", (eng['id'],), fetchone=True)['count']
         esp = round((esm / er * 100)) if er > 0 else 0
-        engineer_data.append({'id': eng['id'], 'name': eng['full_name'], 'assigned': ea, 'resolved': er, 'mttr': '-', 'sla': esp, 'reopens': '0%', 'status': 'excellent' if esp >= 95 else 'good' if esp >= 85 else 'warning' if esp >= 70 else 'critical'})
-    all_tickets = execute_query("SELECT t.*, u1.full_name as creator_name, u2.full_name as assignee_name FROM tickets t LEFT JOIN users u1 ON t.created_by = u1.id LEFT JOIN users u2 ON t.assigned_to = u2.id ORDER BY t.created_at DESC")
-    return {'total_open': total_open, 'breaches_today': breaches_today, 'escalated': escalated, 'total_resolved': total_resolved, 'total_all': total_all, 'reopen_rate': 0, 'slaComplianceData': [sla_met, near_breach, max(0, total_resolved - sla_met)], 'agingData': aging, 'backlogTrendData': [total_open, 0,0,0,0,0], 'serviceImpactData': service_counts, 'regionLoadData': [total_open, 0,0,0], 'engineers': engineer_data, 'all_tickets': [dict(t) for t in (all_tickets or [])]}
+        eb = execute_query(
+            "SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND ((status IN ('Open', 'In Progress') AND sla_deadline < %s::timestamp) OR (status IN ('Resolved', 'Closed') AND updated_at > sla_deadline))",
+            (eng['id'], now),
+            fetchone=True
+        )['count']
+        engineer_data.append({'id': eng['id'], 'name': eng['full_name'], 'assigned': ea, 'resolved': er, 'mttr': '-', 'sla': esp, 'reopens': '0%', 'status': 'excellent' if esp >= 95 else 'good' if esp >= 85 else 'warning' if esp >= 70 else 'critical', 'breached': eb})
+    all_tickets = execute_query(
+        """
+        SELECT
+            t.*,
+            u1.full_name as creator_name,
+            u2.full_name as assignee_name,
+            CASE
+                WHEN t.status IN ('Resolved', 'Closed') THEN t.updated_at > t.sla_deadline
+                ELSE t.sla_deadline < CURRENT_TIMESTAMP
+            END as sla_breached
+        FROM tickets t
+        LEFT JOIN users u1 ON t.created_by = u1.id
+        LEFT JOIN users u2 ON t.assigned_to = u2.id
+        ORDER BY t.created_at DESC
+        """
+    )
+    # #region agent log
+    _debug_log('H3', 'backend/app/models.py:get_admin_stats', 'admin sla aggregate counters', {
+        'totalOpen': total_open,
+        'totalResolved': total_resolved,
+        'breachesOpenOnly': open_breached,
+        'breachedResolved': breached_resolved,
+        'breachedLifetime': breached_total_lifetime,
+        'slaComplianceData': [compliant, near_breach, breaches_today]
+    })
+    # #endregion
+    # #region agent log
+    _debug_log('H4', 'backend/app/models.py:get_admin_stats', 'engineer matrix preview', {
+        'engineerCount': len(engineer_data),
+        'engineerRows': [{
+            'id': e['id'],
+            'resolved': e['resolved'],
+            'sla': e['sla'],
+            'status': e['status']
+        } for e in engineer_data]
+    })
+    # #endregion
+    return {'total_open': total_open, 'breaches_today': breaches_today, 'escalated': escalated, 'total_resolved': total_resolved, 'total_all': total_all, 'reopen_rate': 0, 'slaComplianceData': [compliant, near_breach, breaches_today], 'agingData': aging, 'backlogTrendData': [total_open, 0,0,0,0,0], 'serviceImpactData': service_counts, 'regionLoadData': [total_open, 0,0,0], 'engineers': engineer_data, 'all_tickets': [dict(t) for t in (all_tickets or [])]}

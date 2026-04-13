@@ -303,7 +303,10 @@ async function openTicketDetail(ticketId) {
         const slaEl = document.getElementById('modal-sla-countdown');
         const now = new Date();
         const slaDeadline = parseDate(t.sla_deadline);
-        if (t.status === 'Resolved' || t.status === 'Closed') {
+        if (t.sla_breached === true) {
+            slaEl.textContent = 'Breached';
+            slaEl.style.color = '#ef4444';
+        } else if (t.status === 'Resolved' || t.status === 'Closed') {
             slaEl.textContent = 'Resolved';
             slaEl.style.color = '#10b981';
         } else if (now > slaDeadline) {

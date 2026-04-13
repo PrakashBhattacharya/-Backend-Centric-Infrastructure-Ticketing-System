@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (sla !== 'All') {
                 const now = new Date();
                 const deadline = parseDate(t.sla_deadline);
-                const isBreached = now > deadline && t.status !== 'Resolved' && t.status !== 'Closed';
+                const isBreached = t.sla_breached === true || (now > deadline && t.status !== 'Resolved' && t.status !== 'Closed');
                 matchSla = (sla === 'Breached' ? isBreached : !isBreached);
             }
 
@@ -329,7 +329,7 @@ function populateTicketTable(tickets) {
         const statusClass = t.status === 'Resolved' ? 'resolved' : (t.status === 'In Progress' ? 'prog' : (t.status === 'Open' ? 'open' : 'resolved'));
         const now = new Date();
         const slaDeadline = parseDate(t.sla_deadline);
-        const slaBreached = now > slaDeadline && t.status !== 'Resolved' && t.status !== 'Closed';
+        const slaBreached = t.sla_breached === true || (now > slaDeadline && t.status !== 'Resolved' && t.status !== 'Closed');
         const slaText = slaBreached ? 'Breached' : (t.status === 'Resolved' || t.status === 'Closed' ? 'Met' : 'On Track');
         const slaClass = slaBreached ? 'breached' : (t.status === 'Resolved' || t.status === 'Closed' ? 'resolved' : 'open');
 
@@ -371,7 +371,10 @@ async function openTicketDetail(ticketId) {
         const slaEl = document.getElementById('modal-sla-countdown');
         const now = new Date();
         const slaDeadline = parseDate(t.sla_deadline);
-        if (t.status === 'Resolved' || t.status === 'Closed') {
+        if (t.sla_breached === true) {
+            slaEl.textContent = 'Breached';
+            slaEl.style.color = '#ef4444';
+        } else if (t.status === 'Resolved' || t.status === 'Closed') {
             slaEl.textContent = 'Resolved';
             slaEl.style.color = '#10b981';
         } else if (now > slaDeadline) {
