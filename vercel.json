@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "env": {
+    "POSTGRES_URL": "postgresql://neondb_owner:npg_n6tRUYLQz1Kc@ep-holy-fog-amgnwiu5-pooler.c-5.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require"
+  },
   "builds": [
     {
       "src": "backend/wsgi.py",
