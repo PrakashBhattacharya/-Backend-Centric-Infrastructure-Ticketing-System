@@ -1058,7 +1058,9 @@ select option {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 16px;
-    align-items: flex-start;
+    align-items: stretch;
+    flex: 1;
+    height: 100%;
 }
 
 .perf-metric {
