@@ -4,7 +4,6 @@ Dashboard API blueprint — real aggregated data from the database.
 
 from flask import Blueprint, jsonify
 from datetime import datetime
-import psycopg2
 from .auth import token_required
 from ..models import get_member_stats, get_engineer_stats, get_admin_stats, get_audit_logs
 from ..config import Config
