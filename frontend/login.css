@@ -780,7 +780,7 @@ input:focus {
 .theme-toggle-btn {
     position: fixed;
     top: 20px;
-    right: 24px;
+    right: 12px;
     width: 38px;
     height: 38px;
     border-radius: 50%;
