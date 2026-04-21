@@ -446,6 +446,7 @@ def get_admin_stats():
     sla_met = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Resolved', 'Closed') AND updated_at <= {effective_deadline}", fetchone=True)['count']
     breached_total_lifetime = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE {effective_deadline} < %s::timestamp", (now,), fetchone=True)['count']
     breached_resolved = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Resolved', 'Closed') AND updated_at > {effective_deadline}", fetchone=True)['count']
+    near_breach = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Open', 'In Progress') AND {effective_deadline} > %s::timestamp AND {effective_deadline} < %s::timestamp + interval '2 hours'", (now, now), fetchone=True)['count']
     compliant = max(0, total_all - near_breach - breaches_today)
     
     # Org-wide MTTR
