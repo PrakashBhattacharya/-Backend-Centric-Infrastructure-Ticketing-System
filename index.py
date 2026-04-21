@@ -2,10 +2,10 @@ import sys
 import os
 import traceback
 
-# 1. Standardize System Path
-api_dir = os.path.dirname(__file__)
-if api_dir not in sys.path:
-    sys.path.insert(0, api_dir)
+# Root-level app folder is right next to this file
+root_dir = os.path.dirname(__file__)
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
 
 def create_emergency_app(error_msg):
     from flask import Flask, jsonify
@@ -13,13 +13,9 @@ def create_emergency_app(error_msg):
     @dummy.route('/', defaults={'path': ''})
     @dummy.route('/<path:path>')
     def report_error(path):
-        return jsonify({
-            "status": "BOOTSTRAP_FAILURE",
-            "error": error_msg
-        }), 500
+        return jsonify({"status": "BOOT_FAILURE", "error": error_msg}), 500
     return dummy
 
-# 2. High-Observation Bootstrap
 try:
     from app import create_app
     app = create_app()
