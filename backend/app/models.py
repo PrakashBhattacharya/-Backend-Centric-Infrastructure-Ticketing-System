@@ -21,20 +21,26 @@ SLA_HOURS = {
 
 
 def _debug_log(hypothesis_id, location, message, data, run_id='initial'):
-    try:
-        log_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'debug-c9a78c.log'))
-        with open(log_path, 'a', encoding='utf-8') as f:
-            f.write(json.dumps({
-                'sessionId': 'c9a78c',
-                'runId': run_id,
-                'hypothesisId': hypothesis_id,
-                'location': location,
-                'message': message,
-                'data': data,
-                'timestamp': int(datetime.utcnow().timestamp() * 1000)
-            }) + '\n')
-    except Exception:
-        pass
+    """Safe logger that avoids crashing on Read-Only file systems like Vercel."""
+    log_entry = {
+        'sessionId': 'c9a78c',
+        'runId': run_id,
+        'hypothesisId': hypothesis_id,
+        'location': location,
+        'message': message,
+        'data': data
+    }
+    # Always print to console for Vercel/Terminal viewing
+    print(f"[DEBUG][{hypothesis_id}] {message}")
+    
+    # Only try writing to file if NOT on Vercel (detected by lack of POSTGRES_URL or explicit env)
+    if not os.environ.get('VERCEL'):
+        try:
+            log_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'debug-c9a78c.log'))
+            with open(log_path, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(log_entry) + "\n")
+        except Exception:
+            pass # Silent fail if file system is read-only
 
 
 def _effective_deadline_sql(alias='t'):

@@ -27,9 +27,9 @@ def create_app(config_class=Config):
     # Initialize CORS with explicit settings for local dev
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-    # Initialize Database
-    with app.app_context():
-        init_db()
+    # Initialize Database (Handled by WSGI or lazy loaders in cloud)
+    # with app.app_context():
+    #     init_db()
 
     # Register Blueprints
     from .routes.auth import auth_bp
