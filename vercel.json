@@ -6,12 +6,52 @@
       "config": {
         "maxLambdaSize": "15mb"
       }
+    },
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/api/index.py"
+      "src": "/api/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/frontend/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/frontend/js/$1"
+    },
+    {
+      "src": "/(dashboard\\.css|login\\.css|signup\\.css)",
+      "dest": "/frontend/$1"
+    },
+    {
+      "src": "/login",
+      "dest": "/frontend/login.html"
+    },
+    {
+      "src": "/signup",
+      "dest": "/frontend/signup.html"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "/frontend/dashboard_member.html"
+    },
+    {
+      "src": "/",
+      "dest": "/frontend/login.html"
+    },
+    {
+      "src": "/(.*\\.html)",
+      "dest": "/frontend/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/login.html"
     }
   ]
 }
