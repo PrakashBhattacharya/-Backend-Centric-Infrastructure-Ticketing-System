@@ -12,6 +12,214 @@
     --glass-border: rgba(255, 255, 255, 0.08);
 }
 
+/* ─── Light Theme ────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+    --bg-primary: #f0f4f8;
+    --bg-secondary: #ffffff;
+    --accent-blue: #0284c7;
+    --accent-purple: #7c3aed;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --border-color: rgba(148, 163, 184, 0.3);
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(148, 163, 184, 0.25);
+}
+
+[data-theme="light"] body {
+    background-image: radial-gradient(ellipse 100% 80% at 100% 30%, rgba(186, 230, 253, 0.4), transparent 50%),
+        radial-gradient(ellipse 80% 60% at 0% 100%, rgba(196, 181, 253, 0.15), transparent 50%);
+}
+
+[data-theme="light"] .sidebar {
+    background: rgba(255, 255, 255, 0.95);
+    border-right-color: var(--border-color);
+}
+
+[data-theme="light"] .nav-item {
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] .nav-item:hover,
+[data-theme="light"] .nav-item.active {
+    background: rgba(2, 132, 199, 0.08);
+    color: var(--accent-blue);
+}
+
+[data-theme="light"] .nav-item.active {
+    background: rgba(2, 132, 199, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(2, 132, 199, 0.25);
+}
+
+[data-theme="light"] .search-box {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--border-color);
+}
+
+[data-theme="light"] .search-box input {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .search-box input::placeholder {
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] .widget-v2 {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--border-color);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .widget-v2:hover {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(2, 132, 199, 0.35);
+}
+
+[data-theme="light"] th {
+    border-bottom-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] td {
+    border-bottom-color: rgba(148, 163, 184, 0.12);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .modal-content {
+    background: #ffffff;
+    border-color: var(--border-color);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+    background: rgba(241, 245, 249, 0.8);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] select option {
+    background: #ffffff;
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .filter-select {
+    background: rgba(241, 245, 249, 0.9);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .secondary-btn {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="light"] .secondary-btn:hover {
+    background: rgba(148, 163, 184, 0.1);
+}
+
+[data-theme="light"] .density-item {
+    background: rgba(241, 245, 249, 0.6);
+    border-color: rgba(148, 163, 184, 0.15);
+}
+
+[data-theme="light"] .resource-card {
+    background: rgba(241, 245, 249, 0.7);
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+[data-theme="light"] .resource-card:hover {
+    background: rgba(224, 242, 254, 0.6);
+    border-color: var(--accent-blue);
+}
+
+[data-theme="light"] .kpi-card {
+    background: rgba(255, 255, 255, 0.88) !important;
+    border-color: rgba(148, 163, 184, 0.2) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .kpi-value {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .kpi-label {
+    color: #64748b !important;
+}
+
+[data-theme="light"] .kpi-desc {
+    color: #94a3b8 !important;
+}
+
+[data-theme="light"] .kpi-divider {
+    background: rgba(148, 163, 184, 0.2) !important;
+}
+
+[data-theme="light"] .perf-metric {
+    background: rgba(241, 245, 249, 0.7) !important;
+    border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+[data-theme="light"] .tel-bar-wrap {
+    background: rgba(148, 163, 184, 0.15);
+}
+
+[data-theme="light"] .node-actions {
+    border-top-color: var(--border-color);
+}
+
+[data-theme="light"] .filter-bar {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: var(--border-color);
+}
+
+[data-theme="light"] .sla-item {
+    background: rgba(241, 245, 249, 0.6);
+    border-color: var(--border-color);
+}
+
+[data-theme="light"] .tag {
+    background: rgba(148, 163, 184, 0.15);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] .gauge-bar-bg {
+    background: rgba(148, 163, 184, 0.15);
+}
+
+[data-theme="light"] .modal {
+    background: rgba(15, 23, 42, 0.5);
+}
+
+/* ─── Theme Toggle Button ────────────────────────────────────────────────── */
+.theme-toggle-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--glass-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.theme-toggle-btn:hover {
+    color: var(--accent-blue);
+    border-color: var(--accent-blue);
+    background: rgba(34, 211, 238, 0.08);
+    transform: rotate(20deg);
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+    background: rgba(2, 132, 199, 0.08);
+}
+
 * {
     margin: 0;
     padding: 0;

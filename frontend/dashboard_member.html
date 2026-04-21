@@ -43,9 +43,14 @@
                     <i class="fas fa-search"></i>
                     <input type="text" id="global-search" placeholder="Search my tickets, resources, docs...">
                 </div>
-                <button class="primary-btn" onclick="openModal('ticket-modal')">
-                    <i class="fas fa-plus"></i> New Ticket
-                </button>
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <button class="primary-btn" onclick="openModal('ticket-modal')">
+                        <i class="fas fa-plus"></i> New Ticket
+                    </button>
+                    <button id="theme-toggle" class="theme-toggle-btn" title="Switch to Light Mode">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </div>
             </header>
 
             <!-- VIEW: OVERVIEW -->
@@ -977,6 +982,7 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
     <script src="js/dashboard_member.js?v=2.0"></script>
 </body>
 

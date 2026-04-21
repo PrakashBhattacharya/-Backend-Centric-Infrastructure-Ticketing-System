@@ -43,8 +43,11 @@
                     <i class="fas fa-search"></i>
                     <input type="text" id="global-search" placeholder="Filter my queue, logs, or assets...">
                 </div>
-                <div class="status-indicator">
+                <div class="header-actions" style="display:flex; align-items:center; gap:16px;">
                     <span class="status resolved">SYSTEMS NOMINAL</span>
+                    <button id="theme-toggle" class="theme-toggle-btn" title="Switch to Light Mode">
+                        <i class="fas fa-sun"></i>
+                    </button>
                 </div>
             </header>
 
@@ -638,6 +641,7 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
     <script src="js/dashboard_engineer.js?v=2.0"></script>
 </body>
 
