@@ -3,7 +3,7 @@ Database models and helpers for InfraTick.
 Uses PostgreSQL via pg8000 (Pure Python) for persistence.
 """
 
-# pg8000 is lazily imported inside get_db() to prevent Vercel cold-start crashes
+import pg8000
 import os
 import json
 from datetime import datetime, timedelta, date
@@ -52,7 +52,6 @@ def _effective_deadline_sql(alias='t'):
 def get_db():
     """Returns a DB-API 2.0 compatible connection using pg8000 (Pure Python)."""
     try:
-        import pg8000.dbapi  # Lazy import - prevents Vercel cold-start crash
         pg_url = Config.POSTGRES_URL
         if pg_url:
             result = urlparse(pg_url)
@@ -221,33 +220,6 @@ def get_member_stats(uid):
         res['tickets'] = get_tickets({'created_by': uid})
     except Exception as e: _debug_log('MEM_ERR', 'models.py', str(e), {})
     return res
-
-def add_audit_log(action, details, icon='fa-info-circle', color='#3b82f6', user_id=None, ticket_id=None, danger=0):
-    execute_query(
-        "INSERT INTO audit_logs (action, details, icon, color, danger, user_id, ticket_id) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-        (action, details, icon, color, danger, user_id, ticket_id),
-        commit=True
-    )
-
-def get_audit_logs(limit=20):
-    return execute_query(
-        "SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT %s",
-        (limit,)
-    ) or []
-
-def add_comment(ticket_id, user_id, text):
-    now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    execute_query(
-        "INSERT INTO comments (ticket_id, user_id, text, created_at) VALUES (%s, %s, %s, %s)",
-        (ticket_id, user_id, text, now),
-        commit=True
-    )
-
-def get_comments(ticket_id):
-    return execute_query(
-        "SELECT c.*, u.full_name as author_name FROM comments c JOIN users u ON c.user_id = u.id WHERE c.ticket_id = %s ORDER BY c.created_at ASC",
-        (ticket_id,)
-    ) or []
 
 def get_engineer_stats(uid):
     now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
