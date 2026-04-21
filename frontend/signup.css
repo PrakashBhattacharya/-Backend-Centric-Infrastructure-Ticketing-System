@@ -391,3 +391,195 @@ select:focus {
     color: #93c5fd;
     text-decoration: underline;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT THEME
+   ═══════════════════════════════════════════════════════════════ */
+
+[data-theme="light"] body {
+    background: #f5f7fa;
+    color-scheme: light;
+    background-image:
+        radial-gradient(ellipse 70% 50% at 90% 10%, rgba(37, 99, 235, 0.07), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 10% 90%, rgba(124, 58, 237, 0.04), transparent 60%);
+}
+
+/* Left panel */
+[data-theme="light"] .left-panel {
+    background: transparent;
+}
+
+[data-theme="light"] .logo-text {
+    color: #0f172a;
+}
+
+[data-theme="light"] .left-panel h1 {
+    color: #0f172a;
+}
+
+[data-theme="light"] .left-panel h1 span {
+    color: #2563eb;
+}
+
+[data-theme="light"] .left-panel > p {
+    color: #64748b;
+}
+
+[data-theme="light"] .card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .card:hover {
+    border-color: #bfdbfe;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.08);
+}
+
+[data-theme="light"] .card-content h3 {
+    color: #0f172a;
+}
+
+[data-theme="light"] .card-content p {
+    color: #64748b;
+}
+
+[data-theme="light"] .footer {
+    color: #94a3b8;
+}
+
+[data-theme="light"] .footer a {
+    color: #2563eb;
+}
+
+/* Right panel */
+[data-theme="light"] .right-panel {
+    background: #ffffff;
+    border-left: 1px solid #e2e8f0;
+    box-shadow: -4px 0 24px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .right-panel h2 {
+    color: #0f172a;
+}
+
+[data-theme="light"] .subtitle {
+    color: #64748b;
+}
+
+/* Form labels */
+[data-theme="light"] .form-group label {
+    color: #374151;
+}
+
+/* Inputs */
+[data-theme="light"] input[type="text"],
+[data-theme="light"] input[type="email"],
+[data-theme="light"] input[type="password"] {
+    background: #f8fafc;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] input::placeholder {
+    color: #94a3b8;
+}
+
+[data-theme="light"] input:focus {
+    outline: none;
+    border-color: #2563eb;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Select */
+[data-theme="light"] select {
+    background-color: #f8fafc;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+}
+
+/* Input icons */
+[data-theme="light"] .email-icon::after,
+[data-theme="light"] .lock-icon::after,
+[data-theme="light"] .user-icon::after {
+    background: #94a3b8;
+}
+
+/* Password strength */
+[data-theme="light"] .password-strength {
+    color: #059669;
+}
+
+/* Primary button */
+[data-theme="light"] .primary-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+}
+
+[data-theme="light"] .primary-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+[data-theme="light"] .switch {
+    color: #64748b;
+}
+
+[data-theme="light"] .switch a {
+    color: #2563eb;
+}
+
+[data-theme="light"] .switch a:hover {
+    color: #1d4ed8;
+}
+
+/* Theme toggle button */
+.theme-toggle-btn {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: #94a3b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    z-index: 999;
+    backdrop-filter: blur(8px);
+}
+
+.theme-toggle-btn:hover {
+    color: #22d3ee;
+    border-color: rgba(34, 211, 238, 0.4);
+    background: rgba(34, 211, 238, 0.08);
+    transform: rotate(20deg);
+}
+
+[data-theme="light"] .theme-toggle-btn {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    transform: rotate(20deg);
+}
