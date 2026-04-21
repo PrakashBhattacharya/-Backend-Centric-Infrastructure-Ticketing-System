@@ -3,7 +3,7 @@ Database models and helpers for InfraTick.
 Uses PostgreSQL via pg8000 (Pure Python) for persistence.
 """
 
-import pg8000
+# pg8000 is lazily imported inside get_db() to prevent Vercel cold-start crashes
 import os
 import json
 from datetime import datetime, timedelta, date
@@ -52,6 +52,7 @@ def _effective_deadline_sql(alias='t'):
 def get_db():
     """Returns a DB-API 2.0 compatible connection using pg8000 (Pure Python)."""
     try:
+        import pg8000.dbapi  # Lazy import - prevents Vercel cold-start crash
         pg_url = Config.POSTGRES_URL
         if pg_url:
             result = urlparse(pg_url)
