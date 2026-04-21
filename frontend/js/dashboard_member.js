@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (kpiValues.length >= 6) {
         kpiValues[0].textContent = dbData.active;
         kpiValues[1].textContent = dbData.resolved;
-        kpiValues[2].textContent = dbData.active > 0 ? '1.2h' : '0.0h';
+        kpiValues[2].textContent = dbData.mttr || '0.0h';
         kpiValues[3].textContent = dbData.sla_pct + '%';
         kpiValues[4].textContent = dbData.urgent;
         kpiValues[5].textContent = dbData.breached;
@@ -134,29 +134,65 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ─── POPULATE TICKETS TABLE ─────────────────────────────────────────
     populateTicketTable(dbData.tickets);
 
-    // ─── CHARTS ─────────────────────────────────────────────────────────
+    // ─── CHARTS (Ultra-Polish Upgrade) ─────────────────────────────────
+    const chartFont = {
+        family: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        size: 11,
+        weight: '500'
+    };
+
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 10, bottom: 10, left: 5, right: 5 } },
         plugins: {
             legend: {
                 position: 'bottom',
-                labels: { color: '#94a3b8', font: { size: 10 }, usePointStyle: true }
+                labels: { 
+                    color: '#94a3b8', 
+                    font: chartFont, 
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 20
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(10, 14, 28, 0.95)',
+                titleFont: { family: chartFont.family, size: 13, weight: '700' },
+                bodyFont: { family: chartFont.family, size: 12 },
+                titleColor: '#f1f5f9',
+                bodyColor: '#94a3b8',
+                borderColor: 'rgba(34, 211, 238, 0.15)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 10,
+                displayColors: true,
+                boxShadow: '0 8px 30px rgba(0,0,0,0.5)'
             }
+        },
+        animation: {
+            duration: 2500,
+            easing: 'easeOutElastic'
         }
     };
 
-    // 1. Resolution Velocity Chart (Bar) — tickets by priority
+    // 1. Resolution Velocity Chart (Bar) — upgraded with gradients
     const ctxMember = document.getElementById('memberChart');
     if (ctxMember) {
         const ctx = ctxMember.getContext('2d');
-        const gradAccent = ctx.createLinearGradient(0, 0, 0, 400);
-        gradAccent.addColorStop(0, '#22d3ee');
-        gradAccent.addColorStop(1, 'rgba(34, 211, 238, 0.05)');
-
-        const gradMuted = ctx.createLinearGradient(0, 0, 0, 400);
-        gradMuted.addColorStop(0, '#3b82f6');
-        gradMuted.addColorStop(1, 'rgba(59, 130, 246, 0.05)');
+        
+        // Define Gradients
+        const gradCrit = ctx.createLinearGradient(0, 0, 0, 400);
+        gradCrit.addColorStop(0, '#f87171'); gradCrit.addColorStop(1, 'rgba(248, 113, 113, 0.1)');
+        
+        const gradHigh = ctx.createLinearGradient(0, 0, 0, 400);
+        gradHigh.addColorStop(0, '#fbbf24'); gradHigh.addColorStop(1, 'rgba(251, 191, 36, 0.1)');
+        
+        const gradMed = ctx.createLinearGradient(0, 0, 0, 400);
+        gradMed.addColorStop(0, '#3b82f6'); gradMed.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
+        
+        const gradLow = ctx.createLinearGradient(0, 0, 0, 400);
+        gradLow.addColorStop(0, '#94a3b8'); gradLow.addColorStop(1, 'rgba(148, 163, 184, 0.1)');
 
         new Chart(ctx, {
             type: 'bar',
@@ -165,17 +201,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 datasets: [{
                     label: 'TICKETS',
                     data: dbData.priorityData,
-                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#64748b'],
-                    borderColor: '#0a0c14',
-                    borderWidth: 2,
-                    borderRadius: 6
+                    backgroundColor: [gradCrit, gradHigh, gradMed, gradLow],
+                    borderColor: ['#f87171', '#fbbf24', '#3b82f6', '#94a3b8'],
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    hoverBorderWidth: 2
                 }]
             },
             options: {
                 ...commonOptions,
+                plugins: { ...commonOptions.plugins, legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#64748b', stepSize: 1 } },
-                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { weight: '600' } } }
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, 
+                        ticks: { color: '#64748b', stepSize: 1, font: { size: 10 } } 
+                    },
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { color: '#94a3b8', font: { weight: '600', size: 10 } } 
+                    }
                 }
             }
         });
@@ -193,61 +238,84 @@ document.addEventListener('DOMContentLoaded', async () => {
                     backgroundColor: ['#f87171', '#fbbf24', '#3b82f6', '#64748b'],
                     borderColor: '#0a0c14',
                     borderWidth: 4,
-                    hoverOffset: 20
+                    hoverOffset: 15
                 }]
             },
-            options: { ...commonOptions, cutout: '75%' }
-        });
-    }
-
-    // 3. Backlog Trend Chart (Line) — active tickets count as a single point
-    const ctxBacklog = document.getElementById('backlogChart');
-    if (ctxBacklog) {
-        new Chart(ctxBacklog.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: ['Now'],
-                datasets: [{
-                    label: 'ACTIVE TICKETS',
-                    data: [dbData.active],
-                    borderColor: '#22d3ee',
-                    backgroundColor: 'rgba(34, 211, 238, 0.03)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 6,
-                    pointBackgroundColor: '#22d3ee',
-                    pointBorderColor: '#0a0c14',
-                    pointBorderWidth: 2
-                }]
-            },
-            options: {
-                ...commonOptions,
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#64748b', stepSize: 1 } },
-                    x: { grid: { display: false }, ticks: { color: '#64748b' } }
+            options: { 
+                ...commonOptions, 
+                cutout: '78%',
+                plugins: {
+                    ...commonOptions.plugins,
+                    legend: { ...commonOptions.plugins.legend, position: 'right' }
                 }
             }
         });
     }
 
-    // 4. SLA Status Chart (Donut)
+    // 3. Backlog Trend Chart (Line) — real data trend
+    const ctxBacklog = document.getElementById('backlogChart');
+    if (ctxBacklog) {
+        const ctx = ctxBacklog.getContext('2d');
+        const gradFill = ctx.createLinearGradient(0, 0, 0, 300);
+        gradFill.addColorStop(0, 'rgba(34, 211, 238, 0.2)');
+        gradFill.addColorStop(1, 'rgba(34, 211, 238, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['6d ago', '5d ago', '4d ago', '3d ago', '2d ago', 'Yesterday', 'Today'],
+                datasets: [{
+                    label: 'DAILY SUBMISSIONS',
+                    data: dbData.backlogTrendData || [0, 0, 0, 0, 0, 0, dbData.active],
+                    borderColor: '#22d3ee',
+                    backgroundColor: gradFill,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.45,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#22d3ee',
+                    pointBorderColor: '#0a0c14',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', stepSize: 1 } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } }
+                }
+            }
+        });
+    }
+
+    // 4. SLA Status Chart (Donut) — Corrected logic for ALL tickets
     const ctxSla = document.getElementById('slaDonutChart');
     if (ctxSla) {
-        const metSla = Math.max(0, Number(dbData.sla_met || 0));
-        const breachedResolved = Math.max(0, Number(dbData.breached_resolved || 0));
+        const total = dbData.total || 0;
+        const breached = dbData.breached || 0;
+        const met = Math.max(0, total - breached);
+        
         new Chart(ctxSla.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: ['MET SLA', 'BREACHED'],
                 datasets: [{
-                    data: [metSla, breachedResolved],
-                    backgroundColor: ['#10b981', '#f87171'],
+                    data: [met, breached],
+                    backgroundColor: ['#10b981', '#ef4444'],
                     borderColor: '#0a0c14',
-                    borderWidth: 3
+                    borderWidth: 5,
+                    hoverOffset: 10
                 }]
             },
-            options: { ...commonOptions, cutout: '80%' }
+            options: { 
+                ...commonOptions, 
+                cutout: '82%',
+                plugins: {
+                    ...commonOptions.plugins,
+                    legend: { ...commonOptions.plugins.legend, position: 'bottom' }
+                }
+            }
         });
     }
 

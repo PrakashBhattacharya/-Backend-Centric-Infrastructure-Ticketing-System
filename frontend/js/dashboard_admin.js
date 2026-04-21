@@ -187,9 +187,9 @@ function updateKPIs(data) {
         kpis[0].textContent = data.total_open || 0;
         kpis[1].textContent = data.breaches_today || 0;
         kpis[2].textContent = data.escalated || 0;
-        kpis[3].textContent = data.total_resolved || 0;
-        kpis[4].textContent = data.total_all || 0;
-        kpis[5].textContent = (data.reopen_rate || 0) + '%';
+        kpis[3].textContent = data.mttr || '0.0h';
+        kpis[4].textContent = (data.reopen_rate || 0) + '%';
+        kpis[5].textContent = data.avg_aging || '0.0d';
     }
 }
 
@@ -343,10 +343,43 @@ async function openTicketDetail(ticketId) {
 }
 
 function initCharts(data) {
+    const chartFont = {
+        family: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        size: 10,
+        weight: '600'
+    };
+
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 }, usePointStyle: true } } }
+        layout: { padding: { top: 10, bottom: 10, left: 10, right: 10 } },
+        plugins: { 
+            legend: { 
+                position: 'bottom', 
+                labels: { 
+                    color: '#94a3b8', 
+                    font: chartFont, 
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 15
+                } 
+            },
+            tooltip: {
+                backgroundColor: 'rgba(10, 14, 28, 0.98)',
+                titleFont: { family: chartFont.family, size: 12, weight: '700' },
+                bodyFont: { family: chartFont.family, size: 11 },
+                titleColor: '#f1f5f9',
+                bodyColor: '#94a3b8',
+                borderColor: 'rgba(59, 130, 246, 0.2)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 10
+            }
+        },
+        animation: {
+            duration: 2000,
+            easing: 'easeOutQuart'
+        }
     };
 
     const chartIds = ['slaComplianceChart', 'agingChart', 'serviceImpactChart', 'regionLoadChart', 'backlogTrendChart'];
@@ -355,7 +388,7 @@ function initCharts(data) {
         if (existingChart) existingChart.destroy();
     });
 
-    // 1. SLA Compliance Chart (Donut)
+    // 1. SLA Compliance Chart (Donut) — Enhanced with real data & gradients
     const ctxSla = document.getElementById('slaComplianceChart');
     if (ctxSla) {
         new Chart(ctxSla, {
@@ -366,38 +399,53 @@ function initCharts(data) {
                     data: data.slaComplianceData || [0, 0, 0],
                     backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
                     borderColor: '#0f172a',
-                    borderWidth: 3
+                    borderWidth: 5,
+                    hoverOffset: 15
                 }]
             },
-            options: { ...commonOptions, cutout: '75%' }
+            options: { 
+                ...commonOptions, 
+                cutout: '80%',
+                plugins: {
+                    ...commonOptions.plugins,
+                    legend: { ...commonOptions.plugins.legend, position: 'bottom' }
+                }
+            }
         });
     }
 
-    // 2. Backlog Aging Chart (Bar)
+    // 2. Backlog Aging Chart (Bar) — Upgrade with gradients
     const ctxAging = document.getElementById('agingChart');
     if (ctxAging) {
-        new Chart(ctxAging, {
+        const ctx = ctxAging.getContext('2d');
+        const grad = ctx.createLinearGradient(0, 0, 0, 300);
+        grad.addColorStop(0, '#3b82f6'); grad.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
+
+        new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: ['< 24h', '1-3 Days', '3-7 Days', '7+ Days'],
                 datasets: [{
                     label: 'Tickets',
                     data: data.agingData || [0, 0, 0, 0],
-                    backgroundColor: ['#22d3ee', '#3b82f6', '#f59e0b', '#ef4444'],
-                    borderRadius: 6
+                    backgroundColor: grad,
+                    borderColor: '#3b82f6',
+                    borderWidth: 1,
+                    borderRadius: 8
                 }]
             },
             options: {
                 ...commonOptions,
+                plugins: { ...commonOptions.plugins, legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#64748b' } },
-                    x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, ticks: { color: '#64748b' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { weight: '600' } } }
                 }
             }
         });
     }
 
-    // 3. Service Impact Distribution (Radar)
+    // 3. Service Impact Distribution (Radar) — Premium sleek look
     const ctxService = document.getElementById('serviceImpactChart');
     if (ctxService) {
         new Chart(ctxService, {
@@ -409,60 +457,85 @@ function initCharts(data) {
                     data: data.serviceImpactData || [0, 0, 0, 0, 0],
                     borderColor: '#22d3ee',
                     backgroundColor: 'rgba(34, 211, 238, 0.15)',
-                    borderWidth: 2
+                    borderWidth: 3,
+                    pointBackgroundColor: '#22d3ee',
+                    pointBorderColor: '#0f172a',
+                    pointHoverRadius: 6
                 }]
             },
             options: {
                 ...commonOptions,
                 scales: {
-                    r: { grid: { color: 'rgba(255,255,255,0.05)' }, pointLabels: { color: '#94a3b8' }, ticks: { display: false } }
+                    r: { 
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        angleLines: { color: 'rgba(255,255,255,0.05)' },
+                        pointLabels: { color: '#94a3b8', font: { size: 10, weight: '600' } }, 
+                        ticks: { display: false } 
+                    }
                 }
             }
         });
     }
 
-    // 4. Backlog Growth (Line)
+    // 4. Backlog Growth (Line) — Real Trend Data
     const ctxBacklog = document.getElementById('backlogTrendChart');
     if (ctxBacklog) {
-        new Chart(ctxBacklog, {
+        const ctx = ctxBacklog.getContext('2d');
+        const gradFill = ctx.createLinearGradient(0, 0, 0, 300);
+        gradFill.addColorStop(0, 'rgba(139, 92, 246, 0.2)');
+        gradFill.addColorStop(1, 'rgba(139, 92, 246, 0)');
+
+        new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Now'],
+                labels: ['6d ago', '5d ago', '4d ago', '3d ago', '2d ago', 'Yest', 'Today'],
                 datasets: [{
-                    label: 'Backlog',
-                    data: data.backlogTrendData || [0, 0, 0, 0, 0, 0],
+                    label: 'New Incidents',
+                    data: data.backlogTrendData || [0, 0, 0, 0, 0, 0, 0],
                     borderColor: '#8b5cf6',
-                    tension: 0.4,
+                    tension: 0.45,
                     fill: true,
-                    backgroundColor: 'rgba(139, 92, 246, 0.05)',
-                    borderWidth: 3
+                    backgroundColor: gradFill,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointHoverRadius: 8
                 }]
             },
             options: {
                 ...commonOptions,
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.02)' } },
-                    x: { grid: { display: false } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b' } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } }
                 }
             }
         });
     }
 
-    // 5. Regional Load Chart (Doughnut)
+    // 5. Regional Load Chart (Doughnut) — Mapped Real Data
     const ctxRegion = document.getElementById('regionLoadChart');
     if (ctxRegion) {
         new Chart(ctxRegion, {
             type: 'doughnut',
             data: {
-                labels: ['US-East', 'EU-West', 'AP-South', 'Other'],
+                labels: ['Americas (Prod)', 'Europe (Stage)', 'Asia-Pac (Dev)', 'Global (Edge)'],
                 datasets: [{
                     data: data.regionLoadData || [0, 0, 0, 0],
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#94a3b8'],
                     borderColor: '#0f172a',
-                    borderWidth: 2
+                    borderWidth: 3
                 }]
             },
-            options: { ...commonOptions, cutout: '70%', plugins: { ...commonOptions.plugins, legend: { position: 'right', labels: { boxWidth: 10, color: '#94a3b8' } } } }
+            options: { 
+                ...commonOptions, 
+                cutout: '72%', 
+                plugins: { 
+                    ...commonOptions.plugins, 
+                    legend: { 
+                        position: 'right', 
+                        labels: { boxWidth: 12, color: '#94a3b8', font: { size: 10 } } 
+                    } 
+                } 
+            }
         });
     }
 }

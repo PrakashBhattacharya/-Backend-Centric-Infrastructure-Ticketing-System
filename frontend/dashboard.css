@@ -1,13 +1,15 @@
 :root {
     --bg-primary: #060810;
-    --bg-secondary: rgba(8, 12, 24, 0.95);
+    --bg-secondary: rgba(10, 14, 28, 0.98);
     --accent-blue: #22d3ee;
     --accent-purple: #a855f7;
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
     --sidebar-width: 260px;
-    --card-bg: rgba(16, 24, 40, 0.6);
-    --border-color: rgba(30, 64, 175, 0.25);
+    --card-bg: rgba(16, 24, 40, 0.4);
+    --border-color: rgba(30, 64, 175, 0.2);
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 * {
@@ -387,9 +389,18 @@ body {
 
 .data-card {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
     padding: 24px;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.data-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(34, 211, 238, 0.3);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }
 
 .card-header {
@@ -794,15 +805,16 @@ select option {
 /* Widget Components */
 .widget-v2 {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
     padding: 32px;
     position: relative;
-    backdrop-filter: blur(16px);
-    transition: transform 0.3s ease, border-color 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .widget-v2:hover {
+    background: rgba(16, 24, 40, 0.5);
     border-color: rgba(34, 211, 238, 0.4);
 }
 

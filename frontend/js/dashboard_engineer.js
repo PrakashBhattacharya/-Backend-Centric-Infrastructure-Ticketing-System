@@ -159,7 +159,7 @@ function updateKPIs(data) {
         kpis[0].textContent = data.assigned;
         kpis[1].textContent = data.overdue;
         kpis[2].textContent = data.assigned > 0 ? 'Today' : '-';
-        kpis[3].textContent = data.assigned > 0 ? '0.0h' : '0.0h';
+        kpis[3].textContent = data.mttr || '0.0h';
         kpis[4].textContent = data.sla_pct + '%';
         kpis[5].textContent = data.resolved_total;
     }
@@ -310,54 +310,103 @@ async function updateStatus(ticketId, status) {
 }
 
 function initCharts(data) {
+    const chartFont = {
+        family: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        size: 11,
+        weight: '600'
+    };
+
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } }
+        layout: { padding: { top: 15, bottom: 5, left: 10, right: 10 } },
+        plugins: { 
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(10, 14, 28, 0.98)',
+                titleFont: { family: chartFont.family, size: 12, weight: '700' },
+                bodyFont: { family: chartFont.family, size: 11 },
+                titleColor: '#f1f5f9',
+                bodyColor: '#94a3b8',
+                borderColor: 'rgba(59, 130, 246, 0.2)',
+                borderWidth: 1,
+                padding: 10,
+                cornerRadius: 8
+            }
+        },
+        animation: {
+            duration: 2000,
+            easing: 'easeOutElastic'
+        }
     };
 
-    // Resolution Velocity Chart
+    // Resolution Velocity Chart (Bar) — Upgraded with gradients
     const ctxEng = document.getElementById('engineerChart');
     if (ctxEng) {
-        new Chart(ctxEng, {
+        const ctx = ctxEng.getContext('2d');
+        const gradBlue = ctx.createLinearGradient(0, 0, 0, 300);
+        gradBlue.addColorStop(0, '#3b82f6'); gradBlue.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
+        
+        const gradRed = ctx.createLinearGradient(0, 0, 0, 300);
+        gradRed.addColorStop(0, '#ef4444'); gradRed.addColorStop(1, 'rgba(239, 68, 68, 0.1)');
+        
+        const gradGreen = ctx.createLinearGradient(0, 0, 0, 300);
+        gradGreen.addColorStop(0, '#10b981'); gradGreen.addColorStop(1, 'rgba(16, 185, 129, 0.1)');
+
+        new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: ['Assigned', 'Overdue', 'Resolved'],
                 datasets: [{
                     label: 'Tickets',
                     data: [data.assigned, data.overdue, data.resolved_total],
-                    backgroundColor: ['#3b82f6', '#ef4444', '#10b981'],
+                    backgroundColor: [gradBlue, gradRed, gradGreen],
+                    borderColor: ['#3b82f6', '#ef4444', '#10b981'],
+                    borderWidth: 1,
                     borderRadius: 6
                 }]
             },
             options: {
                 ...commonOptions,
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#64748b', stepSize: 1 } },
-                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { weight: '600' } } }
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, 
+                        ticks: { color: '#64748b', stepSize: 1, font: { size: 10 } } 
+                    },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { weight: '600', size: 11 } } }
                 }
             }
         });
     }
 
-    // MTTR Trend mini chart
+    // MTTR Trend mini chart — Real Data Trend
     const ctxMttr = document.getElementById('mttrTrendChart');
     if (ctxMttr) {
-        new Chart(ctxMttr, {
+        const ctx = ctxMttr.getContext('2d');
+        const gradFill = ctx.createLinearGradient(0, 0, 0, 50);
+        gradFill.addColorStop(0, 'rgba(34, 211, 238, 0.3)');
+        gradFill.addColorStop(1, 'rgba(34, 211, 238, 0)');
+
+        new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['', '', '', '', ''],
                 datasets: [{
-                    data: [0, 0, 0, 0, data.resolved_total > 0 ? 1.2 : 0],
+                    data: data.mttr_trend || [0, 0, 0, 0, 0],
                     borderColor: '#22d3ee',
                     borderWidth: 2,
-                    tension: 0.4,
+                    tension: 0.45,
                     pointRadius: 0,
                     fill: true,
-                    backgroundColor: 'rgba(34, 211, 238, 0.05)'
+                    backgroundColor: gradFill
                 }]
             },
-            options: { ...commonOptions, scales: { x: { display: false }, y: { display: false } } }
+            options: { 
+                ...commonOptions, 
+                animations: { tension: { duration: 1000, easing: 'linear' } },
+                scales: { x: { display: false }, y: { display: false } } 
+            }
         });
     }
 }
