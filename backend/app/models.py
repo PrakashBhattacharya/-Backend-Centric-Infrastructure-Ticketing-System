@@ -49,9 +49,14 @@ def _effective_deadline_sql(alias='t'):
 
 def get_db():
     try:
-        conn = psycopg2.connect(Config.POSTGRES_URL)
+        url = Config.POSTGRES_URL
+        if not url:
+            _debug_log('DB_ERR', 'models.py:get_db', 'POSTGRES_URL is None', {})
+            return None
+        conn = psycopg2.connect(url)
         return conn
     except Exception as e:
+        _debug_log('DB_ERR', 'models.py:get_db', f'Connection failed: {str(e)}', {'url_present': bool(Config.POSTGRES_URL)})
         print("Database connection error:", e)
         return None
 
@@ -532,5 +537,8 @@ def get_admin_stats():
             'engineers': engineer_data, 'all_tickets': [dict(t) for t in (all_tickets or [])]
         }
     except Exception as e:
+        import traceback
+        err_msg = traceback.format_exc()
+        _debug_log('ADMIN_STATS_ERR', 'models.py:get_admin_stats', f'Aggregation failed: {str(e)}', {'traceback': err_msg})
         print(f"CRITICAL ERROR in get_admin_stats: {e}")
         return defaults

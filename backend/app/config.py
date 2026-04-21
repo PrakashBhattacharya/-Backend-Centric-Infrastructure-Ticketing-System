@@ -1,8 +1,18 @@
 import os
 from dotenv import load_dotenv
 
-# Load .env file
-load_dotenv()
+# Backend root is one level up from this file, Project root is one level up from backend
+BACKEND_DIR = os.path.abspath(os.path.dirname(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(BACKEND_DIR, '..', '..'))
+ENV_PATH = os.path.join(PROJECT_ROOT, '.env')
+
+# Load .env file with absolute path
+if os.path.exists(ENV_PATH):
+    load_dotenv(ENV_PATH)
+    print(f"[Config] Successfully loaded .env from {ENV_PATH}")
+else:
+    load_dotenv() # Fallback to standard search
+    print(f"[Config] WARNING: .env not found at {ENV_PATH}, falling back to default search.")
 
 class Config:
     """Professional configuration with standardized paths."""

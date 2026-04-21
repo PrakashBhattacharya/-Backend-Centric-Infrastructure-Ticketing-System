@@ -3,8 +3,11 @@ Dashboard API blueprint — real aggregated data from the database.
 """
 
 from flask import Blueprint, jsonify
+from datetime import datetime
+import psycopg2
 from .auth import token_required
 from ..models import get_member_stats, get_engineer_stats, get_admin_stats, get_audit_logs
+from ..config import Config
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/api/dashboard')
 
@@ -23,6 +26,44 @@ def engineer_dashboard(current_user):
         return jsonify({'message': 'Unauthorized access!'}), 403
     stats = get_engineer_stats(current_user['id'])
     return jsonify({'success': True, **stats})
+
+@dashboard_bp.route('/admin/diag', methods=['GET'])
+@token_required
+def admin_diag(current_user):
+    if current_user['role'] != 'admin':
+        return jsonify({'message': 'Unauthorized'}), 403
+    
+    diag_results = {
+        'timestamp': datetime.utcnow().isoformat(),
+        'env_config': {
+            'has_postgres_url': bool(Config.POSTGRES_URL),
+            'postgres_url_start': Config.POSTGRES_URL[:15] + '...' if Config.POSTGRES_URL else None
+        },
+        'connection_test': 'Not Started',
+        'query_test': 'Not Started',
+        'error': None
+    }
+
+    try:
+        # Test basic connection
+        conn = psycopg2.connect(Config.POSTGRES_URL)
+        diag_results['connection_test'] = 'Passed'
+        
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        diag_results['query_test'] = 'Basic SELECT Passed'
+        
+        cursor.execute("SELECT COUNT(*) FROM tickets")
+        count = cursor.fetchone()[0]
+        diag_results['ticket_count'] = count
+        
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        diag_results['error'] = str(e)
+        diag_results['connection_test'] = 'Failed'
+
+    return jsonify(diag_results)
 
 @dashboard_bp.route('/admin/overview', methods=['GET'])
 @token_required
