@@ -3,11 +3,11 @@ Database models and helpers for InfraTick.
 Uses PostgreSQL via psycopg2 for persistence.
 """
 
-import psycopg2
-import psycopg2.extras
+import pg8000.native
 import os
 import json
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
 from werkzeug.security import generate_password_hash, check_password_hash
 from .config import Config
 
@@ -54,16 +54,31 @@ def _effective_deadline_sql(alias='t'):
     )
 
 def get_db():
+    """Returns a DB-API 2.0 compatible connection using pg8000 (Pure Python)."""
     try:
-        url = Config.POSTGRES_URL
-        if not url:
-            _debug_log('DB_ERR', 'models.py:get_db', 'POSTGRES_URL is None', {})
-            return None
-        conn = psycopg2.connect(url)
-        return conn
+        pg_url = Config.POSTGRES_URL
+        if pg_url:
+            # Parse the URI
+            result = urlparse(pg_url)
+            username = result.username
+            password = result.password
+            database = result.path[1:] # remove leading slash
+            hostname = result.hostname
+            port = result.port or 5432
+            
+            # Connect via pg8000's DB-API implementation
+            conn = pg8000.dbapi.connect(
+                user=username,
+                password=password,
+                host=hostname,
+                port=port,
+                database=database,
+                ssl_context=True
+            )
+            return conn
+        return None
     except Exception as e:
-        _debug_log('DB_ERR', 'models.py:get_db', f'Connection failed: {str(e)}', {'url_present': bool(Config.POSTGRES_URL)})
-        print("Database connection error:", e)
+        _debug_log('DB_CONN_ERR', 'models.py:get_db', str(e), {})
         return None
 
 def init_db():
