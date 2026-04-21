@@ -5,11 +5,7 @@
   },
   "builds": [
     {
-      "src": "backend/wsgi.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "backend/api_test.py",
+      "src": "index.py",
       "use": "@vercel/python"
     },
     {
@@ -19,12 +15,8 @@
   ],
   "routes": [
     {
-      "src": "/api/test",
-      "dest": "backend/api_test.py"
-    },
-    {
       "src": "/api/(.*)",
-      "dest": "backend/wsgi.py"
+      "dest": "index.py"
     },
     {
       "src": "/(.*)",
