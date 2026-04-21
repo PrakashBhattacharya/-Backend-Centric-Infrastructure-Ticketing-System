@@ -1,37 +1,27 @@
-import sys
+from flask import Flask, jsonify
 import os
+import sys
 
-# 1. Standardize Python Path for Vercel
-# Ensure the 'backend/app' module can be imported
-backend_path = os.path.join(os.path.dirname(__file__), 'backend')
-if os.path.exists(backend_path):
-    sys.path.insert(0, backend_path)
+app = Flask(__name__)
 
-from app import create_app
-from app.models import init_db
-
-def bootstrap():
-    """High-stability factory to initialize the real app."""
-    try:
-        instance = create_app()
-        # High-Stability: Ensure DB schema is ready
-        with instance.app_context():
-            init_db()
-        return instance
-    except Exception as e:
-        # Emergency Diagnostic Fallback
-        import traceback
-        error_info = traceback.format_exc()
-        from flask import Flask, jsonify
-        dummy = Flask(__name__)
-        @dummy.route('/', defaults={'path': ''})
-        @dummy.route('/<path:path>')
-        def catch_all(path):
-            return f"FINAL_BOOT_CRASH:\n{error_info}", 500
-        return dummy
-
-# Vercel's 'app' export
-app = bootstrap()
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def debug(path):
+    # List all files and directories in the current working directory
+    files_info = {}
+    for root, dirs, files in os.walk('.'):
+        # Limit depth to 2 to avoid too much text
+        depth = root.count(os.sep)
+        if depth <= 2:
+            files_info[root] = {"dirs": dirs, "files": files}
+    
+    return jsonify({
+        "status": "Diagnostic File Check",
+        "cwd": os.getcwd(),
+        "python_path": sys.path,
+        "structure": files_info,
+        "env": {k: v for k, v in os.environ.items() if "URL" not in k and "PASS" not in k} # Safe env check
+    })
 
 if __name__ == "__main__":
     app.run()
