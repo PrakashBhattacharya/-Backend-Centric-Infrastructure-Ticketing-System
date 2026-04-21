@@ -434,114 +434,103 @@ def get_engineer_stats(user_id):
     return {'assigned': assigned, 'overdue': overdue, 'resolved_total': resolved_total, 'sla_pct': sla_pct, 'mttr': f"{mttr}h", 'mttr_trend': mttr_trend, 'queue': [dict(t) for t in (queue or [])], 'resolved_list': [dict(t) for t in (resolved_list or [])]}
 
 def get_admin_stats():
-    now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    effective_deadline = _effective_deadline_sql('t')
-    total_open = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress')", fetchone=True)['count']
-    open_breached = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Open', 'In Progress') AND {effective_deadline} < %s::timestamp", (now,), fetchone=True)['count']
-    resolved_breached = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Resolved', 'Closed') AND updated_at > {effective_deadline}", fetchone=True)['count']
-    breaches_today = open_breached + resolved_breached
-    escalated = execute_query("SELECT COUNT(*) as count FROM tickets WHERE priority = 'Critical' AND status IN ('Open', 'In Progress')", fetchone=True)['count']
-    total_resolved = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed')", fetchone=True)['count']
-    total_all = execute_query("SELECT COUNT(*) as count FROM tickets", fetchone=True)['count']
-    sla_met = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Resolved', 'Closed') AND updated_at <= {effective_deadline}", fetchone=True)['count']
-    breached_total_lifetime = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE {effective_deadline} < %s::timestamp", (now,), fetchone=True)['count']
-    breached_resolved = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Resolved', 'Closed') AND updated_at > {effective_deadline}", fetchone=True)['count']
-    near_breach = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Open', 'In Progress') AND {effective_deadline} > %s::timestamp AND {effective_deadline} < %s::timestamp + interval '2 hours'", (now, now), fetchone=True)['count']
-    compliant = max(0, total_all - near_breach - breaches_today)
-    
-    # Org-wide MTTR
-    mttr_row = execute_query("SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/3600) as mttr FROM tickets WHERE status IN ('Resolved', 'Closed')", fetchone=True)
-    mttr = round(float(mttr_row['mttr']), 1) if mttr_row and mttr_row['mttr'] is not None else 0.0
-    
-    # Average aging for open tickets (days)
-    aging_row = execute_query("SELECT AVG(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at))/86400) as aging FROM tickets WHERE status IN ('Open', 'In Progress')", fetchone=True)
-    avg_aging = round(float(aging_row['aging']), 1) if aging_row and aging_row['aging'] is not None else 0.0
-
-    # Backlog Trend (Last 7 days creation)
-    trend_rows = execute_query("""
-        SELECT d.day, COUNT(t.id) as count
-        FROM (SELECT CURRENT_DATE - i as day FROM generate_series(0,6) i) d
-        LEFT JOIN tickets t ON DATE(t.created_at) = d.day
-        GROUP BY d.day ORDER BY d.day ASC
-    """)
-    backlog_trend = [int(r['count']) for r in (trend_rows or [])]
-
-    # Reopen rate heuristic (tickets with > 1 'Status → In Progress' after being resolved? 
-    # Or just count audit logs for 'Status → In Progress' where previous state was Resolved)
-    # For now, let's look for audit logs of reopens.
-    reopens = execute_query("SELECT COUNT(*) as count FROM audit_logs WHERE action LIKE 'Status → In Progress' AND details LIKE '%status changed to In Progress%'", fetchone=True)['count']
-    reopen_rate = round((reopens / total_all * 100), 1) if total_all > 0 else 0.0
-    aging = [execute_query(f"SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress') AND {q}", fetchone=True)['count'] for q in ["created_at >= CURRENT_TIMESTAMP - interval '1 day'", "created_at < CURRENT_TIMESTAMP - interval '1 day' AND created_at >= CURRENT_TIMESTAMP - interval '3 days'", "created_at < CURRENT_TIMESTAMP - interval '3 days' AND created_at >= CURRENT_TIMESTAMP - interval '7 days'", "created_at < CURRENT_TIMESTAMP - interval '7 days'"]]
-    services = ['Database', 'Networking', 'Compute / VM', 'Security / IAM', 'Storage']
-    service_counts = [execute_query("SELECT COUNT(*) as count FROM tickets WHERE service_area = %s AND status IN ('Open', 'In Progress')", (svc,), fetchone=True)['count'] for svc in services]
-    
-    # Regional Load (Environment mapping)
-    envs = ['Production', 'Staging', 'Development', 'Local']
-    region_counts = [execute_query("SELECT COUNT(*) as count FROM tickets WHERE environment = %s AND status IN ('Open', 'In Progress')", (env,), fetchone=True)['count'] for env in envs]
-    engineers = execute_query("SELECT id, full_name, email FROM users WHERE role = 'engineer'")
-    engineer_data = []
-    for eng in (engineers or []):
-        ea = execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND status IN ('Open', 'In Progress')", (eng['id'],), fetchone=True)['count']
-        er = execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND status IN ('Resolved', 'Closed')", (eng['id'],), fetchone=True)['count']
-        esm = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE assigned_to = %s AND status IN ('Resolved', 'Closed') AND updated_at <= {effective_deadline}", (eng['id'],), fetchone=True)['count']
-        esp = round((esm / er * 100)) if er > 0 else 0
-        eb = execute_query(
-            f"SELECT COUNT(*) as count FROM tickets t WHERE assigned_to = %s AND ((status IN ('Open', 'In Progress') AND {effective_deadline} < %s::timestamp) OR (status IN ('Resolved', 'Closed') AND updated_at > {effective_deadline}))",
-            (eng['id'], now),
-            fetchone=True
-        )['count']
-        engineer_data.append({'id': eng['id'], 'name': eng['full_name'], 'assigned': ea, 'resolved': er, 'mttr': '-', 'sla': esp, 'reopens': '0%', 'status': 'excellent' if esp >= 95 else 'good' if esp >= 85 else 'warning' if esp >= 70 else 'critical', 'breached': eb})
-    all_tickets = execute_query(
-        """
-        SELECT
-            t.*,
-            u1.full_name as creator_name,
-            u2.full_name as assignee_name,
-            CASE
-                WHEN t.status IN ('Resolved', 'Closed') THEN t.updated_at > {effective_deadline}
-                ELSE {effective_deadline} < CURRENT_TIMESTAMP
-            END as sla_breached
-        FROM tickets t
-        LEFT JOIN users u1 ON t.created_by = u1.id
-        LEFT JOIN users u2 ON t.assigned_to = u2.id
-        ORDER BY t.created_at DESC
-        """.format(effective_deadline=effective_deadline)
-    )
-    # #region agent log
-    _debug_log('H3', 'backend/app/models.py:get_admin_stats', 'admin sla aggregate counters', {
-        'totalOpen': total_open,
-        'totalResolved': total_resolved,
-        'breachesOpenOnly': open_breached,
-        'breachedResolved': breached_resolved,
-        'breachedLifetime': breached_total_lifetime,
-        'slaComplianceData': [compliant, near_breach, breaches_today]
-    })
-    # #endregion
-    # #region agent log
-    _debug_log('H4', 'backend/app/models.py:get_admin_stats', 'engineer matrix preview', {
-        'engineerCount': len(engineer_data),
-        'engineerRows': [{
-            'id': e['id'],
-            'resolved': e['resolved'],
-            'sla': e['sla'],
-            'status': e['status']
-        } for e in engineer_data]
-    })
-    # #endregion
-    return {
-        'total_open': total_open,
-        'breaches_today': breaches_today,
-        'escalated': escalated,
-        'total_resolved': total_resolved,
-        'total_all': total_all,
-        'reopen_rate': reopen_rate,
-        'mttr': f"{mttr}h",
-        'avg_aging': f"{avg_aging}d",
-        'slaComplianceData': [compliant, near_breach, breaches_today],
-        'agingData': aging,
-        'backlogTrendData': backlog_trend,
-        'serviceImpactData': service_counts,
-        'regionLoadData': region_counts,
-        'engineers': engineer_data,
-        'all_tickets': [dict(t) for t in (all_tickets or [])]
+    # Defensive Default Values
+    defaults = {
+        'total_open': 0, 'breaches_today': 0, 'escalated': 0, 'total_resolved': 0, 'total_all': 0,
+        'reopen_rate': 0.0, 'mttr': '0.0h', 'avg_aging': '0.0d',
+        'slaComplianceData': [0, 0, 0], 'agingData': [0, 0, 0, 0],
+        'backlogTrendData': [0, 0, 0, 0, 0, 0, 0],
+        'serviceImpactData': [0, 0, 0, 0, 0],
+        'regionLoadData': [0, 0, 0, 0],
+        'engineers': [], 'all_tickets': []
     }
+
+    try:
+        now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        effective_deadline = _effective_deadline_sql('t')
+        
+        # ── KPI METRICS ──────────────────────────────────────────────────────
+        total_open = (execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress')", fetchone=True) or {'count': 0})['count']
+        open_breached = (execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Open', 'In Progress') AND {effective_deadline} < %s::timestamp", (now,), fetchone=True) or {'count': 0})['count']
+        resolved_breached = (execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Resolved', 'Closed') AND updated_at > {effective_deadline}", fetchone=True) or {'count': 0})['count']
+        breaches_today = open_breached + resolved_breached
+        escalated = (execute_query("SELECT COUNT(*) as count FROM tickets WHERE priority = 'Critical' AND status IN ('Open', 'In Progress')", fetchone=True) or {'count': 0})['count']
+        total_resolved = (execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed')", fetchone=True) or {'count': 0})['count']
+        total_all = (execute_query("SELECT COUNT(*) as count FROM tickets", fetchone=True) or {'count': 0})['count']
+        
+        near_breach = (execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Open', 'In Progress') AND {effective_deadline} > %s::timestamp AND {effective_deadline} < %s::timestamp + interval '2 hours'", (now, now), fetchone=True) or {'count': 0})['count']
+        compliant = max(0, total_all - near_breach - breaches_today)
+        
+        mttr_row = execute_query("SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/3600) as mttr FROM tickets WHERE status IN ('Resolved', 'Closed')", fetchone=True)
+        mttr = round(float(mttr_row['mttr']), 1) if mttr_row and mttr_row.get('mttr') is not None else 0.0
+        
+        aging_row = execute_query("SELECT AVG(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at))/86400) as aging FROM tickets WHERE status IN ('Open', 'In Progress')", fetchone=True)
+        avg_aging = round(float(aging_row['aging']), 1) if aging_row and aging_row.get('aging') is not None else 0.0
+
+        # ── TRENDS & DISTRIBUTIONS ───────────────────────────────────────────
+        trend_rows = execute_query("""
+            SELECT d.day, COUNT(t.id) as count
+            FROM (SELECT CURRENT_DATE - i as day FROM generate_series(0,6) i) d
+            LEFT JOIN tickets t ON DATE(t.created_at) = d.day
+            GROUP BY d.day ORDER BY d.day ASC
+        """)
+        backlog_trend = [int(r['count']) for r in (trend_rows or [])]
+
+        reopens = (execute_query("SELECT COUNT(*) as count FROM audit_logs WHERE action LIKE 'Status → In Progress' AND details LIKE '%status changed to In Progress%'", fetchone=True) or {'count': 0})['count']
+        reopen_rate = round((reopens / total_all * 100), 1) if total_all > 0 else 0.0
+        
+        aging = [ (execute_query(f"SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress') AND {q}", fetchone=True) or {'count': 0})['count'] for q in [
+            "created_at >= CURRENT_TIMESTAMP - interval '1 day'", 
+            "created_at < CURRENT_TIMESTAMP - interval '1 day' AND created_at >= CURRENT_TIMESTAMP - interval '3 days'", 
+            "created_at < CURRENT_TIMESTAMP - interval '3 days' AND created_at >= CURRENT_TIMESTAMP - interval '7 days'", 
+            "created_at < CURRENT_TIMESTAMP - interval '7 days'"
+        ]]
+        
+        services = ['Database', 'Networking', 'Compute / VM', 'Security / IAM', 'Storage']
+        service_counts = [(execute_query("SELECT COUNT(*) as count FROM tickets WHERE service_area = %s AND status IN ('Open', 'In Progress')", (svc,), fetchone=True) or {'count': 0})['count'] for svc in services]
+        
+        envs = ['Production', 'Staging', 'Development', 'Local']
+        region_counts = [(execute_query("SELECT COUNT(*) as count FROM tickets WHERE environment = %s AND status IN ('Open', 'In Progress')", (env,), fetchone=True) or {'count': 0})['count'] for env in envs]
+
+        # ── ENGINEER PERFORMANCE ─────────────────────────────────────────────
+        engineers = execute_query("SELECT id, full_name, email FROM users WHERE role = 'engineer'")
+        engineer_data = []
+        for eng in (engineers or []):
+            try:
+                ea = (execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND status IN ('Open', 'In Progress')", (eng['id'],), fetchone=True) or {'count': 0})['count']
+                er = (execute_query("SELECT COUNT(*) as count FROM tickets WHERE assigned_to = %s AND status IN ('Resolved', 'Closed')", (eng['id'],), fetchone=True) or {'count': 0})['count']
+                esm = (execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE assigned_to = %s AND status IN ('Resolved', 'Closed') AND updated_at <= {effective_deadline}", (eng['id'],), fetchone=True) or {'count': 0})['count']
+                esp = round((esm / er * 100)) if er > 0 else 0
+                eb = (execute_query(
+                    f"SELECT COUNT(*) as count FROM tickets t WHERE assigned_to = %s AND ((status IN ('Open', 'In Progress') AND {effective_deadline} < %s::timestamp) OR (status IN ('Resolved', 'Closed') AND updated_at > {effective_deadline}))",
+                    (eng['id'], now),
+                    fetchone=True
+                ) or {'count': 0})['count']
+                engineer_data.append({
+                    'id': eng['id'], 'name': eng['full_name'], 'assigned': ea, 'resolved': er, 'mttr': '-', 'sla': esp, 
+                    'reopens': '0%', 'status': 'excellent' if esp >= 95 else 'good' if esp >= 85 else 'warning' if esp >= 70 else 'critical', 'breached': eb
+                })
+            except Exception:
+                continue
+
+        # ── TICKETS LIST ─────────────────────────────────────────────────────
+        all_tickets = execute_query(
+            f"""
+            SELECT t.*, u1.full_name as creator_name, u2.full_name as assignee_name,
+            CASE WHEN t.status IN ('Resolved', 'Closed') THEN t.updated_at > {effective_deadline} ELSE {effective_deadline} < CURRENT_TIMESTAMP END as sla_breached
+            FROM tickets t LEFT JOIN users u1 ON t.created_by = u1.id LEFT JOIN users u2 ON t.assigned_to = u2.id
+            ORDER BY t.created_at DESC
+            """
+        )
+
+        return {
+            'total_open': total_open, 'breaches_today': breaches_today, 'escalated': escalated,
+            'total_resolved': total_resolved, 'total_all': total_all, 'reopen_rate': reopen_rate,
+            'mttr': f"{mttr}h", 'avg_aging': f"{avg_aging}d",
+            'slaComplianceData': [compliant, near_breach, breaches_today],
+            'agingData': aging, 'backlogTrendData': backlog_trend, 'serviceImpactData': service_counts, 'regionLoadData': region_counts,
+            'engineers': engineer_data, 'all_tickets': [dict(t) for t in (all_tickets or [])]
+        }
+    except Exception as e:
+        print(f"CRITICAL ERROR in get_admin_stats: {e}")
+        return defaults

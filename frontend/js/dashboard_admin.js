@@ -163,21 +163,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function fetchAdminStats() {
     try {
-        console.log("Fetching admin stats...");
-        const res = await fetch(`${API_BASE}/api/dashboard/admin/overview`, { headers: authHeaders() });
+        console.log("Fetching admin stats for governance dashboard...");
+        const res = await fetch(`${API_BASE}/api/dashboard/admin/overview`, { 
+            headers: authHeaders(),
+            cache: 'no-store' // Ensure fresh data
+        });
+        
+        if (!res.ok) {
+            throw new Error(`Cloud API returned ${res.status}`);
+        }
+
         const data = await res.json();
         if (data.success) {
             adminData = data;
-            updateKPIs(data);
-            populateEngineerMatrix(data.engineers);
-            populateAuditFeed(data.auditLogs);
-            populateAllTicketsTable(data.all_tickets);
-            initCharts(data);
+            
+            // Execute all population functions safely
+            try { updateKPIs(data); } catch (e) { console.error("KPI Update Error:", e); }
+            try { populateEngineerMatrix(data.engineers || []); } catch (e) { console.error("Engineer Matrix Error:", e); }
+            try { populateAuditFeed(data.auditLogs || []); } catch (e) { console.error("Audit Feed Error:", e); }
+            try { populateAllTicketsTable(data.all_tickets || []); } catch (e) { console.error("Tickets Table Error:", e); }
+            try { initCharts(data); } catch (e) { console.error("Chart Initialization Error:", e); }
+            
         } else {
-            console.error("API error:", data.message);
+            console.error("Governance API error:", data.message);
         }
     } catch (err) {
-        console.error("Failed to fetch admin stats:", err);
+        console.error("Critical Failure in Admin Dashboard fetch:", err);
     }
 }
 
@@ -197,46 +208,50 @@ function populateEngineerMatrix(engineers) {
     const tbody = document.getElementById('engineer-matrix-body');
     if (!tbody) return;
 
-    if (!engineers || engineers.length === 0) {
+    if (!Array.isArray(engineers) || engineers.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-secondary);">No engineers registered yet.</td></tr>';
         return;
     }
 
-    tbody.innerHTML = engineers.map(eng => `
-        <tr>
-            <td>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div class="profile-avatar" style="width:28px; height:28px; font-size:12px;">${eng.name ? eng.name.charAt(0) : '?'}</div>
-                    <span>ID: ${eng.id} — ${eng.name}</span>
-                </div>
-            </td>
-            <td>${eng.assigned}</td>
-            <td>${eng.resolved}</td>
-            <td>${eng.mttr}</td>
-            <td>${eng.sla}%</td>
-            <td>${eng.reopens}</td>
-            <td><span class="status ${eng.status === 'excellent' ? 'resolved' : (eng.status === 'warning' ? 'open' : '')}">${eng.status.toUpperCase()}</span></td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = engineers.map(eng => {
+        const status = (eng.status || 'unknown').toLowerCase();
+        const statusClass = status === 'excellent' ? 'resolved' : (status === 'warning' ? 'open' : status === 'critical' ? 'critical' : '');
+        return `
+            <tr>
+                <td>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="profile-avatar" style="width:28px; height:28px; font-size:12px;">${eng.name ? eng.name.charAt(0) : '?'}</div>
+                        <span>ID: ${eng.id} — ${eng.name || 'Unknown'}</span>
+                    </div>
+                </td>
+                <td>${eng.assigned || 0}</td>
+                <td>${eng.resolved || 0}</td>
+                <td>${eng.mttr || '-'}</td>
+                <td>${eng.sla || 0}%</td>
+                <td>${eng.reopens || '0%'}</td>
+                <td><span class="status ${statusClass}">${status.toUpperCase()}</span></td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function populateAuditFeed(logs) {
     const feed = document.getElementById('audit-feed');
     if (!feed) return;
 
-    if (!logs || logs.length === 0) {
+    if (!Array.isArray(logs) || logs.length === 0) {
         feed.innerHTML = '<div style="color:var(--text-secondary); padding:20px; text-align:center;">No recent activity.</div>';
         return;
     }
 
     feed.innerHTML = logs.map(log => `
         <div class="density-item" ${log.danger ? 'style="border-color: rgba(239,68,68,0.2);"' : ''}>
-            <div class="density-icon-box" style="background:${log.color}22; color:${log.color};">
-                <i class="fas ${log.icon}"></i>
+            <div class="density-icon-box" style="background:${log.color || '#3b82f6'}22; color:${log.color || '#3b82f6'};">
+                <i class="fas ${log.icon || 'fa-info-circle'}"></i>
             </div>
             <div class="density-content">
-                <div class="density-label">${log.text}</div>
-                <div class="density-sub">${log.time}</div>
+                <div class="density-label">${log.text || 'Audit Event'}</div>
+                <div class="density-sub">${log.time || '--:--'}</div>
             </div>
         </div>
     `).join('');
@@ -246,7 +261,7 @@ function populateAllTicketsTable(tickets) {
     const tbody = document.getElementById('all-tickets-body');
     if (!tbody) return;
 
-    if (!tickets || tickets.length === 0) {
+    if (!Array.isArray(tickets) || tickets.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-secondary);">No tickets found.</td></tr>';
         return;
     }
@@ -259,9 +274,9 @@ function populateAllTicketsTable(tickets) {
         return `
             <tr style="cursor:pointer;" onclick="openTicketDetail(${t.id})">
                 <td>#INC-${t.id}</td>
-                <td>${t.subject}</td>
-                <td><span class="priority ${priorityClass}">${t.priority}</span></td>
-                <td><span class="status ${statusClass}">${t.status}</span></td>
+                <td>${t.subject || 'No Subject'}</td>
+                <td><span class="priority ${priorityClass}">${t.priority || 'Low'}</span></td>
+                <td><span class="status ${statusClass}">${t.status || 'Open'}</span></td>
                 <td>${t.creator_name || '-'}</td>
                 <td>${t.assignee_name || '<span style="color:#f59e0b;">Unassigned</span>'}</td>
                 <td>
@@ -285,46 +300,50 @@ async function openTicketDetail(ticketId) {
         if (!data.success) return;
 
         const t = data.ticket;
+        if (!t) return;
+
         document.getElementById('modal-ticket-id').textContent = `#INC-${t.id}`;
-        document.getElementById('modal-title').textContent = t.subject;
+        document.getElementById('modal-title').textContent = t.subject || 'No Subject';
         document.getElementById('modal-desc').textContent = t.description || 'No description provided.';
         document.getElementById('modal-creator').textContent = t.creator_name || 'System';
         document.getElementById('modal-assignee').textContent = t.assignee_name || 'Unassigned';
 
         const priorityEl = document.getElementById('modal-priority');
-        priorityEl.textContent = t.priority;
+        priorityEl.textContent = t.priority || 'Low';
         priorityEl.className = 'badge ' + (t.priority === 'Critical' ? 'badge-critical' : 'badge-urgent');
 
         const statusEl = document.getElementById('modal-status');
-        statusEl.textContent = t.status;
+        statusEl.textContent = t.status || 'Open';
         const statusClass = t.status === 'Resolved' ? 'resolved' : (t.status === 'In Progress' ? 'prog' : 'open');
         statusEl.className = 'status ' + statusClass;
 
         const slaEl = document.getElementById('modal-sla-countdown');
-        const now = new Date();
-        const slaDeadline = parseDate(t.sla_deadline);
-        if (t.sla_breached === true) {
-            slaEl.textContent = 'Breached';
+        if (t.sla_breached) {
+            slaEl.textContent = 'BREACHED';
             slaEl.style.color = '#ef4444';
         } else if (t.status === 'Resolved' || t.status === 'Closed') {
-            slaEl.textContent = 'Resolved';
+            slaEl.textContent = 'RESOLVED';
             slaEl.style.color = '#10b981';
-        } else if (now > slaDeadline) {
-            slaEl.textContent = 'Breached';
-            slaEl.style.color = '#ef4444';
         } else {
-            const diff = slaDeadline - now;
-            const hours = Math.floor(diff / 3600000);
-            const mins = Math.floor((diff % 3600000) / 60000);
-            slaEl.textContent = `${hours}h ${mins}m remaining`;
-            slaEl.style.color = hours < 2 ? '#f59e0b' : '#10b981';
+            const now = new Date();
+            const slaDeadline = parseDate(t.sla_deadline);
+            if (now > slaDeadline) {
+                slaEl.textContent = 'BREACHED';
+                slaEl.style.color = '#ef4444';
+            } else {
+                const diff = slaDeadline - now;
+                const hours = Math.floor(diff / 3600000);
+                const mins = Math.floor((diff % 3600000) / 60000);
+                slaEl.textContent = `${hours}h ${mins}m remaining`;
+                slaEl.style.color = hours < 2 ? '#f59e0b' : '#10b981';
+            }
         }
 
-        document.getElementById('modal-created').textContent = parseDate(t.created_at).toLocaleDateString();
+        document.getElementById('modal-created').textContent = t.created_at ? parseDate(t.created_at).toLocaleDateString() : '-';
 
         // Comments
         const commentsDiv = document.getElementById('modal-comments');
-        if (data.comments && data.comments.length > 0) {
+        if (Array.isArray(data.comments) && data.comments.length > 0) {
             commentsDiv.innerHTML = data.comments.map(c => `
                 <div class="timeline-item">
                     <div class="timeline-point"></div>
@@ -343,6 +362,10 @@ async function openTicketDetail(ticketId) {
 }
 
 function initCharts(data) {
+    if (typeof Chart === 'undefined') {
+        console.error("Critical: Chart.js library is not loaded.");
+        return;
+    }
     const chartFont = {
         family: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
         size: 10,
