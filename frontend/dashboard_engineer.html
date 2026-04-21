@@ -164,21 +164,46 @@
                         <div class="widget-v2" style="margin-top: 24px; flex-grow: 1;">
                             <div class="widget-v2-header">
                                 <h3 class="widget-v2-title"><i class="fas fa-chart-line"></i> Efficiency Preview</h3>
+                                <span style="font-size:11px; color:var(--text-secondary);">Your personal performance snapshot</span>
                             </div>
-                            <div class="performance-grid">
+                            <div class="performance-grid" style="grid-template-columns: 1.6fr 1fr 1fr; gap: 20px; align-items: stretch;">
 
-                                <div class="perf-metric">
-                                    <span class="perf-label">MTTR Trend</span>
-                                    <div style="height: 60px;"><canvas id="mttrTrendChart"></canvas></div>
+                                <!-- MTTR Trend -->
+                                <div class="perf-metric" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:14px 16px; gap:6px;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <i class="fas fa-bolt" style="color:#22d3ee; font-size:12px;"></i>
+                                        <span class="perf-label" style="margin:0;">MTTR Trend</span>
+                                    </div>
+                                    <div style="height: 55px; margin: 4px 0;"><canvas id="mttrTrendChart"></canvas></div>
+                                    <div style="font-size:11px; color:#64748b; line-height:1.5;">
+                                        Mean Time To Resolution over the last 5 days. A downward slope means you're resolving tickets faster.
+                                    </div>
                                 </div>
-                                <div class="perf-metric">
-                                    <span class="perf-label">Res. Score</span>
-                                    <div class="score-display" style="font-size: 20px;">0.0<span>/10</span></div>
+
+                                <!-- Resolution Score -->
+                                <div class="perf-metric" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:14px 16px; gap:6px;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <i class="fas fa-star" style="color:#f59e0b; font-size:12px;"></i>
+                                        <span class="perf-label" style="margin:0;">Res. Score</span>
+                                    </div>
+                                    <div class="score-display" style="font-size: 22px;" id="res-score-display">0.0<span>/10</span></div>
+                                    <div style="font-size:11px; color:#64748b; line-height:1.5;">
+                                        Composite score based on SLA compliance (40%), tickets resolved (30%), and MTTR speed (30%).
+                                    </div>
                                 </div>
-                                <div class="perf-metric">
-                                    <span class="perf-label">Reopen</span>
-                                    <div class="score-display" style="font-size: 20px;">0.0%</div>
+
+                                <!-- Reopen Rate -->
+                                <div class="perf-metric" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:14px 16px; gap:6px;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <i class="fas fa-redo" style="color:#f87171; font-size:12px;"></i>
+                                        <span class="perf-label" style="margin:0;">Reopen Rate</span>
+                                    </div>
+                                    <div class="score-display" style="font-size: 22px;" id="reopen-rate-display">0.0%</div>
+                                    <div style="font-size:11px; color:#64748b; line-height:1.5;">
+                                        % of your resolved tickets that were reopened. Lower is better — 0% means every fix held.
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>

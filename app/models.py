@@ -424,6 +424,7 @@ def get_engineer_stats(uid):
     res = {
         'assigned': 0, 'overdue': 0, 'resolved_total': 0,
         'sla_pct': 0, 'mttr': '0.0h', 'mttr_trend': [0, 0, 0, 0, 0],
+        'res_score': 0.0,
         'queue': [], 'resolved_list': []
     }
     try:
@@ -445,6 +446,17 @@ def get_engineer_stats(uid):
         # SLA percentage
         total = res['assigned'] + res['resolved_total']
         res['sla_pct'] = round(((total - res['overdue']) / total) * 100) if total > 0 else 100
+
+        # Resolution Score (0–10): composite of three factors
+        # - SLA compliance (40%): how many tickets met SLA
+        # - Resolution ratio (30%): resolved vs total assigned
+        # - MTTR efficiency (30%): lower MTTR = higher score, capped at SLA baseline of 8h
+        sla_score = (res['sla_pct'] / 100) * 4.0
+        resolution_ratio = (res['resolved_total'] / total) if total > 0 else 0
+        ratio_score = resolution_ratio * 3.0
+        mttr_efficiency = max(0.0, 1.0 - (mttr_val / 8.0)) if mttr_val > 0 else 1.0
+        mttr_score = mttr_efficiency * 3.0
+        res['res_score'] = round(min(10.0, sla_score + ratio_score + mttr_score), 1)
 
         # MTTR trend: average resolution time per day for last 5 days
         mttr_trend = []

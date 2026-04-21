@@ -172,6 +172,20 @@ function updateKPIs(data) {
         kpis[4].textContent = (data.sla_pct || 0) + '%';
         kpis[5].textContent = data.resolved_total || 0;
     }
+
+    // Resolution Score
+    const scoreEl = document.getElementById('res-score-display');
+    if (scoreEl) {
+        const score = data.res_score ?? 0.0;
+        const color = score >= 8 ? '#10b981' : score >= 5 ? '#f59e0b' : '#ef4444';
+        scoreEl.innerHTML = `<span style="color:${color}">${score.toFixed(1)}</span><span>/10</span>`;
+    }
+
+    // Reopen rate (placeholder — 0% until backend tracks reopens)
+    const reopenEl = document.getElementById('reopen-rate-display');
+    if (reopenEl) {
+        reopenEl.textContent = '0.0%';
+    }
 }
 
 function populateQueue(tickets) {
