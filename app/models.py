@@ -179,47 +179,215 @@ def assign_ticket(tid, eid, aid):
     return True
 
 def get_admin_stats():
-    now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    now = datetime.utcnow()
+    now_str = now.strftime('%Y-%m-%d %H:%M:%S')
     dead = _effective_deadline_sql('t')
-    res = { 'total_open': 0, 'breaches_today': 0, 'escalated': 0, 'total_resolved': 0, 'total_all': 0, 'mttr': '0.0h', 'avg_aging': '0.0d', 'slaComplianceData': [0,0,0], 'serviceImpactData': [0,0,0,0,0], 'regionLoadData': [0,0,0,0], 'engineers': [], 'all_tickets': [] }
+    res = {
+        'total_open': 0, 'breaches_today': 0, 'escalated': 0,
+        'total_resolved': 0, 'total_all': 0, 'mttr': '0.0h',
+        'avg_aging': '0.0d', 'reopen_rate': 0,
+        'slaComplianceData': [0, 0, 0],
+        'agingData': [0, 0, 0, 0],
+        'serviceImpactData': [0, 0, 0, 0, 0],
+        'regionLoadData': [0, 0, 0, 0],
+        'backlogTrendData': [0, 0, 0, 0, 0, 0, 0],
+        'engineers': [], 'all_tickets': []
+    }
     try:
         res['total_open'] = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress')", fetchone=True)['count']
         res['total_all'] = execute_query("SELECT COUNT(*) as count FROM tickets", fetchone=True)['count']
         res['total_resolved'] = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed')", fetchone=True)['count']
-        b1 = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Open', 'In Progress') AND {dead} < %s::timestamp", (now,), fetchone=True)['count']
+
+        b1 = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Open', 'In Progress') AND {dead} < %s::timestamp", (now_str,), fetchone=True)['count']
         b2 = execute_query(f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Resolved', 'Closed') AND updated_at > {dead}", fetchone=True)['count']
         res['breaches_today'] = b1 + b2
         res['escalated'] = execute_query("SELECT COUNT(*) as count FROM tickets WHERE priority = 'Critical' AND status IN ('Open', 'In Progress')", fetchone=True)['count']
-        
+
+        # MTTR
         m_row = execute_query("SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/3600) as mttr FROM tickets WHERE status IN ('Resolved', 'Closed')", fetchone=True)
         res['mttr'] = f"{round(float(m_row['mttr'] or 0), 1)}h"
-        
-        svc_map = {'Database':0, 'Networking':1, 'Compute / VM':2, 'Security / IAM':3, 'Storage':4}
+
+        # Average aging of open tickets in days
+        aging_row = execute_query("SELECT AVG(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at))/86400) as avg_age FROM tickets WHERE status IN ('Open', 'In Progress')", fetchone=True)
+        res['avg_aging'] = f"{round(float(aging_row['avg_age'] or 0), 1)}d"
+
+        # Reopen rate: tickets that went from Resolved back to Open/In Progress
+        # Approximated as: tickets with status Open/In Progress that have been updated after creation
+        total_res = res['total_resolved']
+        if total_res > 0:
+            reopened = execute_query(
+                "SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open','In Progress') AND updated_at > created_at + interval '1 minute'",
+                fetchone=True
+            )['count']
+            res['reopen_rate'] = round((reopened / total_res) * 100, 1)
+
+        # SLA Compliance breakdown for open tickets
+        total_open = res['total_open']
+        if total_open > 0:
+            breached_open = execute_query(
+                f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Open','In Progress') AND {dead} < %s::timestamp",
+                (now_str,), fetchone=True
+            )['count']
+            # Near breach = within 20% of SLA window remaining
+            near_breach = execute_query(
+                f"SELECT COUNT(*) as count FROM tickets t WHERE status IN ('Open','In Progress') "
+                f"AND {dead} >= %s::timestamp "
+                f"AND {dead} < (%s::timestamp + interval '4 hours')",
+                (now_str, now_str), fetchone=True
+            )['count']
+            compliant = max(0, total_open - breached_open - near_breach)
+            res['slaComplianceData'] = [compliant, near_breach, breached_open]
+        else:
+            res['slaComplianceData'] = [0, 0, 0]
+
+        # Ticket aging distribution (open tickets only)
+        aging_buckets = [0, 0, 0, 0]
+        open_tickets_ages = execute_query(
+            "SELECT EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at))/3600 as age_hours FROM tickets WHERE status IN ('Open','In Progress')"
+        ) or []
+        for row in open_tickets_ages:
+            h = float(row['age_hours'] or 0)
+            if h < 24:
+                aging_buckets[0] += 1
+            elif h < 72:
+                aging_buckets[1] += 1
+            elif h < 168:
+                aging_buckets[2] += 1
+            else:
+                aging_buckets[3] += 1
+        res['agingData'] = aging_buckets
+
+        # Service impact
+        svc_map = {'Database': 0, 'Networking': 1, 'Compute / VM': 2, 'Security / IAM': 3, 'Storage': 4}
         svcs = execute_query("SELECT service_area, COUNT(*) as c FROM tickets GROUP BY service_area")
         for s in (svcs or []):
-            if s['service_area'] in svc_map: res['serviceImpactData'][svc_map[s['service_area']]] = s['c']
-            
-        env_map = {'Production':0, 'Staging':1, 'Development':2, 'Local':3}
+            if s['service_area'] in svc_map:
+                res['serviceImpactData'][svc_map[s['service_area']]] = s['c']
+
+        # Region/environment load
+        env_map = {'Production': 0, 'Staging': 1, 'Development': 2, 'Local': 3}
         envs = execute_query("SELECT environment, COUNT(*) as c FROM tickets GROUP BY environment")
         for e in (envs or []):
-            if e['environment'] in env_map: res['regionLoadData'][env_map[e['environment']]] = e['c']
-            
+            if e['environment'] in env_map:
+                res['regionLoadData'][env_map[e['environment']]] = e['c']
+
+        # Backlog trend: new tickets per day for last 7 days
+        trend = [0, 0, 0, 0, 0, 0, 0]
+        for i in range(7):
+            day_start = (now - timedelta(days=6 - i)).replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day_start + timedelta(days=1)
+            row = execute_query(
+                "SELECT COUNT(*) as c FROM tickets WHERE created_at >= %s::timestamp AND created_at < %s::timestamp",
+                (day_start.strftime('%Y-%m-%d %H:%M:%S'), day_end.strftime('%Y-%m-%d %H:%M:%S')),
+                fetchone=True
+            )
+            trend[i] = row['c'] if row else 0
+        res['backlogTrendData'] = trend
+
+        # Engineer performance matrix
+        engineers = get_engineers()
+        eng_stats = []
+        for eng in engineers:
+            eid = eng['id']
+            eng_dead = _effective_deadline_sql('t')
+            e_assigned = execute_query("SELECT COUNT(*) as c FROM tickets WHERE assigned_to=%s AND status IN ('Open','In Progress')", (eid,), fetchone=True)['c']
+            e_resolved = execute_query("SELECT COUNT(*) as c FROM tickets WHERE assigned_to=%s AND status IN ('Resolved','Closed')", (eid,), fetchone=True)['c']
+            e_total = e_assigned + e_resolved
+
+            # MTTR for this engineer
+            e_mttr_row = execute_query(
+                "SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/3600) as mttr FROM tickets WHERE assigned_to=%s AND status IN ('Resolved','Closed')",
+                (eid,), fetchone=True
+            )
+            e_mttr = round(float(e_mttr_row['mttr'] or 0), 1) if e_mttr_row else 0
+
+            # SLA compliance for this engineer
+            e_breached = execute_query(
+                f"SELECT COUNT(*) as c FROM tickets t WHERE assigned_to=%s AND (({eng_dead} < %s::timestamp AND status IN ('Open','In Progress')) OR (updated_at > {eng_dead} AND status IN ('Resolved','Closed')))",
+                (eid, now_str), fetchone=True
+            )['c']
+            e_sla = round(((e_total - e_breached) / e_total) * 100) if e_total > 0 else 100
+
+            # Determine status label
+            if e_sla >= 90 and e_assigned <= 5:
+                status = 'Excellent'
+            elif e_sla >= 70 or e_assigned <= 10:
+                status = 'Warning'
+            else:
+                status = 'Critical'
+
+            eng_stats.append({
+                'id': eid,
+                'name': eng['full_name'],
+                'assigned': e_assigned,
+                'resolved': e_resolved,
+                'mttr': f"{e_mttr}h",
+                'sla': e_sla,
+                'reopens': '0%',
+                'status': status
+            })
+        res['engineers'] = eng_stats
+
         res['all_tickets'] = get_tickets()
-    except Exception as e: _debug_log('ADMIN_ERR', 'models.py', str(e), {})
+    except Exception as e:
+        _debug_log('ADMIN_ERR', 'models.py', str(e), {})
     return res
 
 def get_member_stats(uid):
-    now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    now = datetime.utcnow()
+    now_str = now.strftime('%Y-%m-%d %H:%M:%S')
     dead = _effective_deadline_sql('t')
-    res = {'active':0, 'resolved':0, 'total':0, 'urgent':0, 'breached':0, 'sla_pct':0, 'mttr':'0h', 'priorityData':[0,0,0,0], 'tickets':[]}
+    res = {
+        'active': 0, 'resolved': 0, 'total': 0, 'urgent': 0,
+        'breached': 0, 'sla_pct': 0, 'mttr': '0.0h',
+        'priorityData': [0, 0, 0, 0],
+        'backlogTrendData': [0, 0, 0, 0, 0, 0, 0],
+        'tickets': []
+    }
     try:
         res['active'] = execute_query("SELECT COUNT(*) as c FROM tickets WHERE created_by=%s AND status IN ('Open','In Progress')", (uid,), fetchone=True)['c']
         res['resolved'] = execute_query("SELECT COUNT(*) as c FROM tickets WHERE created_by=%s AND status IN ('Resolved','Closed')", (uid,), fetchone=True)['c']
         res['total'] = execute_query("SELECT COUNT(*) as c FROM tickets WHERE created_by=%s", (uid,), fetchone=True)['c']
         res['urgent'] = execute_query("SELECT COUNT(*) as c FROM tickets WHERE created_by=%s AND priority='Critical' AND status IN ('Open','In Progress')", (uid,), fetchone=True)['c']
-        res['breached'] = execute_query(f"SELECT COUNT(*) as c FROM tickets t WHERE created_by=%s AND (({dead} < %s::timestamp AND status IN ('Open','In Progress')) OR (updated_at > {dead} AND status IN ('Resolved','Closed')))", (uid, now), fetchone=True)['c']
+        res['breached'] = execute_query(
+            f"SELECT COUNT(*) as c FROM tickets t WHERE created_by=%s AND (({dead} < %s::timestamp AND status IN ('Open','In Progress')) OR (updated_at > {dead} AND status IN ('Resolved','Closed')))",
+            (uid, now_str), fetchone=True
+        )['c']
+
+        # SLA percentage
+        total = res['total']
+        res['sla_pct'] = round(((total - res['breached']) / total) * 100) if total > 0 else 100
+
+        # MTTR for this member's resolved tickets
+        mttr_row = execute_query(
+            "SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/3600) as mttr FROM tickets WHERE created_by=%s AND status IN ('Resolved','Closed')",
+            (uid,), fetchone=True
+        )
+        res['mttr'] = f"{round(float(mttr_row['mttr'] or 0), 1)}h" if mttr_row else '0.0h'
+
+        # Priority breakdown
+        prio_map = {'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3}
+        prios = execute_query("SELECT priority, COUNT(*) as c FROM tickets WHERE created_by=%s GROUP BY priority", (uid,))
+        for p in (prios or []):
+            if p['priority'] in prio_map:
+                res['priorityData'][prio_map[p['priority']]] = p['c']
+
+        # Backlog trend: tickets submitted per day for last 7 days
+        trend = [0, 0, 0, 0, 0, 0, 0]
+        for i in range(7):
+            day_start = (now - timedelta(days=6 - i)).replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day_start + timedelta(days=1)
+            row = execute_query(
+                "SELECT COUNT(*) as c FROM tickets WHERE created_by=%s AND created_at >= %s::timestamp AND created_at < %s::timestamp",
+                (uid, day_start.strftime('%Y-%m-%d %H:%M:%S'), day_end.strftime('%Y-%m-%d %H:%M:%S')),
+                fetchone=True
+            )
+            trend[i] = row['c'] if row else 0
+        res['backlogTrendData'] = trend
+
         res['tickets'] = get_tickets({'created_by': uid})
-    except Exception as e: _debug_log('MEM_ERR', 'models.py', str(e), {})
+    except Exception as e:
+        _debug_log('MEM_ERR', 'models.py', str(e), {})
     return res
 
 def add_audit_log(action, details, icon='fa-info-circle', color='#3b82f6', user_id=None, ticket_id=None, danger=0):
@@ -250,13 +418,53 @@ def get_comments(ticket_id):
     ) or []
 
 def get_engineer_stats(uid):
-    now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    now = datetime.utcnow()
+    now_str = now.strftime('%Y-%m-%d %H:%M:%S')
     dead = _effective_deadline_sql('t')
-    res = {'assigned':0, 'overdue':0, 'resolved_total':0, 'sla_pct':0, 'mttr':'0h', 'queue':[], 'resolved_list':[]}
+    res = {
+        'assigned': 0, 'overdue': 0, 'resolved_total': 0,
+        'sla_pct': 0, 'mttr': '0.0h', 'mttr_trend': [0, 0, 0, 0, 0],
+        'queue': [], 'resolved_list': []
+    }
     try:
         res['assigned'] = execute_query("SELECT COUNT(*) as c FROM tickets WHERE assigned_to=%s AND status IN ('Open','In Progress')", (uid,), fetchone=True)['c']
         res['resolved_total'] = execute_query("SELECT COUNT(*) as c FROM tickets WHERE assigned_to=%s AND status IN ('Resolved','Closed')", (uid,), fetchone=True)['c']
-        res['overdue'] = execute_query(f"SELECT COUNT(*) as c FROM tickets t WHERE assigned_to=%s AND (({dead} < %s::timestamp AND status IN ('Open','In Progress')) OR (updated_at > {dead} AND status IN ('Resolved','Closed')))", (uid, now), fetchone=True)['c']
-        res['queue'] = get_tickets({'assigned_to': uid})
-    except Exception as e: _debug_log('ENG_ERR', 'models.py', str(e), {})
+        res['overdue'] = execute_query(
+            f"SELECT COUNT(*) as c FROM tickets t WHERE assigned_to=%s AND (({dead} < %s::timestamp AND status IN ('Open','In Progress')) OR (updated_at > {dead} AND status IN ('Resolved','Closed')))",
+            (uid, now_str), fetchone=True
+        )['c']
+
+        # MTTR
+        mttr_row = execute_query(
+            "SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/3600) as mttr FROM tickets WHERE assigned_to=%s AND status IN ('Resolved','Closed')",
+            (uid,), fetchone=True
+        )
+        mttr_val = round(float(mttr_row['mttr'] or 0), 1) if mttr_row else 0
+        res['mttr'] = f"{mttr_val}h"
+
+        # SLA percentage
+        total = res['assigned'] + res['resolved_total']
+        res['sla_pct'] = round(((total - res['overdue']) / total) * 100) if total > 0 else 100
+
+        # MTTR trend: average resolution time per day for last 5 days
+        mttr_trend = []
+        for i in range(5):
+            day_start = (now - timedelta(days=4 - i)).replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day_start + timedelta(days=1)
+            row = execute_query(
+                "SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/3600) as avg_mttr FROM tickets "
+                "WHERE assigned_to=%s AND status IN ('Resolved','Closed') "
+                "AND updated_at >= %s::timestamp AND updated_at < %s::timestamp",
+                (uid, day_start.strftime('%Y-%m-%d %H:%M:%S'), day_end.strftime('%Y-%m-%d %H:%M:%S')),
+                fetchone=True
+            )
+            mttr_trend.append(round(float(row['avg_mttr'] or 0), 1) if row and row['avg_mttr'] else 0)
+        res['mttr_trend'] = mttr_trend
+
+        # Active queue (Open + In Progress)
+        all_assigned = get_tickets({'assigned_to': uid})
+        res['queue'] = [t for t in all_assigned if t['status'] in ('Open', 'In Progress')]
+        res['resolved_list'] = [t for t in all_assigned if t['status'] in ('Resolved', 'Closed')]
+    except Exception as e:
+        _debug_log('ENG_ERR', 'models.py', str(e), {})
     return res

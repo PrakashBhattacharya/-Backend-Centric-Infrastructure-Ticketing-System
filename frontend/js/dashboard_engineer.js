@@ -144,8 +144,10 @@ async function refreshData() {
             engineerStore.resolved = data.resolved_list || [];
             
             updateKPIs(data);
-            populateQueue(data.queue);
-            populateResolvedTable(data.resolved_list);
+            populateQueue(data.queue || []);
+            populateResolvedTable(data.resolved_list || []);
+            populateSlaMonitor(data.queue || []);
+            populateActivityFeed(data.queue || []);
             initCharts(data);
         }
     } catch (err) {
@@ -156,12 +158,19 @@ async function refreshData() {
 function updateKPIs(data) {
     const kpis = document.querySelectorAll('.kpi-value');
     if (kpis.length >= 6) {
-        kpis[0].textContent = data.assigned;
-        kpis[1].textContent = data.overdue;
-        kpis[2].textContent = data.assigned > 0 ? 'Today' : '-';
+        kpis[0].textContent = data.assigned || 0;
+        kpis[1].textContent = data.overdue || 0;
+        // KPI[2] = tickets due today (SLA deadline within 24h)
+        const dueToday = (data.queue || []).filter(t => {
+            if (t.status === 'Resolved' || t.status === 'Closed') return false;
+            const deadline = parseDate(t.sla_deadline);
+            const diff = deadline - new Date();
+            return diff > 0 && diff < 86400000;
+        }).length;
+        kpis[2].textContent = dueToday;
         kpis[3].textContent = data.mttr || '0.0h';
-        kpis[4].textContent = data.sla_pct + '%';
-        kpis[5].textContent = data.resolved_total;
+        kpis[4].textContent = (data.sla_pct || 0) + '%';
+        kpis[5].textContent = data.resolved_total || 0;
     }
 }
 
@@ -206,8 +215,76 @@ function populateQueue(tickets) {
     }).join('');
 }
 
-function populateResolvedTable(tickets) {
-    const tbody = document.getElementById('resolved-tickets-body');
+function populateSlaMonitor(tickets) {
+    const container = document.querySelector('.sla-monitor-list');
+    if (!container) return;
+
+    const active = tickets.filter(t => t.status !== 'Resolved' && t.status !== 'Closed');
+    if (active.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); padding:20px;">No Active SLAs</div>';
+        return;
+    }
+
+    // Sort by deadline ascending
+    active.sort((a, b) => parseDate(a.sla_deadline) - parseDate(b.sla_deadline));
+
+    container.innerHTML = active.slice(0, 5).map(t => {
+        const now = new Date();
+        const deadline = parseDate(t.sla_deadline);
+        const diff = deadline - now;
+        const breached = diff <= 0 || t.sla_breached;
+        const hours = Math.floor(Math.abs(diff) / 3600000);
+        const mins = Math.floor((Math.abs(diff) % 3600000) / 60000);
+        const timeText = breached ? 'BREACHED' : `${hours}h ${mins}m`;
+        const color = breached ? '#ef4444' : (diff < 7200000 ? '#f59e0b' : '#10b981');
+        const priorityClass = t.priority === 'Critical' ? 'critical' : (t.priority === 'High' ? 'high' : 'med');
+
+        return `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div>
+                    <div style="font-size:12px; font-weight:600; color:#f1f5f9;">#INC-${t.id}</div>
+                    <div style="font-size:11px; color:#64748b; margin-top:2px;">${(t.subject || '').substring(0, 28)}${t.subject && t.subject.length > 28 ? '…' : ''}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:12px; font-weight:700; color:${color};">${timeText}</div>
+                    <span class="priority ${priorityClass}" style="font-size:10px;">${t.priority}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function populateActivityFeed(tickets) {
+    const container = document.querySelector('.activity-timeline');
+    if (!container) return;
+
+    if (!tickets || tickets.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); padding:20px;">No Recent Activity</div>';
+        return;
+    }
+
+    // Show recently updated tickets as activity
+    const recent = [...tickets]
+        .sort((a, b) => parseDate(b.updated_at) - parseDate(a.updated_at))
+        .slice(0, 6);
+
+    container.innerHTML = recent.map(t => {
+        const statusClass = t.status === 'Resolved' ? 'resolved' : (t.status === 'In Progress' ? 'prog' : 'open');
+        const dt = parseDate(t.updated_at);
+        const timeStr = isNaN(dt) ? '-' : dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `
+            <div style="display:flex; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); align-items:flex-start;">
+                <div style="width:6px; height:6px; border-radius:50%; background:#3b82f6; margin-top:5px; flex-shrink:0;"></div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:12px; color:#f1f5f9; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">#INC-${t.id} — ${t.subject || ''}</div>
+                    <div style="font-size:11px; color:#64748b; margin-top:2px;"><span class="status ${statusClass}" style="font-size:10px;">${t.status}</span> · ${timeStr}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function populateResolvedTable(tickets) {    const tbody = document.getElementById('resolved-tickets-body');
     if (!tbody) return;
 
     if (!tickets || tickets.length === 0) {

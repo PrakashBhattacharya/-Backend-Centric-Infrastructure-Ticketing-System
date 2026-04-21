@@ -5,7 +5,7 @@ Dashboard API blueprint — real aggregated data from the database.
 from flask import Blueprint, jsonify
 from datetime import datetime
 from .auth import token_required
-from ..models import get_member_stats, get_engineer_stats, get_admin_stats, get_audit_logs
+from ..models import get_member_stats, get_engineer_stats, get_admin_stats, get_audit_logs, get_engineers
 from ..config import Config
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/api/dashboard')
@@ -79,22 +79,24 @@ def admin_overview(current_user):
     stats = get_admin_stats()
     audit_logs = get_audit_logs(limit=20)
     
-    # Process audit logs for dashboard view
+    # Format audit logs for dashboard view — frontend expects: text, time, icon, color, danger (bool)
     formatted_logs = []
     for log in audit_logs:
-        from datetime import datetime
         created_at = log['created_at']
-        # PostgreSQL returns a datetime object; SQLite returns a string
         if isinstance(created_at, str):
-            dt = datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S')
+            try:
+                dt = datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                dt = datetime.utcnow()
         else:
-            dt = created_at
+            dt = created_at if created_at else datetime.utcnow()
         formatted_logs.append({
             'text': log['action'],
+            'sub': log.get('details', ''),
             'time': dt.strftime('%H:%M • %b %d'),
-            'icon': log['icon'],
-            'color': log['color'],
-            'danger': log['danger'] == 1
+            'icon': log.get('icon', 'fa-info-circle'),
+            'color': log.get('color', '#3b82f6'),
+            'danger': log.get('danger', 0) == 1
         })
 
     return jsonify({
@@ -102,3 +104,26 @@ def admin_overview(current_user):
         **stats,
         'auditLogs': formatted_logs
     })
+
+@dashboard_bp.route('/engineers', methods=['GET'])
+@token_required
+def list_engineers(current_user):
+    """Returns all engineers with their current workload — used by assign modal."""
+    if current_user['role'] != 'admin':
+        return jsonify({'message': 'Unauthorized access!'}), 403
+    engineers = get_engineers()
+    # Attach current open ticket count for each engineer
+    from ..models import execute_query
+    result = []
+    for eng in engineers:
+        row = execute_query(
+            "SELECT COUNT(*) as c FROM tickets WHERE assigned_to=%s AND status IN ('Open','In Progress')",
+            (eng['id'],), fetchone=True
+        )
+        result.append({
+            'id': eng['id'],
+            'name': eng['full_name'],
+            'email': eng['email'],
+            'assigned': row['c'] if row else 0
+        })
+    return jsonify({'success': True, 'engineers': result})

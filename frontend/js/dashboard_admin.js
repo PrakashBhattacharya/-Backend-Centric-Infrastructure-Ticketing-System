@@ -31,21 +31,35 @@ function closeModal(id) {
 }
 
 // ─── Global Handlers ────────────────────────────────────────────────────────
-window.showAssignModal = function (ticketId) {
+window.showAssignModal = async function (ticketId) {
     console.log("showAssignModal triggered for ticket:", ticketId);
-    if (!adminData || !adminData.engineers) {
-        alert("Engineer data not loaded. Please refresh.");
-        return;
-    }
 
     currentTicketId = ticketId;
     document.getElementById('assign-ticket-id').textContent = `#INC-${ticketId}`;
-    
-    // Populate dropdown
+
     const select = document.getElementById('engineer-select');
-    if (select) {
-        select.innerHTML = adminData.engineers.map(eng => `
-            <option value="${eng.id}">${eng.name} (Assigned: ${eng.assigned})</option>
+    if (!select) return;
+
+    // Use cached engineers if available, otherwise fetch fresh
+    let engineers = (adminData && adminData.engineers && adminData.engineers.length > 0)
+        ? adminData.engineers
+        : [];
+
+    if (engineers.length === 0) {
+        try {
+            const res = await fetch(`${API_BASE}/api/dashboard/engineers`, { headers: authHeaders() });
+            const data = await res.json();
+            if (data.success) engineers = data.engineers;
+        } catch (err) {
+            console.error("Failed to fetch engineers:", err);
+        }
+    }
+
+    if (engineers.length === 0) {
+        select.innerHTML = '<option value="">No engineers registered</option>';
+    } else {
+        select.innerHTML = engineers.map(eng => `
+            <option value="${eng.id}">${eng.name} (Active: ${eng.assigned})</option>
         `).join('');
     }
 
@@ -251,7 +265,7 @@ function populateAuditFeed(logs) {
             </div>
             <div class="density-content">
                 <div class="density-label">${log.text || 'Audit Event'}</div>
-                <div class="density-sub">${log.time || '--:--'}</div>
+                <div class="density-sub">${log.sub ? log.sub + ' · ' : ''}${log.time || '--:--'}</div>
             </div>
         </div>
     `).join('');
