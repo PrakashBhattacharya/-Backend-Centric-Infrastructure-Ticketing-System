@@ -1,26 +1,29 @@
 import sys
 import os
 
-# Link to the local app package inside the api/ folder
-# In Vercel, the 'api' directory is added to sys.path automatically,
-# so 'from app import create_app' will find 'api/app/__init__.py'
+# Link to the bundled 'app' package inside the 'api/' directory
+# On Vercel, the 'api' folder is part of the sys.path, so 'from app' works.
+try:
+    from app import create_app
+    # We do NOT import init_db at the top level to avoid cold-start timeouts
+except ImportError:
+    # If standard import fails, try relative fallback
+    sys.path.insert(0, os.path.dirname(__file__))
+    from app import create_app
 
-from app import create_app
-from app.models import init_db
-
-# Vercel looks for 'app' in api/index.py
+# Vercel's required 'app' export
+# We create the app instance WITHOUT performing any database operations.
 app = create_app()
 
-# Initialize DB on first load (Deferred logic)
-@app.before_request
-def startup():
-    if not hasattr(app, '_db_primed'):
-        try:
-            with app.app_context():
-                init_db()
-            app._db_primed = True
-        except Exception as e:
-            print(f"Startup DB Error: {e}")
+@app.route('/api/diag')
+def diag():
+    """Diagnostic route that verifies path resolution."""
+    return {
+        "status": "Diagnostic Active",
+        "cwd": os.getcwd(),
+        "files_in_api": os.listdir(os.path.dirname(__file__)),
+        "app_folder_exists": os.path.exists(os.path.join(os.path.dirname(__file__), 'app'))
+    }
 
 if __name__ == "__main__":
     app.run()
