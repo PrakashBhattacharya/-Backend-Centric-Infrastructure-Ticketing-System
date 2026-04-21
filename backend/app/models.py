@@ -473,13 +473,17 @@ def get_admin_stats():
         avg_aging = round(float(aging_row['aging']), 1) if aging_row and aging_row.get('aging') is not None else 0.0
 
         # ── TRENDS & DISTRIBUTIONS ───────────────────────────────────────────
-        trend_rows = execute_query("""
-            SELECT d.day, COUNT(t.id) as count
-            FROM (SELECT CURRENT_DATE - i as day FROM generate_series(0,6) i) d
-            LEFT JOIN tickets t ON DATE(t.created_at) = d.day
-            GROUP BY d.day ORDER BY d.day ASC
-        """)
-        backlog_trend = [int(r['count']) for r in (trend_rows or [])]
+        backlog_trend = [0, 0, 0, 0, 0, 0, 0]
+        try:
+            trend_rows = execute_query("""
+                SELECT d.day, COUNT(t.id) as count
+                FROM (SELECT CURRENT_DATE - i as day FROM generate_series(0,6) i) d
+                LEFT JOIN tickets t ON t.created_at::DATE = d.day
+                GROUP BY d.day ORDER BY d.day ASC
+            """)
+            backlog_trend = [int(r['count']) for r in (trend_rows or [])]
+        except Exception as e:
+            _debug_log('QUERY_FIX', 'models.py:backlog_trend', str(e), {})
 
         reopens = (execute_query("SELECT COUNT(*) as count FROM audit_logs WHERE action LIKE 'Status → In Progress' AND details LIKE '%status changed to In Progress%'", fetchone=True) or {'count': 0})['count']
         reopen_rate = round((reopens / total_all * 100), 1) if total_all > 0 else 0.0

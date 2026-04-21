@@ -35,33 +35,40 @@ def admin_diag(current_user):
     
     diag_results = {
         'timestamp': datetime.utcnow().isoformat(),
-        'env_config': {
-            'has_postgres_url': bool(Config.POSTGRES_URL),
-            'postgres_url_start': Config.POSTGRES_URL[:15] + '...' if Config.POSTGRES_URL else None
+        'connection_status': 'unknown',
+        'tables': {},
+        'env_vars': {
+            'POSTGRES_URL_FOUND': bool(Config.POSTGRES_URL)
         },
-        'connection_test': 'Not Started',
-        'query_test': 'Not Started',
         'error': None
     }
 
     try:
-        # Test basic connection
-        conn = psycopg2.connect(Config.POSTGRES_URL)
-        diag_results['connection_test'] = 'Passed'
-        
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1")
-        diag_results['query_test'] = 'Basic SELECT Passed'
-        
-        cursor.execute("SELECT COUNT(*) FROM tickets")
-        count = cursor.fetchone()[0]
-        diag_results['ticket_count'] = count
-        
-        cursor.close()
-        conn.close()
+        from ..models import get_db
+        import traceback
+        conn = get_db()
+        if not conn:
+            diag_results['connection_status'] = 'Failed (get_db returned None)'
+        else:
+            diag_results['connection_status'] = 'Success'
+            cursor = conn.cursor()
+            
+            # Check table counts
+            tables_to_check = ['users', 'tickets', 'audit_logs', 'comments']
+            for table in tables_to_check:
+                try:
+                    cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                    count = cursor.fetchone()[0]
+                    diag_results['tables'][table] = count
+                except Exception as table_err:
+                    diag_results['tables'][table] = f"Error: {str(table_err)}"
+                    conn.rollback()
+            
+            cursor.close()
+            conn.close()
     except Exception as e:
         diag_results['error'] = str(e)
-        diag_results['connection_test'] = 'Failed'
+        diag_results['traceback'] = traceback.format_exc()
 
     return jsonify(diag_results)
 

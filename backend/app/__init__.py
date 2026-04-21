@@ -20,10 +20,12 @@ def create_app(config_class=Config):
     """
     app = Flask(__name__, static_folder=config_class.FRONTEND_DIR)
     app.config.from_object(config_class)
+    
+    # Modern Flask JSON handling for datetimes
     app.json_encoder = DateTimeEncoder
 
-    # Initialize CORS
-    CORS(app)
+    # Initialize CORS with explicit settings for local dev
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Initialize Database
     with app.app_context():
