@@ -9,11 +9,19 @@
       "use": "@vercel/python"
     },
     {
+      "src": "backend/api_test.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "frontend/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "/api/test",
+      "dest": "backend/api_test.py"
+    },
     {
       "src": "/api/(.*)",
       "dest": "backend/wsgi.py"
