@@ -1775,15 +1775,19 @@ select option {
     box-shadow: 0 24px 80px rgba(15,23,42,0.2), 0 0 0 1px rgba(148,163,184,0.1);
 }
 
-/* Backdrop */
-.profile-dropdown::before {
-    content: '';
+/* Backdrop — injected by JS as a sibling element */
+.pd-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.55);
+    background: rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(3px);
-    z-index: -1;
-    border-radius: 0;
+    z-index: 499;
+    animation: pdBackdropIn 0.2s ease-out;
+}
+
+@keyframes pdBackdropIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 @keyframes profileFadeIn {

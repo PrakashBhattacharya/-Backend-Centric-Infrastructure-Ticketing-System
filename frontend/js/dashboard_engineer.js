@@ -518,13 +518,30 @@ function logout() {
 }
 
 // ─── Profile Dropdown ────────────────────────────────────────────────────────
+function _closePd() {
+    const dropdown = document.getElementById('profile-dropdown');
+    const backdrop = document.getElementById('pd-backdrop');
+    if (dropdown) dropdown.classList.remove('open');
+    if (backdrop) backdrop.remove();
+}
+
 function toggleProfileDropdown() {
     const dropdown = document.getElementById('profile-dropdown');
     if (!dropdown) return;
 
     if (dropdown.classList.contains('open')) {
-        dropdown.classList.remove('open');
+        _closePd();
         return;
+    }
+
+    // Create backdrop
+    let backdrop = document.getElementById('pd-backdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'pd-backdrop';
+        backdrop.className = 'pd-backdrop';
+        backdrop.addEventListener('click', _closePd);
+        document.body.appendChild(backdrop);
     }
 
     // Populate from localStorage immediately
@@ -601,15 +618,4 @@ function toggleProfileDropdown() {
     .catch(() => {});
 }
 
-document.addEventListener('click', function(e) {
-    const dropdown = document.getElementById('profile-dropdown');
-    if (!dropdown || !dropdown.classList.contains('open')) return;
-    // Close if clicking the backdrop (the ::before pseudo-element area)
-    // i.e. clicking outside the dropdown card itself
-    const rect = dropdown.getBoundingClientRect();
-    const inside = e.clientX >= rect.left && e.clientX <= rect.right &&
-                   e.clientY >= rect.top  && e.clientY <= rect.bottom;
-    if (!inside) {
-        dropdown.classList.remove('open');
-    }
-});
+// Backdrop click closes dropdown (handled on the backdrop element itself)
