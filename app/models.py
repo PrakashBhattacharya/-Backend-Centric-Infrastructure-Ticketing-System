@@ -604,7 +604,8 @@ def reject_sla_extension(request_id, admin_id, admin_note=''):
     )
     return True, None
 
-def get_engineer_stats(uid):    now = datetime.utcnow()
+def get_engineer_stats(uid):
+    now = datetime.utcnow()
     now_str = now.strftime('%Y-%m-%d %H:%M:%S')
     dead = _effective_deadline_sql('t')
     res = {
@@ -666,3 +667,6 @@ def get_engineer_stats(uid):    now = datetime.utcnow()
     except Exception as e:
         _debug_log('ENG_ERR', 'models.py', str(e), {})
     return res
+
+
+# ─── SLA Extension Requests ──────────────────────────────────────────────────
