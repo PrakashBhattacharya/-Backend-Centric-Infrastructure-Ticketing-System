@@ -83,15 +83,31 @@ def init_db():
         # Migration: add resolved_at column if it doesn't exist yet
         try:
             cursor.execute("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP;")
+            conn.commit()
         except Exception:
-            pass
+            conn.rollback()
 
         # Migration: widen the status CHECK constraint to include Pending Approval
+        # Drop ALL check constraints on the status column by querying the catalog,
+        # then re-add the correct one — handles any auto-generated constraint name.
         try:
-            cursor.execute("ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_status_check;")
-            cursor.execute("ALTER TABLE tickets ADD CONSTRAINT tickets_status_check CHECK(status IN ('Open', 'In Progress', 'Pending Approval', 'Resolved', 'Closed'));")
-        except Exception:
-            pass
+            cursor.execute("""
+                SELECT conname FROM pg_constraint
+                WHERE conrelid = 'tickets'::regclass
+                AND contype = 'c'
+                AND pg_get_constraintdef(oid) LIKE '%status%'
+            """)
+            rows = cursor.fetchall()
+            for row in rows:
+                cursor.execute(f'ALTER TABLE tickets DROP CONSTRAINT IF EXISTS "{row[0]}"')
+            cursor.execute(
+                "ALTER TABLE tickets ADD CONSTRAINT tickets_status_check "
+                "CHECK(status IN ('Open', 'In Progress', 'Pending Approval', 'Resolved', 'Closed'))"
+            )
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            print(f"[MIGRATION] status constraint migration skipped: {e}")
 
         cursor.execute("SELECT id FROM users WHERE email = %s", ('manik102@gmail.com',))
         if not cursor.fetchone():

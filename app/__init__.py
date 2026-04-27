@@ -24,6 +24,33 @@ def create_app(config_class=Config):
     # Initialize CORS
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+    # Run DB migrations on startup (idempotent — safe to run every cold start)
+    with app.app_context():
+        try:
+            from .models import get_db
+            conn = get_db()
+            if conn:
+                cursor = conn.cursor()
+                # Add resolved_at column if missing
+                cursor.execute("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP;")
+                # Drop any existing status check constraint and re-add with Pending Approval
+                cursor.execute("""
+                    SELECT conname FROM pg_constraint
+                    WHERE conrelid = 'tickets'::regclass
+                    AND contype = 'c'
+                    AND pg_get_constraintdef(oid) LIKE '%status%'
+                """)
+                rows = cursor.fetchall()
+                for row in rows:
+                    cursor.execute(f'ALTER TABLE tickets DROP CONSTRAINT IF EXISTS "{row[0]}"')
+                cursor.execute(
+                    "ALTER TABLE tickets ADD CONSTRAINT tickets_status_check "
+                    "CHECK(status IN ('Open', 'In Progress', 'Pending Approval', 'Resolved', 'Closed'))"
+                )
+                conn.commit()
+                conn.close()
+        except Exception as e:
+            print(f"[STARTUP MIGRATION] {e}")
     # Register Blueprints
     from .routes.auth import auth_bp
     from .routes.dashboard import dashboard_bp
