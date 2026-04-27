@@ -76,10 +76,23 @@ def init_db():
     try:
         cursor = conn.cursor()
         cursor.execute('CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, full_name TEXT NOT NULL, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN (\'member\', \'engineer\', \'admin\')), created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);')
-        cursor.execute('CREATE TABLE IF NOT EXISTS tickets (id SERIAL PRIMARY KEY, subject TEXT NOT NULL, description TEXT NOT NULL DEFAULT \'\', service_area TEXT NOT NULL DEFAULT \'Other\', environment TEXT NOT NULL DEFAULT \'Production\', priority TEXT NOT NULL CHECK(priority IN (\'Critical\', \'High\', \'Medium\', \'Low\')), status TEXT NOT NULL DEFAULT \'Open\' CHECK(status IN (\'Open\', \'In Progress\', \'Resolved\', \'Closed\')), sla_deadline TIMESTAMP NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, created_by INTEGER NOT NULL REFERENCES users(id), assigned_to INTEGER REFERENCES users(id));')
+        cursor.execute('CREATE TABLE IF NOT EXISTS tickets (id SERIAL PRIMARY KEY, subject TEXT NOT NULL, description TEXT NOT NULL DEFAULT \'\', service_area TEXT NOT NULL DEFAULT \'Other\', environment TEXT NOT NULL DEFAULT \'Production\', priority TEXT NOT NULL CHECK(priority IN (\'Critical\', \'High\', \'Medium\', \'Low\')), status TEXT NOT NULL DEFAULT \'Open\' CHECK(status IN (\'Open\', \'In Progress\', \'Pending Approval\', \'Resolved\', \'Closed\')), sla_deadline TIMESTAMP NOT NULL, resolved_at TIMESTAMP, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, created_by INTEGER NOT NULL REFERENCES users(id), assigned_to INTEGER REFERENCES users(id));')
         cursor.execute('CREATE TABLE IF NOT EXISTS comments (id SERIAL PRIMARY KEY, ticket_id INTEGER NOT NULL REFERENCES tickets(id), user_id INTEGER NOT NULL REFERENCES users(id), text TEXT NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);')
         cursor.execute('CREATE TABLE IF NOT EXISTS audit_logs (id SERIAL PRIMARY KEY, action TEXT NOT NULL, details TEXT NOT NULL DEFAULT \'\', icon TEXT NOT NULL DEFAULT \'fa-info-circle\', color TEXT NOT NULL DEFAULT \'#3b82f6\', danger INTEGER NOT NULL DEFAULT 0, user_id INTEGER REFERENCES users(id), ticket_id INTEGER REFERENCES tickets(id), created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);')
-        
+
+        # Migration: add resolved_at column if it doesn't exist yet
+        try:
+            cursor.execute("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP;")
+        except Exception:
+            pass
+
+        # Migration: widen the status CHECK constraint to include Pending Approval
+        try:
+            cursor.execute("ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_status_check;")
+            cursor.execute("ALTER TABLE tickets ADD CONSTRAINT tickets_status_check CHECK(status IN ('Open', 'In Progress', 'Pending Approval', 'Resolved', 'Closed'));")
+        except Exception:
+            pass
+
         cursor.execute("SELECT id FROM users WHERE email = %s", ('manik102@gmail.com',))
         if not cursor.fetchone():
             cursor.execute("INSERT INTO users (full_name, email, password_hash, role) VALUES (%s, %s, %s, %s) RETURNING id",
@@ -166,10 +179,68 @@ def get_ticket_by_id(ticket_id):
 
 def update_ticket_status(ticket_id, new_status, user_id):
     now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    execute_query("UPDATE tickets SET status = %s, updated_at = %s WHERE id = %s", (new_status, now, ticket_id), commit=True)
-    im = {'In Progress': ('fa-spinner', '#3b82f6'), 'Resolved': ('fa-check-circle', '#10b981'), 'Closed': ('fa-times-circle', '#64748b')}
+    # When engineer submits for approval, record resolved_at so SLA timer is anchored
+    if new_status == 'Pending Approval':
+        execute_query(
+            "UPDATE tickets SET status = %s, resolved_at = %s, updated_at = %s WHERE id = %s",
+            (new_status, now, now, ticket_id), commit=True
+        )
+    else:
+        execute_query(
+            "UPDATE tickets SET status = %s, updated_at = %s WHERE id = %s",
+            (new_status, now, ticket_id), commit=True
+        )
+    im = {
+        'In Progress':      ('fa-spinner',      '#3b82f6'),
+        'Pending Approval': ('fa-hourglass-half','#f59e0b'),
+        'Resolved':         ('fa-check-circle', '#10b981'),
+        'Closed':           ('fa-times-circle', '#64748b'),
+    }
     icon, col = im.get(new_status, ('fa-edit', '#3b82f6'))
-    execute_query("INSERT INTO audit_logs (action, details, icon, color, user_id, ticket_id) VALUES (%s, %s, %s, %s, %s, %s)", (f'Status → {new_status}', f'Ticket #{ticket_id} status changed to {new_status}', icon, col, user_id, ticket_id), commit=True)
+    execute_query(
+        "INSERT INTO audit_logs (action, details, icon, color, user_id, ticket_id) VALUES (%s, %s, %s, %s, %s, %s)",
+        (f'Status → {new_status}', f'Ticket #{ticket_id} status changed to {new_status}', icon, col, user_id, ticket_id),
+        commit=True
+    )
+
+def approve_ticket(ticket_id, admin_id):
+    """Admin approves a Pending Approval ticket → marks it Resolved."""
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket or ticket['status'] != 'Pending Approval':
+        return False
+    now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    execute_query(
+        "UPDATE tickets SET status = 'Resolved', updated_at = %s WHERE id = %s",
+        (now, ticket_id), commit=True
+    )
+    execute_query(
+        "INSERT INTO audit_logs (action, details, icon, color, user_id, ticket_id) VALUES (%s, %s, %s, %s, %s, %s)",
+        ('Resolution Approved', f'Ticket #{ticket_id} approved and marked Resolved by admin',
+         'fa-check-double', '#10b981', admin_id, ticket_id),
+        commit=True
+    )
+    return True
+
+def reject_ticket(ticket_id, admin_id, reason=''):
+    """Admin rejects a Pending Approval ticket → sends it back to In Progress.
+    The SLA timer continues from resolved_at so the engineer is penalised for the delay."""
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket or ticket['status'] != 'Pending Approval':
+        return False
+    now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    execute_query(
+        "UPDATE tickets SET status = 'In Progress', updated_at = %s WHERE id = %s",
+        (now, ticket_id), commit=True
+    )
+    detail = f'Ticket #{ticket_id} resolution rejected — sent back to engineer.'
+    if reason:
+        detail += f' Reason: {reason}'
+    execute_query(
+        "INSERT INTO audit_logs (action, details, icon, color, danger, user_id, ticket_id) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        ('Resolution Rejected', detail, 'fa-times-circle', '#ef4444', 1, admin_id, ticket_id),
+        commit=True
+    )
+    return True
 
 def assign_ticket(tid, eid, aid):
     eng = execute_query("SELECT full_name FROM users WHERE id = %s AND role = 'engineer'", (eid,), fetchone=True)
@@ -185,7 +256,7 @@ def get_admin_stats():
     res = {
         'total_open': 0, 'breaches_today': 0, 'escalated': 0,
         'total_resolved': 0, 'total_all': 0, 'mttr': '0.0h',
-        'avg_aging': '0.0d', 'reopen_rate': 0,
+        'avg_aging': '0.0d', 'reopen_rate': 0, 'pending_approval': 0,
         'slaComplianceData': [0, 0, 0],
         'agingData': [0, 0, 0, 0],
         'serviceImpactData': [0, 0, 0, 0, 0],
@@ -194,7 +265,8 @@ def get_admin_stats():
         'engineers': [], 'all_tickets': []
     }
     try:
-        res['total_open'] = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress')", fetchone=True)['count']
+        res['total_open'] = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress', 'Pending Approval')", fetchone=True)['count']
+        res['pending_approval'] = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status = 'Pending Approval'", fetchone=True)['count']
         res['total_all'] = execute_query("SELECT COUNT(*) as count FROM tickets", fetchone=True)['count']
         res['total_resolved'] = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed')", fetchone=True)['count']
 
@@ -473,9 +545,9 @@ def get_engineer_stats(uid):
             mttr_trend.append(round(float(row['avg_mttr'] or 0), 1) if row and row['avg_mttr'] else 0)
         res['mttr_trend'] = mttr_trend
 
-        # Active queue (Open + In Progress)
+        # Active queue (Open + In Progress + Pending Approval)
         all_assigned = get_tickets({'assigned_to': uid})
-        res['queue'] = [t for t in all_assigned if t['status'] in ('Open', 'In Progress')]
+        res['queue'] = [t for t in all_assigned if t['status'] in ('Open', 'In Progress', 'Pending Approval')]
         res['resolved_list'] = [t for t in all_assigned if t['status'] in ('Resolved', 'Closed')]
     except Exception as e:
         _debug_log('ENG_ERR', 'models.py', str(e), {})

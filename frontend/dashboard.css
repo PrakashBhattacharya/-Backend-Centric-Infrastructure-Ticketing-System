@@ -1009,6 +1009,14 @@ td {
     background: #fbbf24;
 }
 
+.status.pending::before {
+    background: #f59e0b;
+}
+
+.status.pending {
+    color: #f59e0b;
+}
+
 .status.breached::before {
     background: #ef4444;
 }

@@ -162,7 +162,7 @@ function updateKPIs(data) {
         kpis[1].textContent = data.overdue || 0;
         // KPI[2] = tickets due today (SLA deadline within 24h)
         const dueToday = (data.queue || []).filter(t => {
-            if (t.status === 'Resolved' || t.status === 'Closed') return false;
+            if (t.status === 'Resolved' || t.status === 'Closed' || t.status === 'Pending Approval') return false;
             const deadline = parseDate(t.sla_deadline);
             const diff = deadline - new Date();
             return diff > 0 && diff < 86400000;
@@ -221,7 +221,8 @@ function populateQueue(tickets) {
                 <td>
                     <div class="action-group">
                         ${t.status === 'Open' ? `<button class="primary-btn sm" title="Accept" onclick="event.stopPropagation(); updateStatus(${t.id}, 'In Progress')"><i class="fas fa-play"></i> Accept</button>` : ''}
-                        <button class="primary-btn sm" style="background:#10b981;" title="Resolve" onclick="event.stopPropagation(); updateStatus(${t.id}, 'Resolved')"><i class="fas fa-check"></i> Resolve</button>
+                        ${t.status === 'In Progress' ? `<button class="primary-btn sm" style="background:#f59e0b; color:#0f172a;" title="Submit for Approval" onclick="event.stopPropagation(); updateStatus(${t.id}, 'Pending Approval')"><i class="fas fa-paper-plane"></i> Submit</button>` : ''}
+                        ${t.status === 'Pending Approval' ? `<span style="font-size:11px; color:#f59e0b; font-weight:600;"><i class="fas fa-hourglass-half"></i> Awaiting Admin</span>` : ''}
                     </div>
                 </td>
             </tr>

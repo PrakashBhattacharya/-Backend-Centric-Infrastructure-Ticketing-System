@@ -5,8 +5,9 @@ Tickets API blueprint — handles all CRUD operations and status updates.
 from flask import Blueprint, jsonify, request
 from .auth import token_required
 from ..models import (
-    create_ticket, get_tickets, get_ticket_by_id, 
-    update_ticket_status, assign_ticket, add_comment, get_comments
+    create_ticket, get_tickets, get_ticket_by_id,
+    update_ticket_status, assign_ticket, add_comment, get_comments,
+    approve_ticket, reject_ticket
 )
 
 tickets_bp = Blueprint('tickets', __name__, url_prefix='/api/tickets')
@@ -60,12 +61,41 @@ def get_ticket(current_user, ticket_id):
 def update_status(current_user, ticket_id):
     data = request.json
     new_status = data.get('status')
-    
+
     ticket = get_ticket_by_id(ticket_id)
     if not ticket: return jsonify({'message': 'Not found'}), 404
-    
-    # Engineers and Admins can update status. Users can close their own tickets if resolved.
+
+    # Engineers can only submit for approval (not directly resolve)
+    if current_user['role'] == 'engineer' and new_status == 'Resolved':
+        return jsonify({'success': False, 'message': 'Engineers must submit for admin approval first.'}), 403
+
+    # Only admins can directly set Resolved or Closed
+    if new_status in ('Resolved', 'Closed') and current_user['role'] != 'admin':
+        return jsonify({'success': False, 'message': 'Only admins can mark tickets as Resolved or Closed.'}), 403
+
     update_ticket_status(ticket_id, new_status, current_user['id'])
+    return jsonify({'success': True})
+
+@tickets_bp.route('/<int:ticket_id>/approve', methods=['PUT'])
+@token_required
+def approve(current_user, ticket_id):
+    if current_user['role'] != 'admin':
+        return jsonify({'message': 'Only admins can approve resolutions.'}), 403
+    success = approve_ticket(ticket_id, current_user['id'])
+    if not success:
+        return jsonify({'message': 'Ticket not found or not pending approval.'}), 400
+    return jsonify({'success': True})
+
+@tickets_bp.route('/<int:ticket_id>/reject', methods=['PUT'])
+@token_required
+def reject(current_user, ticket_id):
+    if current_user['role'] != 'admin':
+        return jsonify({'message': 'Only admins can reject resolutions.'}), 403
+    data = request.json or {}
+    reason = data.get('reason', '')
+    success = reject_ticket(ticket_id, current_user['id'], reason)
+    if not success:
+        return jsonify({'message': 'Ticket not found or not pending approval.'}), 400
     return jsonify({'success': True})
 
 @tickets_bp.route('/<int:ticket_id>/assign', methods=['PUT'])

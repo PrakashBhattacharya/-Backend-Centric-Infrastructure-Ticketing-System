@@ -66,8 +66,56 @@ window.showAssignModal = async function (ticketId) {
     openModal('assign-ticket-modal');
 };
 
-window.assignTicket = async function (ticketId, engineerId) {
-    console.log("assignTicket API call for:", ticketId, "to:", engineerId);
+window.approveTicket = async function (ticketId) {
+    if (!confirm(`Approve resolution for #INC-${ticketId}? This will mark it as Resolved.`)) return;
+    try {
+        const res = await fetch(`${API_BASE}/api/tickets/${ticketId}/approve`, {
+            method: 'PUT',
+            headers: authHeaders()
+        });
+        const data = await res.json();
+        if (data.success) {
+            await fetchAdminStats();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (err) {
+        console.error('Approve error:', err);
+    }
+};
+
+window.openRejectModal = function (ticketId) {
+    currentTicketId = ticketId;
+    document.getElementById('reject-ticket-id').textContent = `#INC-${ticketId}`;
+    document.getElementById('reject-reason').value = '';
+    openModal('reject-ticket-modal');
+};
+
+window.confirmReject = async function () {
+    const reason = document.getElementById('reject-reason').value.trim();
+    if (!reason) {
+        alert('Please provide a reason for rejection.');
+        return;
+    }
+    try {
+        const res = await fetch(`${API_BASE}/api/tickets/${currentTicketId}/reject`, {
+            method: 'PUT',
+            headers: authHeaders(),
+            body: JSON.stringify({ reason })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('reject-ticket-modal');
+            await fetchAdminStats();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (err) {
+        console.error('Reject error:', err);
+    }
+};
+
+window.assignTicket = async function (ticketId, engineerId) {    console.log("assignTicket API call for:", ticketId, "to:", engineerId);
     try {
         const res = await fetch(`${API_BASE}/api/tickets/${ticketId}/assign`, {
             method: 'PUT',
@@ -216,6 +264,24 @@ function updateKPIs(data) {
         kpis[4].textContent = (data.reopen_rate || 0) + '%';
         kpis[5].textContent = data.avg_aging || '0.0d';
     }
+
+    // Show pending approval badge on the Tools nav item
+    const pending = data.pending_approval || 0;
+    const toolsNav = document.querySelector('.nav-item[data-view="tools"]');
+    if (toolsNav) {
+        let badge = toolsNav.querySelector('.pending-badge');
+        if (pending > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'pending-badge';
+                badge.style.cssText = 'margin-left:auto; background:#f59e0b; color:#0f172a; font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px;';
+                toolsNav.appendChild(badge);
+            }
+            badge.textContent = pending;
+        } else if (badge) {
+            badge.remove();
+        }
+    }
 }
 
 function populateEngineerMatrix(engineers) {
@@ -282,22 +348,34 @@ function populateAllTicketsTable(tickets) {
 
     tbody.innerHTML = tickets.map(t => {
         const priorityClass = t.priority === 'Critical' ? 'critical' : (t.priority === 'High' ? 'high' : (t.priority === 'Medium' ? 'med' : 'low'));
-        const statusClass = t.status === 'Resolved' ? 'resolved' : (t.status === 'In Progress' ? 'prog' : 'open');
+        const statusClass = t.status === 'Resolved' ? 'resolved' : (t.status === 'In Progress' ? 'prog' : t.status === 'Pending Approval' ? 'pending' : 'open');
         const isAssigned = t.assigned_to !== null && t.assigned_to !== undefined;
-        
+        const isPending = t.status === 'Pending Approval';
+
         return `
-            <tr style="cursor:pointer;" onclick="openTicketDetail(${t.id})">
+            <tr style="cursor:pointer;${isPending ? 'background:rgba(245,158,11,0.04);' : ''}" onclick="openTicketDetail(${t.id})">
                 <td>#INC-${t.id}</td>
-                <td>${t.subject || 'No Subject'}</td>
+                <td>${t.subject || 'No Subject'}${isPending ? ' <span style="font-size:10px; background:rgba(245,158,11,0.15); color:#f59e0b; padding:2px 6px; border-radius:4px; font-weight:700; margin-left:6px;">NEEDS REVIEW</span>' : ''}</td>
                 <td><span class="priority ${priorityClass}">${t.priority || 'Low'}</span></td>
                 <td><span class="status ${statusClass}">${t.status || 'Open'}</span></td>
                 <td>${t.creator_name || '-'}</td>
                 <td>${t.assignee_name || '<span style="color:#f59e0b;">Unassigned</span>'}</td>
                 <td>
-                    <button class="primary-btn sm assign-btn" data-id="${t.id}" style="padding:4px 12px; font-size:11px;" 
-                        onclick="event.stopPropagation(); window.showAssignModal(${t.id})">
-                        ${isAssigned ? 'Reassign' : 'Assign'}
-                    </button>
+                    <div class="action-group">
+                        ${isPending ? `
+                            <button class="primary-btn sm" style="background:#10b981; padding:4px 10px; font-size:11px;" onclick="event.stopPropagation(); approveTicket(${t.id})">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="primary-btn sm" style="background:#ef4444; padding:4px 10px; font-size:11px;" onclick="event.stopPropagation(); openRejectModal(${t.id})">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        ` : `
+                            <button class="primary-btn sm assign-btn" data-id="${t.id}" style="padding:4px 12px; font-size:11px;"
+                                onclick="event.stopPropagation(); window.showAssignModal(${t.id})">
+                                ${isAssigned ? 'Reassign' : 'Assign'}
+                            </button>
+                        `}
+                    </div>
                 </td>
             </tr>
         `;

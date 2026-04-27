@@ -570,6 +570,32 @@
         </div>
     </div>
 
+    <!-- Reject Resolution Modal -->
+    <div id="reject-ticket-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Reject Resolution <span id="reject-ticket-id">#0</span></h3>
+                <button class="close-btn" onclick="closeModal('reject-ticket-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 16px; padding: 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; font-size: 13px; color: #f87171;">
+                    <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                    The ticket will be sent back to the engineer as <strong>In Progress</strong>. The SLA timer continues from when they submitted.
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:8px; font-size:13px; color:var(--text-secondary);">Reason for Rejection <span style="color:#ef4444;">*</span></label>
+                    <textarea id="reject-reason" rows="4" placeholder="Explain what the engineer needs to fix or redo..." style="width:100%; background:var(--card-bg); border:1px solid var(--border-color); border-radius:8px; padding:12px; color:var(--text-primary); font-size:13px; resize:vertical;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; gap:10px;">
+                <button class="secondary-btn" onclick="closeModal('reject-ticket-modal')" style="flex:1;">Cancel</button>
+                <button class="primary-btn" style="flex:1; background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="window.confirmReject()">
+                    <i class="fas fa-times"></i> Confirm Rejection
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Assign Ticket Modal [NEW] -->
     <div id="assign-ticket-modal" class="modal">
         <div class="modal-content" style="max-width: 450px;">
