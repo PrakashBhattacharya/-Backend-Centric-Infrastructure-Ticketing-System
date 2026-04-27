@@ -743,10 +743,10 @@ function initCharts(data) {
     }
 }
 
-function logout() {
+window.logout = function() {
     localStorage.clear();
     window.location.href = 'login.html';
-}
+};
 
 // ─── Profile Dropdown ────────────────────────────────────────────────────────
 function _closePd() {

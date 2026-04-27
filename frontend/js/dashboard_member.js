@@ -534,10 +534,10 @@ window.onclick = function (event) {
 }
 
 // ─── Profile Dropdown ────────────────────────────────────────────────────────
-function logout() {
+window.logout = function() {
     localStorage.clear();
     window.location.href = 'login.html';
-}
+};
 
 function _closePd() {
     const dropdown = document.getElementById('profile-dropdown');
