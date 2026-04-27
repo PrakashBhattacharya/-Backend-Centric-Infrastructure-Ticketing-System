@@ -517,6 +517,44 @@ function logout() {
     window.location.href = 'login.html';
 }
 
+// ─── Profile Dropdown ────────────────────────────────────────────────────────
+function toggleProfileDropdown() {
+    const dropdown = document.getElementById('profile-dropdown');
+    if (!dropdown) return;
+    if (!dropdown.classList.contains('open')) {
+        const name  = localStorage.getItem('user_name')  || '—';
+        const email = localStorage.getItem('user_email') || '—';
+        const role  = localStorage.getItem('user_role')  || '—';
+        const ddName   = document.getElementById('dd-name');
+        const ddEmail  = document.getElementById('dd-email');
+        const ddRole   = document.getElementById('dd-role');
+        const ddAvatar = document.getElementById('dd-avatar');
+        const ddSince  = document.getElementById('dd-since');
+        if (ddName)   ddName.textContent  = name;
+        if (ddEmail)  ddEmail.textContent = email;
+        if (ddRole)   ddRole.textContent  = role.charAt(0).toUpperCase() + role.slice(1);
+        if (ddAvatar) ddAvatar.textContent = name.charAt(0).toUpperCase();
+        if (ddSince) {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                ddSince.textContent = payload.iat
+                    ? new Date(payload.iat * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                    : '—';
+            } catch { ddSince.textContent = '—'; }
+        }
+    }
+    dropdown.classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+    const trigger  = document.getElementById('profile-trigger');
+    const dropdown = document.getElementById('profile-dropdown');
+    if (dropdown && trigger && !trigger.contains(e.target)) {
+        dropdown.classList.remove('open');
+    }
+});
+
 // ─── SLA Extension Modal ─────────────────────────────────────────────────────
 let _slaExtTicketId = null;
 

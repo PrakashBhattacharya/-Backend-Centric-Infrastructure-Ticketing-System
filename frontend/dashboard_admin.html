@@ -27,11 +27,39 @@
                 <a href="#" class="nav-item" data-view="tools"><i class="fas fa-wrench"></i><span>Admin Tools</span></a>
             </nav>
             <div class="sidebar-footer">
-                <div class="user-profile">
+                <div class="user-profile" id="profile-trigger" onclick="toggleProfileDropdown()">
                     <div class="profile-avatar">A</div>
                     <div class="user-info">
                         <span class="user-name">Admin Prakash</span>
                         <span class="user-role">ENTERPRISE ADMIN</span>
+                    </div>
+                    <div class="profile-dropdown" id="profile-dropdown">
+                        <div class="profile-dropdown-header">
+                            <div class="profile-dropdown-avatar" id="dd-avatar">A</div>
+                            <div>
+                                <div class="profile-dropdown-name" id="dd-name">—</div>
+                                <div class="profile-dropdown-email" id="dd-email">—</div>
+                            </div>
+                        </div>
+                        <div class="profile-dropdown-body">
+                            <div class="profile-dropdown-row">
+                                <span class="label">Role</span>
+                                <span class="value" id="dd-role">—</span>
+                            </div>
+                            <div class="profile-dropdown-row">
+                                <span class="label">Member Since</span>
+                                <span class="value" id="dd-since">—</span>
+                            </div>
+                            <div class="profile-dropdown-row">
+                                <span class="label">Status</span>
+                                <span class="value" style="color:#10b981;">● Active</span>
+                            </div>
+                        </div>
+                        <div class="profile-dropdown-footer">
+                            <button class="profile-dropdown-logout" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Sign Out
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <a href="login.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i></a>
