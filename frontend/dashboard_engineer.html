@@ -35,25 +35,62 @@
                     <div class="profile-dropdown" id="profile-dropdown">
                         <div class="profile-dropdown-header">
                             <div class="profile-dropdown-avatar" id="dd-avatar">E</div>
-                            <div>
+                            <div style="flex:1; min-width:0;">
                                 <div class="profile-dropdown-name" id="dd-name">—</div>
                                 <div class="profile-dropdown-email" id="dd-email">—</div>
+                                <div id="dd-role-badge" style="margin-top:6px; display:inline-block; padding:2px 10px; border-radius:999px; font-size:10px; font-weight:700; letter-spacing:0.06em; background:rgba(16,185,129,0.15); color:#34d399;">ENGINEER</div>
                             </div>
                         </div>
                         <div class="profile-dropdown-body">
-                            <div class="profile-dropdown-row">
-                                <span class="label">Role</span>
-                                <span class="value" id="dd-role">—</span>
-                            </div>
-                            <div class="profile-dropdown-row">
-                                <span class="label">Member Since</span>
-                                <span class="value" id="dd-since">—</span>
-                            </div>
-                            <div class="profile-dropdown-row">
-                                <span class="label">Status</span>
-                                <span class="value" style="color:#10b981;">● Active</span>
-                            </div>
-                        </div>
+                              <div class="dropdown-section-title">Account Hierarchy</div>
+                              <div class="info-grid">
+                                  <div class="info-item">
+                                      <span class="info-label">User ID</span>
+                                      <span class="info-value" id="dd-user-id">#ID-0000</span>
+                                  </div>
+                                  <div class="info-item">
+                                      <span class="info-label">Joined</span>
+                                      <span class="info-value" id="dd-since">—</span>
+                                  </div>
+                              </div>
+                              <div class="info-grid">
+                                  <div class="info-item">
+                                      <span class="info-label">Role</span>
+                                      <span class="info-value" id="dd-role">Support Engineer</span>
+                                  </div>
+                                  <div class="info-item">
+                                      <span class="info-label">Status</span>
+                                      <span class="info-value" style="color:#10b981;">● Active</span>
+                                  </div>
+                              </div>
+
+                              <div class="dropdown-section-title">System Access</div>
+                              <div class="badge-group">
+                                  <span class="mini-badge">Production</span>
+                                  <span class="mini-badge">AWS-West</span>
+                                  <span class="mini-badge success">On-Call</span>
+                              </div>
+
+                              <div class="dropdown-section-title">Performance</div>
+                              <div class="info-grid">
+                                  <div class="info-item">
+                                      <span class="info-label">Assigned</span>
+                                      <span class="info-value" id="dd-stat-1">—</span>
+                                  </div>
+                                  <div class="info-item">
+                                      <span class="info-label">Resolved</span>
+                                      <span class="info-value" id="dd-stat-2">—</span>
+                                  </div>
+                                  <div class="info-item">
+                                      <span class="info-label">Avg MTTR</span>
+                                      <span class="info-value" id="dd-stat-3">—</span>
+                                  </div>
+                                  <div class="info-item">
+                                      <span class="info-label">Session</span>
+                                      <span class="info-value" id="dd-session">—</span>
+                                  </div>
+                              </div>
+                          </div>
                         <div class="profile-dropdown-footer">
                             <button class="profile-dropdown-logout" onclick="logout()">
                                 <i class="fas fa-sign-out-alt"></i> Sign Out

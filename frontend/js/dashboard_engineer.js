@@ -530,18 +530,39 @@ function toggleProfileDropdown() {
         const ddRole   = document.getElementById('dd-role');
         const ddAvatar = document.getElementById('dd-avatar');
         const ddSince  = document.getElementById('dd-since');
+        const ddUserId = document.getElementById('dd-user-id');
+        const ddStat1  = document.getElementById('dd-stat-1');
+        const ddStat2  = document.getElementById('dd-stat-2');
+        const ddStat3  = document.getElementById('dd-stat-3');
+        const ddSession = document.getElementById('dd-session');
+
         if (ddName)   ddName.textContent  = name;
         if (ddEmail)  ddEmail.textContent = email;
-        if (ddRole)   ddRole.textContent  = role.charAt(0).toUpperCase() + role.slice(1);
+        if (ddRole)   ddRole.textContent  = "Support Engineer";
         if (ddAvatar) ddAvatar.textContent = name.charAt(0).toUpperCase();
-        if (ddSince) {
-            try {
-                const token = localStorage.getItem('auth_token');
-                const payload = JSON.parse(atob(token.split('.')[1]));
+
+        try {
+            const token = localStorage.getItem('auth_token');
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            
+            if (ddSince) {
                 ddSince.textContent = payload.iat
                     ? new Date(payload.iat * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
                     : '—';
-            } catch { ddSince.textContent = '—'; }
+            }
+            if (ddUserId) {
+                ddUserId.textContent = payload.sub ? `#ID-${payload.sub.toString().padStart(4, '0')}` : '—';
+            }
+        } catch { 
+            if (ddSince) ddSince.textContent = '—';
+            if (ddUserId) ddUserId.textContent = '—';
+        }
+
+        if (engineerStore) {
+            if (ddStat1) ddStat1.textContent = engineerStore.queue ? engineerStore.queue.length : '—';
+            if (ddStat2) ddStat2.textContent = engineerStore.resolved ? engineerStore.resolved.length : '—';
+            if (ddStat3) ddStat3.textContent = document.querySelectorAll('.kpi-value')[3] ? document.querySelectorAll('.kpi-value')[3].textContent : '—';
+            if (ddSession) ddSession.textContent = "Active";
         }
     }
     dropdown.classList.toggle('open');

@@ -41,19 +41,47 @@
                             </div>
                         </div>
                         <div class="profile-dropdown-body">
-                            <div class="profile-dropdown-row">
-                                <span class="label">Role</span>
-                                <span class="value" id="dd-role">—</span>
-                            </div>
-                            <div class="profile-dropdown-row">
-                                <span class="label">Member Since</span>
-                                <span class="value" id="dd-since">—</span>
-                            </div>
-                            <div class="profile-dropdown-row">
-                                <span class="label">Status</span>
-                                <span class="value" style="color:#10b981;">● Active</span>
-                            </div>
-                        </div>
+                              <div class="dropdown-section-title">Account Hierarchy</div>
+                              <div class="info-grid">
+                                  <div class="info-item">
+                                      <span class="info-label">User ID</span>
+                                      <span class="info-value" id="dd-user-id">#ID-0000</span>
+                                  </div>
+                                  <div class="info-item">
+                                      <span class="info-label">Member Since</span>
+                                      <span class="info-value" id="dd-since">—</span>
+                                  </div>
+                              </div>
+                              <div class="info-grid">
+                                  <div class="info-item">
+                                      <span class="info-label">Role</span>
+                                      <span class="info-value" id="dd-role">Contractor</span>
+                                  </div>
+                                  <div class="info-item">
+                                      <span class="info-label">Status</span>
+                                      <span class="info-value" style="color:#10b981;">● Active</span>
+                                  </div>
+                              </div>
+
+                              <div class="dropdown-section-title">Platform Access</div>
+                              <div class="badge-group">
+                                  <span class="mini-badge">App Engine</span>
+                                  <span class="mini-badge">Cloud SQL</span>
+                                  <span class="mini-badge success">Compliance OK</span>
+                              </div>
+
+                              <div class="dropdown-section-title">Metrics</div>
+                              <div class="info-grid">
+                                  <div class="info-item">
+                                      <span class="info-label">Tickets Opened</span>
+                                      <span class="info-value" id="dd-stat-active">—</span>
+                                  </div>
+                                  <div class="info-item">
+                                      <span class="info-label">Success Rate</span>
+                                      <span class="info-value" id="dd-stat-success">98.2%</span>
+                                  </div>
+                              </div>
+                          </div>
                         <div class="profile-dropdown-footer">
                             <button class="profile-dropdown-logout" onclick="logout()">
                                 <i class="fas fa-sign-out-alt"></i> Sign Out

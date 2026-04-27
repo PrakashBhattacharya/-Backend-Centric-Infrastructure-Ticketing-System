@@ -551,20 +551,35 @@ function toggleProfileDropdown() {
         const ddRole   = document.getElementById('dd-role');
         const ddAvatar = document.getElementById('dd-avatar');
         const ddSince  = document.getElementById('dd-since');
+        const ddUserId = document.getElementById('dd-user-id');
+        const ddStatActive = document.getElementById('dd-stat-active');
+        const ddStatSuccess = document.getElementById('dd-stat-success');
+
         if (ddName)   ddName.textContent  = name;
         if (ddEmail)  ddEmail.textContent = email;
         if (ddRole)   ddRole.textContent  = role.charAt(0).toUpperCase() + role.slice(1);
         if (ddAvatar) ddAvatar.textContent = name.charAt(0).toUpperCase();
-        if (ddSince) {
-            try {
-                const token = localStorage.getItem('auth_token');
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                ddSince.textContent = payload.iat
-                    ? new Date(payload.iat * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+
+        try {
+            const token = localStorage.getItem('auth_token');
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            
+            if (ddSince) {
+                ddSince.textContent = payload.iat 
+                    ? new Date(payload.iat * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) 
                     : '—';
-            } catch { ddSince.textContent = '—'; }
+            }
+            if (ddUserId) {
+                ddUserId.textContent = payload.sub ? `#ID-${payload.sub.toString().padStart(4, '0')}` : '—';
+            }
+        } catch { 
+            if (ddSince) ddSince.textContent = '—'; 
+            if (ddUserId) ddUserId.textContent = '—';
         }
-    }
+
+        if (ddStatActive && window.allMemberTickets) {
+            ddStatActive.textContent = window.allMemberTickets.length;
+        }
     dropdown.classList.toggle('open');
 }
 

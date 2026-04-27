@@ -82,12 +82,38 @@ def login():
 @auth_bp.route('/me', methods=['GET'])
 @token_required
 def get_me(current_user):
+    from ..models import execute_query
+    uid = current_user['id']
+    role = current_user['role']
+
+    # Ticket stats vary by role
+    if role == 'member':
+        total   = (execute_query("SELECT COUNT(*) as c FROM tickets WHERE created_by=%s", (uid,), fetchone=True) or {}).get('c', 0)
+        open_t  = (execute_query("SELECT COUNT(*) as c FROM tickets WHERE created_by=%s AND status IN ('Open','In Progress')", (uid,), fetchone=True) or {}).get('c', 0)
+        resolved= (execute_query("SELECT COUNT(*) as c FROM tickets WHERE created_by=%s AND status IN ('Resolved','Closed')", (uid,), fetchone=True) or {}).get('c', 0)
+        stats = {'total_tickets': total, 'open_tickets': open_t, 'resolved_tickets': resolved}
+    elif role == 'engineer':
+        assigned = (execute_query("SELECT COUNT(*) as c FROM tickets WHERE assigned_to=%s AND status IN ('Open','In Progress')", (uid,), fetchone=True) or {}).get('c', 0)
+        resolved = (execute_query("SELECT COUNT(*) as c FROM tickets WHERE assigned_to=%s AND status IN ('Resolved','Closed')", (uid,), fetchone=True) or {}).get('c', 0)
+        mttr_row = execute_query("SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/3600) as m FROM tickets WHERE assigned_to=%s AND status IN ('Resolved','Closed')", (uid,), fetchone=True) or {}
+        mttr = round(float(mttr_row.get('m') or 0), 1)
+        stats = {'assigned_tickets': assigned, 'resolved_tickets': resolved, 'avg_mttr': f"{mttr}h"}
+    else:  # admin
+        total   = (execute_query("SELECT COUNT(*) as c FROM tickets", fetchone=True) or {}).get('c', 0)
+        open_t  = (execute_query("SELECT COUNT(*) as c FROM tickets WHERE status IN ('Open','In Progress','Pending Approval')", fetchone=True) or {}).get('c', 0)
+        resolved= (execute_query("SELECT COUNT(*) as c FROM tickets WHERE status IN ('Resolved','Closed')", fetchone=True) or {}).get('c', 0)
+        engineers = (execute_query("SELECT COUNT(*) as c FROM users WHERE role='engineer'", fetchone=True) or {}).get('c', 0)
+        members   = (execute_query("SELECT COUNT(*) as c FROM users WHERE role='member'", fetchone=True) or {}).get('c', 0)
+        stats = {'total_tickets': total, 'open_tickets': open_t, 'resolved_tickets': resolved, 'engineers': engineers, 'members': members}
+
     return jsonify({
         'success': True,
         'user': {
             'id': current_user['id'],
             'full_name': current_user['full_name'],
             'email': current_user['email'],
-            'role': current_user['role']
+            'role': current_user['role'],
+            'created_at': current_user.get('created_at', ''),
+            'stats': stats
         }
     })
