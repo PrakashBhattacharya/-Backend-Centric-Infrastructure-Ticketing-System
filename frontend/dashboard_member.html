@@ -32,33 +32,6 @@
                         <span class="user-name">Prakash B.</span>
                         <span class="user-role">MEMBER</span>
                     </div>
-                    <div class="profile-dropdown" id="profile-dropdown">
-                        <div class="pd-banner">
-                            <div class="pd-banner-avatar" id="dd-avatar">P</div>
-                            <div class="pd-banner-info">
-                                <div class="pd-banner-name" id="dd-name">&mdash;</div>
-                                <div class="pd-banner-email" id="dd-email">&mdash;</div>
-                                <span class="pd-role-chip pd-role-member">MEMBER</span>
-                            </div>
-                        </div>
-                        <div class="pd-section-label">Account</div>
-                        <div class="pd-rows">
-                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-fingerprint"></i> User ID</span><span class="pd-row-val" id="dd-uid">&mdash;</span></div>
-                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-envelope"></i> Email</span><span class="pd-row-val" id="dd-email2">&mdash;</span></div>
-                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-calendar-alt"></i> Joined</span><span class="pd-row-val" id="dd-since">&mdash;</span></div>
-                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-shield-alt"></i> Status</span><span class="pd-row-val" style="color:#10b981;font-weight:700;">&#9679; Active</span></div>
-                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-clock"></i> Session Exp.</span><span class="pd-row-val" id="dd-session">&mdash;</span></div>
-                        </div>
-                        <div class="pd-section-label">My Tickets</div>
-                        <div class="pd-stat-grid">
-                            <div class="pd-stat"><div class="pd-stat-val" id="dd-s1">&mdash;</div><div class="pd-stat-label">Total</div></div>
-                            <div class="pd-stat"><div class="pd-stat-val" id="dd-s2">&mdash;</div><div class="pd-stat-label">Open</div></div>
-                            <div class="pd-stat"><div class="pd-stat-val" id="dd-s3">&mdash;</div><div class="pd-stat-label">Resolved</div></div>
-                        </div>
-                        <div class="pd-footer">
-                            <button class="pd-logout-btn" onclick="event.stopPropagation(); logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
-                        </div>
-                    </div>
                 </div>
                 <a href="login.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i></a>
             </div>
@@ -1011,6 +984,35 @@
     <script src="js/config.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/dashboard_member.js?v=2.0"></script>
+
+    <div class="profile-dropdown" id="profile-dropdown">
+                        <div class="pd-banner">
+                            <div class="pd-banner-avatar" id="dd-avatar">P</div>
+                            <div class="pd-banner-info">
+                                <div class="pd-banner-name" id="dd-name">&mdash;</div>
+                                <div class="pd-banner-email" id="dd-email">&mdash;</div>
+                                <span class="pd-role-chip pd-role-member">MEMBER</span>
+                            </div>
+                        </div>
+                        <div class="pd-section-label">Account</div>
+                        <div class="pd-rows">
+                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-fingerprint"></i> User ID</span><span class="pd-row-val" id="dd-uid">&mdash;</span></div>
+                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-envelope"></i> Email</span><span class="pd-row-val" id="dd-email2">&mdash;</span></div>
+                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-calendar-alt"></i> Joined</span><span class="pd-row-val" id="dd-since">&mdash;</span></div>
+                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-shield-alt"></i> Status</span><span class="pd-row-val" style="color:#10b981;font-weight:700;">&#9679; Active</span></div>
+                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-clock"></i> Session Exp.</span><span class="pd-row-val" id="dd-session">&mdash;</span></div>
+                        </div>
+                        <div class="pd-section-label">My Tickets</div>
+                        <div class="pd-stat-grid">
+                            <div class="pd-stat"><div class="pd-stat-val" id="dd-s1">&mdash;</div><div class="pd-stat-label">Total</div></div>
+                            <div class="pd-stat"><div class="pd-stat-val" id="dd-s2">&mdash;</div><div class="pd-stat-label">Open</div></div>
+                            <div class="pd-stat"><div class="pd-stat-val" id="dd-s3">&mdash;</div><div class="pd-stat-label">Resolved</div></div>
+                        </div>
+                        <div class="pd-footer">
+                            <button class="pd-logout-btn" onclick="event.stopPropagation(); logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+                        </div>
+                    </div>
+
 </body>
 
 </html>
