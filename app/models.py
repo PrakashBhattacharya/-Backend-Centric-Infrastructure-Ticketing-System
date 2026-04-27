@@ -272,7 +272,7 @@ def get_admin_stats():
     res = {
         'total_open': 0, 'breaches_today': 0, 'escalated': 0,
         'total_resolved': 0, 'total_all': 0, 'mttr': '0.0h',
-        'avg_aging': '0.0d', 'reopen_rate': 0, 'pending_approval': 0,
+        'avg_aging': '0.0d', 'reopen_rate': 0, 'pending_approval': 0, 'pending_sla_requests': 0,
         'slaComplianceData': [0, 0, 0],
         'agingData': [0, 0, 0, 0],
         'serviceImpactData': [0, 0, 0, 0, 0],
@@ -283,6 +283,7 @@ def get_admin_stats():
     try:
         res['total_open'] = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress', 'Pending Approval')", fetchone=True)['count']
         res['pending_approval'] = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status = 'Pending Approval'", fetchone=True)['count']
+        res['pending_sla_requests'] = execute_query("SELECT COUNT(*) as count FROM sla_extension_requests WHERE status = 'Pending'", fetchone=True)['count']
         res['total_all'] = execute_query("SELECT COUNT(*) as count FROM tickets", fetchone=True)['count']
         res['total_resolved'] = execute_query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed')", fetchone=True)['count']
 
@@ -505,8 +506,105 @@ def get_comments(ticket_id):
         (ticket_id,)
     ) or []
 
-def get_engineer_stats(uid):
+# ─── SLA Extension Requests ──────────────────────────────────────────────────
+
+def request_sla_extension(ticket_id, engineer_id, requested_hours, reason):
+    """Engineer requests more time on a ticket."""
+    # Only one pending request per ticket at a time
+    existing = execute_query(
+        "SELECT id FROM sla_extension_requests WHERE ticket_id=%s AND status='Pending'",
+        (ticket_id,), fetchone=True
+    )
+    if existing:
+        return None, 'A pending SLA extension request already exists for this ticket.'
+    row = execute_query(
+        "INSERT INTO sla_extension_requests (ticket_id, engineer_id, requested_hours, reason) "
+        "VALUES (%s, %s, %s, %s) RETURNING *",
+        (ticket_id, engineer_id, requested_hours, reason), commit=True, fetchone=True
+    )
+    if row:
+        execute_query(
+            "INSERT INTO audit_logs (action, details, icon, color, user_id, ticket_id) VALUES (%s,%s,%s,%s,%s,%s)",
+            ('SLA Extension Requested',
+             f'Ticket #{ticket_id} — engineer requested +{requested_hours}h. Reason: {reason}',
+             'fa-clock', '#f59e0b', engineer_id, ticket_id),
+            commit=True
+        )
+    return row, None
+
+def get_sla_extension_requests(status=None, ticket_id=None):
+    """Fetch SLA extension requests with engineer and ticket info."""
+    query = (
+        "SELECT r.*, u.full_name as engineer_name, t.subject as ticket_subject, "
+        "t.sla_deadline, t.priority "
+        "FROM sla_extension_requests r "
+        "JOIN users u ON r.engineer_id = u.id "
+        "JOIN tickets t ON r.ticket_id = t.id"
+    )
+    params = []
+    conditions = []
+    if status:
+        conditions.append("r.status = %s")
+        params.append(status)
+    if ticket_id:
+        conditions.append("r.ticket_id = %s")
+        params.append(ticket_id)
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+    query += " ORDER BY r.created_at DESC"
+    return execute_query(query, tuple(params)) or []
+
+def approve_sla_extension(request_id, admin_id, admin_note=''):
+    """Admin approves — extends the ticket's sla_deadline by requested_hours."""
+    req = execute_query(
+        "SELECT * FROM sla_extension_requests WHERE id=%s AND status='Pending'",
+        (request_id,), fetchone=True
+    )
+    if not req:
+        return False, 'Request not found or already resolved.'
     now = datetime.utcnow()
+    now_str = now.strftime('%Y-%m-%d %H:%M:%S')
+    # Extend deadline from current deadline (not from now)
+    execute_query(
+        "UPDATE tickets SET sla_deadline = sla_deadline + (%s || ' hours')::interval, updated_at = %s WHERE id = %s",
+        (str(req['requested_hours']), now_str, req['ticket_id']), commit=True
+    )
+    execute_query(
+        "UPDATE sla_extension_requests SET status='Approved', admin_note=%s, resolved_at=%s WHERE id=%s",
+        (admin_note, now_str, request_id), commit=True
+    )
+    execute_query(
+        "INSERT INTO audit_logs (action, details, icon, color, user_id, ticket_id) VALUES (%s,%s,%s,%s,%s,%s)",
+        ('SLA Extension Approved',
+         f'Ticket #{req["ticket_id"]} SLA extended by {req["requested_hours"]}h.',
+         'fa-clock', '#10b981', admin_id, req['ticket_id']),
+        commit=True
+    )
+    return True, None
+
+def reject_sla_extension(request_id, admin_id, admin_note=''):
+    """Admin rejects — deadline unchanged."""
+    req = execute_query(
+        "SELECT * FROM sla_extension_requests WHERE id=%s AND status='Pending'",
+        (request_id,), fetchone=True
+    )
+    if not req:
+        return False, 'Request not found or already resolved.'
+    now_str = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    execute_query(
+        "UPDATE sla_extension_requests SET status='Rejected', admin_note=%s, resolved_at=%s WHERE id=%s",
+        (admin_note, now_str, request_id), commit=True
+    )
+    execute_query(
+        "INSERT INTO audit_logs (action, details, icon, color, danger, user_id, ticket_id) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+        ('SLA Extension Rejected',
+         f'Ticket #{req["ticket_id"]} SLA extension request rejected.',
+         'fa-clock', '#ef4444', 1, admin_id, req['ticket_id']),
+        commit=True
+    )
+    return True, None
+
+def get_engineer_stats(uid):    now = datetime.utcnow()
     now_str = now.strftime('%Y-%m-%d %H:%M:%S')
     dead = _effective_deadline_sql('t')
     res = {

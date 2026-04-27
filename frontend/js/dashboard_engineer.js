@@ -221,7 +221,10 @@ function populateQueue(tickets) {
                 <td>
                     <div class="action-group">
                         ${t.status === 'Open' ? `<button class="primary-btn sm" title="Accept" onclick="event.stopPropagation(); updateStatus(${t.id}, 'In Progress')"><i class="fas fa-play"></i> Accept</button>` : ''}
-                        ${t.status === 'In Progress' ? `<button class="primary-btn sm" style="background:#f59e0b; color:#0f172a;" title="Submit for Approval" onclick="event.stopPropagation(); updateStatus(${t.id}, 'Pending Approval')"><i class="fas fa-paper-plane"></i> Submit</button>` : ''}
+                        ${t.status === 'In Progress' ? `
+                            <button class="primary-btn sm" style="background:#f59e0b; color:#0f172a;" title="Submit for Approval" onclick="event.stopPropagation(); updateStatus(${t.id}, 'Pending Approval')"><i class="fas fa-paper-plane"></i> Submit</button>
+                            ${!slaBreached ? `<button class="primary-btn sm" style="background:rgba(99,102,241,0.85); color:#fff;" title="Request SLA Extension" onclick="event.stopPropagation(); openSlaExtModal(${t.id})"><i class="fas fa-clock"></i> Extend SLA</button>` : ''}
+                        ` : ''}
                         ${t.status === 'Pending Approval' ? `<span style="font-size:11px; color:#f59e0b; font-weight:600;"><i class="fas fa-hourglass-half"></i> Awaiting Admin</span>` : ''}
                     </div>
                 </td>
@@ -507,3 +510,42 @@ function logout() {
     localStorage.clear();
     window.location.href = 'login.html';
 }
+
+// ─── SLA Extension Modal ─────────────────────────────────────────────────────
+let _slaExtTicketId = null;
+
+window.openSlaExtModal = function(ticketId) {
+    _slaExtTicketId = ticketId;
+    document.getElementById('sla-ext-ticket-id').textContent = `#INC-${ticketId}`;
+    document.getElementById('sla-ext-hours').value = '';
+    document.getElementById('sla-ext-reason').value = '';
+    document.getElementById('sla-ext-error').textContent = '';
+    openModal('sla-ext-modal');
+};
+
+window.submitSlaExtension = async function() {
+    const hours = parseFloat(document.getElementById('sla-ext-hours').value);
+    const reason = document.getElementById('sla-ext-reason').value.trim();
+    const errEl = document.getElementById('sla-ext-error');
+
+    if (!hours || hours <= 0) { errEl.textContent = 'Enter a valid number of hours.'; return; }
+    if (!reason) { errEl.textContent = 'Please provide a reason.'; return; }
+    errEl.textContent = '';
+
+    try {
+        const res = await fetch(`${API_BASE}/api/tickets/${_slaExtTicketId}/sla-extension`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ requested_hours: hours, reason })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('sla-ext-modal');
+            alert(`✅ SLA extension request submitted for #INC-${_slaExtTicketId}.\nRequested: +${hours}h\nAwaiting admin approval.`);
+        } else {
+            errEl.textContent = data.message || 'Request failed.';
+        }
+    } catch (err) {
+        errEl.textContent = 'Network error. Please try again.';
+    }
+};

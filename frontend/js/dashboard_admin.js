@@ -228,24 +228,20 @@ async function fetchAdminStats() {
         console.log("Fetching admin stats for governance dashboard...");
         const res = await fetch(`${API_BASE}/api/dashboard/admin/overview`, { 
             headers: authHeaders(),
-            cache: 'no-store' // Ensure fresh data
+            cache: 'no-store'
         });
         
-        if (!res.ok) {
-            throw new Error(`Cloud API returned ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Cloud API returned ${res.status}`);
 
         const data = await res.json();
         if (data.success) {
             adminData = data;
-            
-            // Execute all population functions safely
             try { updateKPIs(data); } catch (e) { console.error("KPI Update Error:", e); }
             try { populateEngineerMatrix(data.engineers || []); } catch (e) { console.error("Engineer Matrix Error:", e); }
             try { populateAuditFeed(data.auditLogs || []); } catch (e) { console.error("Audit Feed Error:", e); }
             try { populateAllTicketsTable(data.all_tickets || []); } catch (e) { console.error("Tickets Table Error:", e); }
             try { initCharts(data); } catch (e) { console.error("Chart Initialization Error:", e); }
-            
+            try { await loadSlaExtRequests(); } catch (e) { console.error("SLA Ext Error:", e); }
         } else {
             console.error("Governance API error:", data.message);
         }
@@ -253,6 +249,97 @@ async function fetchAdminStats() {
         console.error("Critical Failure in Admin Dashboard fetch:", err);
     }
 }
+
+// ─── SLA Extension Requests ──────────────────────────────────────────────────
+let _currentSlaExtId = null;
+
+async function loadSlaExtRequests() {
+    try {
+        const res = await fetch(`${API_BASE}/api/tickets/sla-extensions`, { headers: authHeaders() });
+        const data = await res.json();
+        if (data.success) populateSlaExtTable(data.requests || []);
+    } catch (err) {
+        console.error('Failed to load SLA extension requests:', err);
+    }
+}
+
+function populateSlaExtTable(requests) {
+    const tbody = document.getElementById('sla-ext-requests-body');
+    if (!tbody) return;
+
+    const pending = requests.filter(r => r.status === 'Pending');
+    const badge = document.getElementById('sla-ext-pending-badge');
+    if (badge) {
+        if (pending.length > 0) {
+            badge.textContent = `${pending.length} Pending`;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    if (!requests.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-secondary);">No SLA extension requests.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = requests.map(r => {
+        const statusColor = r.status === 'Approved' ? '#10b981' : r.status === 'Rejected' ? '#ef4444' : '#f59e0b';
+        const statusBg = r.status === 'Approved' ? 'rgba(16,185,129,0.1)' : r.status === 'Rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)';
+        const deadline = parseDate(r.sla_deadline);
+        const deadlineStr = isNaN(deadline) ? '-' : deadline.toLocaleString();
+        return `
+            <tr>
+                <td><strong>#INC-${r.ticket_id}</strong><br><span style="font-size:11px; color:var(--text-secondary);">${(r.ticket_subject || '').substring(0,30)}</span></td>
+                <td>${r.engineer_name || '-'}</td>
+                <td style="font-weight:700; color:#a5b4fc;">+${r.requested_hours}h</td>
+                <td style="max-width:200px; font-size:12px; color:var(--text-secondary);">${(r.reason || '').substring(0,60)}${r.reason && r.reason.length > 60 ? '…' : ''}</td>
+                <td style="font-size:12px;">${deadlineStr}</td>
+                <td><span style="padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; background:${statusBg}; color:${statusColor};">${r.status.toUpperCase()}</span></td>
+                <td>
+                    ${r.status === 'Pending' ? `
+                        <button class="primary-btn sm" style="background:rgba(99,102,241,0.8); font-size:11px; padding:4px 12px;" onclick="openSlaExtReview(${r.id}, '${(r.engineer_name||'').replace(/'/g,"\\'")}', ${r.requested_hours}, '${(r.reason||'').replace(/'/g,"\\'")}', '#INC-${r.ticket_id}')">
+                            <i class="fas fa-eye"></i> Review
+                        </button>
+                    ` : `<span style="font-size:11px; color:var(--text-secondary);">${r.admin_note ? r.admin_note.substring(0,30) : '—'}</span>`}
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+window.openSlaExtReview = function(reqId, engineerName, hours, reason, ticketId) {
+    _currentSlaExtId = reqId;
+    document.getElementById('sla-ext-review-title').textContent = `Review SLA Extension — ${ticketId}`;
+    document.getElementById('sla-ext-review-info').innerHTML = `
+        <div><strong>Engineer:</strong> ${engineerName}</div>
+        <div><strong>Requested:</strong> +${hours} additional hours</div>
+        <div style="margin-top:8px;"><strong>Reason:</strong><br><span style="color:var(--text-secondary);">${reason}</span></div>
+    `;
+    document.getElementById('sla-ext-admin-note').value = '';
+    openModal('sla-ext-review-modal');
+};
+
+window.handleSlaExtDecision = async function(decision) {
+    const note = document.getElementById('sla-ext-admin-note').value.trim();
+    const endpoint = `${API_BASE}/api/tickets/sla-extensions/${_currentSlaExtId}/${decision}`;
+    try {
+        const res = await fetch(endpoint, {
+            method: 'PUT',
+            headers: authHeaders(),
+            body: JSON.stringify({ note })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('sla-ext-review-modal');
+            await fetchAdminStats();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (err) {
+        console.error('SLA ext decision error:', err);
+    }
+};
 
 function updateKPIs(data) {
     const kpis = document.querySelectorAll('.kpi-value');
@@ -265,8 +352,8 @@ function updateKPIs(data) {
         kpis[5].textContent = data.avg_aging || '0.0d';
     }
 
-    // Show pending approval badge on the Tools nav item
-    const pending = data.pending_approval || 0;
+    // Show pending approval + SLA extension badge on the Tools nav item
+    const pending = (data.pending_approval || 0) + (data.pending_sla_requests || 0);
     const toolsNav = document.querySelector('.nav-item[data-view="tools"]');
     if (toolsNav) {
         let badge = toolsNav.querySelector('.pending-badge');

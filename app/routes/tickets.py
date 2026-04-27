@@ -7,7 +7,9 @@ from .auth import token_required
 from ..models import (
     create_ticket, get_tickets, get_ticket_by_id,
     update_ticket_status, assign_ticket, add_comment, get_comments,
-    approve_ticket, reject_ticket
+    approve_ticket, reject_ticket,
+    request_sla_extension, get_sla_extension_requests,
+    approve_sla_extension, reject_sla_extension
 )
 
 tickets_bp = Blueprint('tickets', __name__, url_prefix='/api/tickets')
@@ -129,4 +131,90 @@ def post_comment(current_user, ticket_id):
     if not text: return jsonify({'success': False}), 400
     
     add_comment(ticket_id, current_user['id'], text)
+    return jsonify({'success': True})
+
+# ─── SLA Extension Endpoints ─────────────────────────────────────────────────
+
+@tickets_bp.route('/<int:ticket_id>/sla-extension', methods=['POST'])
+@token_required
+def request_extension(current_user, ticket_id):
+    """Engineer requests an SLA extension for a ticket assigned to them."""
+    if current_user['role'] != 'engineer':
+        return jsonify({'message': 'Only engineers can request SLA extensions.'}), 403
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket:
+        return jsonify({'message': 'Ticket not found.'}), 404
+    if ticket.get('assigned_to') != current_user['id']:
+        return jsonify({'message': 'You can only request extensions for tickets assigned to you.'}), 403
+    if ticket['status'] not in ('In Progress', 'Open'):
+        return jsonify({'message': 'Extensions can only be requested for active tickets.'}), 400
+
+    # Block if SLA is already breached
+    from datetime import datetime
+    try:
+        deadline = datetime.strptime(ticket['sla_deadline'], '%Y-%m-%d %H:%M:%S')
+        if datetime.utcnow() > deadline:
+            return jsonify({'message': 'SLA has already been breached. Extensions cannot be requested after the deadline has passed.'}), 400
+    except Exception:
+        pass
+
+    data = request.json or {}
+    requested_hours = data.get('requested_hours')
+    reason = data.get('reason', '').strip()
+
+    if not requested_hours or float(requested_hours) <= 0:
+        return jsonify({'message': 'Requested hours must be a positive number.'}), 400
+    if not reason:
+        return jsonify({'message': 'A reason is required.'}), 400
+
+    row, err = request_sla_extension(ticket_id, current_user['id'], float(requested_hours), reason)
+    if err:
+        return jsonify({'success': False, 'message': err}), 409
+    return jsonify({'success': True, 'request': row}), 201
+
+@tickets_bp.route('/sla-extensions', methods=['GET'])
+@token_required
+def list_extensions(current_user):
+    """Admin: list all SLA extension requests. Engineer: list their own."""
+    if current_user['role'] == 'admin':
+        status_filter = request.args.get('status')
+        requests = get_sla_extension_requests(status=status_filter)
+    elif current_user['role'] == 'engineer':
+        # Return requests for tickets assigned to this engineer
+        from ..models import execute_query
+        requests = execute_query(
+            "SELECT r.*, u.full_name as engineer_name, t.subject as ticket_subject, "
+            "t.sla_deadline, t.priority "
+            "FROM sla_extension_requests r "
+            "JOIN users u ON r.engineer_id = u.id "
+            "JOIN tickets t ON r.ticket_id = t.id "
+            "WHERE r.engineer_id = %s ORDER BY r.created_at DESC",
+            (current_user['id'],)
+        ) or []
+    else:
+        return jsonify({'message': 'Unauthorized'}), 403
+    return jsonify({'success': True, 'requests': requests})
+
+@tickets_bp.route('/sla-extensions/<int:request_id>/approve', methods=['PUT'])
+@token_required
+def approve_extension(current_user, request_id):
+    if current_user['role'] != 'admin':
+        return jsonify({'message': 'Only admins can approve SLA extensions.'}), 403
+    data = request.json or {}
+    note = data.get('note', '')
+    ok, err = approve_sla_extension(request_id, current_user['id'], note)
+    if not ok:
+        return jsonify({'message': err}), 400
+    return jsonify({'success': True})
+
+@tickets_bp.route('/sla-extensions/<int:request_id>/reject', methods=['PUT'])
+@token_required
+def reject_extension(current_user, request_id):
+    if current_user['role'] != 'admin':
+        return jsonify({'message': 'Only admins can reject SLA extensions.'}), 403
+    data = request.json or {}
+    note = data.get('note', '')
+    ok, err = reject_sla_extension(request_id, current_user['id'], note)
+    if not ok:
+        return jsonify({'message': err}), 400
     return jsonify({'success': True})

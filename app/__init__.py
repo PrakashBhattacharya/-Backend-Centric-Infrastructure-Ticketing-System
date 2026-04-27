@@ -47,6 +47,21 @@ def create_app(config_class=Config):
                     "ALTER TABLE tickets ADD CONSTRAINT tickets_status_check "
                     "CHECK(status IN ('Open', 'In Progress', 'Pending Approval', 'Resolved', 'Closed'))"
                 )
+                # Create SLA extension requests table
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS sla_extension_requests (
+                        id SERIAL PRIMARY KEY,
+                        ticket_id INTEGER NOT NULL REFERENCES tickets(id),
+                        engineer_id INTEGER NOT NULL REFERENCES users(id),
+                        requested_hours NUMERIC(6,1) NOT NULL,
+                        reason TEXT NOT NULL DEFAULT '',
+                        status TEXT NOT NULL DEFAULT 'Pending'
+                            CHECK(status IN ('Pending', 'Approved', 'Rejected')),
+                        admin_note TEXT NOT NULL DEFAULT '',
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        resolved_at TIMESTAMP
+                    );
+                """)
                 conn.commit()
                 conn.close()
         except Exception as e:

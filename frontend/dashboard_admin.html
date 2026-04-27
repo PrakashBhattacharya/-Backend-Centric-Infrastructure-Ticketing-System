@@ -340,7 +340,37 @@
             <div id="tools" class="dashboard-view">
                 <div class="view-header">
                     <h2>Admin Tools &amp; Ticket Management</h2>
-                    <p>Assign tickets, manage escalations, and export reports.</p>
+                    <p>Assign tickets, manage escalations, and review SLA extension requests.</p>
+                </div>
+
+                <!-- SLA Extension Requests Panel -->
+                <div class="content-grid-ecosystem" style="margin-bottom:0;">
+                    <div class="span-full">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-clock" style="color:#6366f1;"></i> SLA Extension Requests</h3>
+                                <span id="sla-ext-pending-badge" style="display:none; background:rgba(99,102,241,0.15); color:#a5b4fc; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid rgba(99,102,241,0.3);"></span>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="professional-table">
+                                    <thead>
+                                        <tr>
+                                            <th>TICKET</th>
+                                            <th>ENGINEER</th>
+                                            <th>REQUESTED</th>
+                                            <th>REASON</th>
+                                            <th>CURRENT DEADLINE</th>
+                                            <th>STATUS</th>
+                                            <th>ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sla-ext-requests-body">
+                                        <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-secondary);">No SLA extension requests.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- All Tickets Management Table -->
@@ -566,6 +596,33 @@
             </div>
             <div class="modal-footer">
                 <button class="secondary-btn" onclick="closeModal('ticket-detail-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLA Extension Review Modal -->
+    <div id="sla-ext-review-modal" class="modal">
+        <div class="modal-content" style="max-width:480px;">
+            <div class="modal-header">
+                <h3 id="sla-ext-review-title">Review SLA Extension</h3>
+                <button class="close-btn" onclick="closeModal('sla-ext-review-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="sla-ext-review-info" style="margin-bottom:16px; padding:14px; background:rgba(99,102,241,0.06); border:1px solid rgba(99,102,241,0.2); border-radius:8px; font-size:13px; line-height:1.7;"></div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:8px; font-size:13px; font-weight:600; color:var(--text-secondary);">Admin Note (optional)</label>
+                    <textarea id="sla-ext-admin-note" rows="3" placeholder="Add a note for the engineer..."
+                        style="width:100%; background:var(--card-bg); border:1px solid var(--border-color); border-radius:8px; padding:10px 14px; color:var(--text-primary); font-size:13px; resize:vertical;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; gap:10px;">
+                <button class="secondary-btn" onclick="closeModal('sla-ext-review-modal')" style="flex:1;">Cancel</button>
+                <button class="primary-btn" id="sla-ext-reject-btn" style="flex:1; background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="window.handleSlaExtDecision('reject')">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+                <button class="primary-btn" id="sla-ext-approve-btn" style="flex:1; background:linear-gradient(135deg,#10b981,#059669);" onclick="window.handleSlaExtDecision('approve')">
+                    <i class="fas fa-check"></i> Approve
+                </button>
             </div>
         </div>
     </div>
