@@ -1777,7 +1777,9 @@ select option {
 .pd-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: transparent;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     z-index: 499;
     animation: pdBackdropIn 0.2s ease-out;
 }
