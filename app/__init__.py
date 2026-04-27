@@ -64,7 +64,8 @@ def create_app(config_class=Config):
                 """)
                 # Add rejection_note column to tickets if missing
                 cursor.execute("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS rejection_note TEXT NOT NULL DEFAULT '';")
-                conn.commit()                conn.close()
+                conn.commit()
+                conn.close()
         except Exception as e:
             print(f"[STARTUP MIGRATION] {e}")
     # Register Blueprints
