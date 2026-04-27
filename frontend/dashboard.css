@@ -1755,32 +1755,29 @@ select option {
     display: none;
     position: fixed;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.96);
-    width: 60vw;
-    max-width: 680px;
-    min-width: 320px;
-    max-height: 88vh;
+    left: calc(var(--sidebar-width) + (100vw - var(--sidebar-width)) / 2);
+    transform: translate(-50%, -50%);
+    width: min(580px, calc(100vw - var(--sidebar-width) - 48px));
+    max-height: 85vh;
     overflow-y: auto;
     background: #0d1526;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 20px;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
     z-index: 500;
     animation: profileFadeIn 0.2s ease-out forwards;
 }
 [data-theme="light"] .profile-dropdown {
     background: #ffffff;
     border-color: #e2e8f0;
-    box-shadow: 0 24px 80px rgba(15,23,42,0.2), 0 0 0 1px rgba(148,163,184,0.1);
+    box-shadow: 0 32px 80px rgba(15,23,42,0.2), 0 0 0 1px rgba(148,163,184,0.1);
 }
 
 /* Backdrop — injected by JS as a sibling element */
 .pd-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(3px);
+    background: rgba(0, 0, 0, 0.6);
     z-index: 499;
     animation: pdBackdropIn 0.2s ease-out;
 }
@@ -1791,7 +1788,7 @@ select option {
 }
 
 @keyframes profileFadeIn {
-    from { opacity: 0; transform: translate(-50%, -50%) scale(0.94); }
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
     to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 .profile-dropdown.open { display: block; }
@@ -1868,22 +1865,19 @@ select option {
 }
 [data-theme="light"] .pd-section-label { color: #94a3b8; }
 
-/* Rows — two columns */
+/* Rows — single column, clean and spacious */
 .pd-rows {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 16px;
     padding: 4px 28px 12px;
 }
 .pd-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 9px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     font-size: 13px;
 }
-[data-theme="light"] .pd-row { border-bottom-color: #f8fafc; }
+[data-theme="light"] .pd-row { border-bottom-color: #f1f5f9; }
 .pd-row:last-child { border-bottom: none; }
 .pd-row-label {
     color: #64748b;
