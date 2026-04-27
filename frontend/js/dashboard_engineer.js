@@ -205,6 +205,7 @@ function populateQueue(tickets) {
         const slaBreached = t.sla_breached === true || now > slaDeadline;
         const slaText = slaBreached ? 'BREACHED' : 'On Track';
         const slaClass = slaBreached ? 'critical' : 'resolved';
+        const rejectionNote = t.rejection_note && t.rejection_note.trim();
 
         return `
             <tr style="cursor:pointer;" onclick="openTicketDetail(${t.id})">
@@ -213,6 +214,11 @@ function populateQueue(tickets) {
                     <div class="incident-cell">
                         <span class="inc-title">${t.subject}</span>
                         <span class="inc-subtext">${t.service_area} | ${t.creator_name || 'Unknown'}</span>
+                        ${rejectionNote ? `
+                            <div style="margin-top:6px; padding:6px 10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); border-radius:6px; font-size:11px; color:#f87171; line-height:1.5;">
+                                <i class="fas fa-times-circle" style="margin-right:5px;"></i><strong>Rejected:</strong> ${rejectionNote}
+                            </div>
+                        ` : ''}
                     </div>
                 </td>
                 <td><span class="priority ${priorityClass}">${t.priority}</span></td>

@@ -198,7 +198,7 @@ def update_ticket_status(ticket_id, new_status, user_id):
     # When engineer submits for approval, record resolved_at so SLA timer is anchored
     if new_status == 'Pending Approval':
         execute_query(
-            "UPDATE tickets SET status = %s, resolved_at = %s, updated_at = %s WHERE id = %s",
+            "UPDATE tickets SET status = %s, resolved_at = %s, rejection_note = '', updated_at = %s WHERE id = %s",
             (new_status, now, now, ticket_id), commit=True
         )
     else:
@@ -245,8 +245,8 @@ def reject_ticket(ticket_id, admin_id, reason=''):
         return False
     now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     execute_query(
-        "UPDATE tickets SET status = 'In Progress', updated_at = %s WHERE id = %s",
-        (now, ticket_id), commit=True
+        "UPDATE tickets SET status = 'In Progress', rejection_note = %s, updated_at = %s WHERE id = %s",
+        (reason or '', now, ticket_id), commit=True
     )
     detail = f'Ticket #{ticket_id} resolution rejected — sent back to engineer.'
     if reason:

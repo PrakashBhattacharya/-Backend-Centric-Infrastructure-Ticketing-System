@@ -62,8 +62,9 @@ def create_app(config_class=Config):
                         resolved_at TIMESTAMP
                     );
                 """)
-                conn.commit()
-                conn.close()
+                # Add rejection_note column to tickets if missing
+                cursor.execute("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS rejection_note TEXT NOT NULL DEFAULT '';")
+                conn.commit()                conn.close()
         except Exception as e:
             print(f"[STARTUP MIGRATION] {e}")
     # Register Blueprints
