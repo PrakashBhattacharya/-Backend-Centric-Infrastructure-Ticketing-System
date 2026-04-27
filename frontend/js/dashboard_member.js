@@ -544,6 +544,7 @@ function _closePd() {
     const backdrop = document.getElementById('pd-backdrop');
     if (dropdown) dropdown.classList.remove('open');
     if (backdrop) backdrop.remove();
+    document.body.classList.remove('pd-open');
 }
 
 function toggleProfileDropdown() {
@@ -564,6 +565,7 @@ function toggleProfileDropdown() {
         backdrop.addEventListener('click', _closePd);
         document.body.appendChild(backdrop);
     }
+    document.body.classList.add('pd-open');
 
     // Populate from localStorage immediately
     const name  = localStorage.getItem('user_name')  || '—';
