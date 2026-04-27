@@ -534,6 +534,11 @@ window.onclick = function (event) {
 }
 
 // ─── Profile Dropdown ────────────────────────────────────────────────────────
+function logout() {
+    localStorage.clear();
+    window.location.href = 'login.html';
+}
+
 function toggleProfileDropdown() {
     const dropdown = document.getElementById('profile-dropdown');
     if (!dropdown) return;
@@ -618,9 +623,14 @@ function toggleProfileDropdown() {
 }
 
 document.addEventListener('click', function(e) {
-    const trigger  = document.getElementById('profile-trigger');
     const dropdown = document.getElementById('profile-dropdown');
-    if (dropdown && trigger && !trigger.contains(e.target)) {
+    if (!dropdown || !dropdown.classList.contains('open')) return;
+    // Close if clicking the backdrop (the ::before pseudo-element area)
+    // i.e. clicking outside the dropdown card itself
+    const rect = dropdown.getBoundingClientRect();
+    const inside = e.clientX >= rect.left && e.clientX <= rect.right &&
+                   e.clientY >= rect.top  && e.clientY <= rect.bottom;
+    if (!inside) {
         dropdown.classList.remove('open');
     }
 });

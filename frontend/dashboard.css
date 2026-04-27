@@ -1753,26 +1753,42 @@ select option {
 
 .profile-dropdown {
     display: none;
-    position: absolute;
-    bottom: calc(100% + 12px);
-    left: -8px;
-    width: 300px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    width: 60vw;
+    max-width: 680px;
+    min-width: 320px;
+    max-height: 88vh;
+    overflow-y: auto;
     background: #0d1526;
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px;
-    box-shadow: 0 -12px 40px rgba(0,0,0,0.6), 0 4px 20px rgba(0,0,0,0.3);
-    z-index: 200;
-    overflow: hidden;
-    animation: dropUp 0.18s ease-out;
+    border-radius: 20px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+    z-index: 500;
+    animation: profileFadeIn 0.2s ease-out forwards;
 }
 [data-theme="light"] .profile-dropdown {
     background: #ffffff;
     border-color: #e2e8f0;
-    box-shadow: 0 -12px 40px rgba(15,23,42,0.14), 0 4px 20px rgba(15,23,42,0.06);
+    box-shadow: 0 24px 80px rgba(15,23,42,0.2), 0 0 0 1px rgba(148,163,184,0.1);
 }
-@keyframes dropUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+
+/* Backdrop */
+.profile-dropdown::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(3px);
+    z-index: -1;
+    border-radius: 0;
+}
+
+@keyframes profileFadeIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.94); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 .profile-dropdown.open { display: block; }
 
@@ -1780,32 +1796,32 @@ select option {
 .pd-banner {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 20px 20px 16px;
-    background: linear-gradient(135deg, rgba(37,99,235,0.15) 0%, rgba(124,58,237,0.1) 100%);
+    gap: 20px;
+    padding: 28px 28px 22px;
+    background: linear-gradient(135deg, rgba(37,99,235,0.18) 0%, rgba(124,58,237,0.12) 100%);
     border-bottom: 1px solid rgba(255,255,255,0.07);
 }
 [data-theme="light"] .pd-banner {
-    background: linear-gradient(135deg, rgba(37,99,235,0.06) 0%, rgba(124,58,237,0.04) 100%);
+    background: linear-gradient(135deg, rgba(37,99,235,0.07) 0%, rgba(124,58,237,0.04) 100%);
     border-bottom-color: #f1f5f9;
 }
 .pd-banner-avatar {
-    width: 52px;
-    height: 52px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 22px;
+    font-size: 30px;
     color: #fff;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+    box-shadow: 0 6px 20px rgba(59,130,246,0.45);
 }
 .pd-banner-info { flex: 1; min-width: 0; }
 .pd-banner-name {
-    font-size: 15px;
+    font-size: 20px;
     font-weight: 700;
     color: #f1f5f9;
     white-space: nowrap;
@@ -1814,9 +1830,9 @@ select option {
 }
 [data-theme="light"] .pd-banner-name { color: #0f172a; }
 .pd-banner-email {
-    font-size: 11px;
+    font-size: 13px;
     color: #64748b;
-    margin-top: 2px;
+    margin-top: 3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1839,24 +1855,29 @@ select option {
 
 /* Section label */
 .pd-section-label {
-    padding: 10px 20px 4px;
+    padding: 14px 28px 6px;
     font-size: 10px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     color: #475569;
 }
 [data-theme="light"] .pd-section-label { color: #94a3b8; }
 
-/* Rows */
-.pd-rows { padding: 0 20px 8px; }
+/* Rows — two columns */
+.pd-rows {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 16px;
+    padding: 4px 28px 12px;
+}
 .pd-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 7px 0;
+    padding: 9px 0;
     border-bottom: 1px solid rgba(255,255,255,0.04);
-    font-size: 12px;
+    font-size: 13px;
 }
 [data-theme="light"] .pd-row { border-bottom-color: #f8fafc; }
 .pd-row:last-child { border-bottom: none; }
@@ -1864,15 +1885,15 @@ select option {
     color: #64748b;
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
 }
-.pd-row-label i { width: 12px; text-align: center; color: #475569; }
+.pd-row-label i { width: 13px; text-align: center; color: #475569; }
 .pd-row-val {
     font-weight: 600;
     color: #e2e8f0;
-    font-size: 12px;
+    font-size: 13px;
     text-align: right;
-    max-width: 160px;
+    max-width: 180px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1884,30 +1905,30 @@ select option {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1px;
-    margin: 0 20px 12px;
+    margin: 0 28px 16px;
     background: rgba(255,255,255,0.06);
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     border: 1px solid rgba(255,255,255,0.06);
 }
 [data-theme="light"] .pd-stat-grid { background: #f1f5f9; border-color: #e2e8f0; }
-.pd-stat { background: rgba(255,255,255,0.03); padding: 12px 8px; text-align: center; }
+.pd-stat { background: rgba(255,255,255,0.03); padding: 16px 10px; text-align: center; }
 [data-theme="light"] .pd-stat { background: #ffffff; }
-.pd-stat-val { font-size: 20px; font-weight: 800; color: #f1f5f9; line-height: 1; }
+.pd-stat-val { font-size: 26px; font-weight: 800; color: #f1f5f9; line-height: 1; }
 [data-theme="light"] .pd-stat-val { color: #0f172a; }
-.pd-stat-label { font-size: 10px; color: #64748b; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.pd-stat-label { font-size: 11px; color: #64748b; margin-top: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
 
 /* Footer */
-.pd-footer { padding: 10px 20px 16px; border-top: 1px solid rgba(255,255,255,0.07); }
+.pd-footer { padding: 12px 28px 20px; border-top: 1px solid rgba(255,255,255,0.07); }
 [data-theme="light"] .pd-footer { border-top-color: #f1f5f9; }
 .pd-logout-btn {
     width: 100%;
-    padding: 10px 16px;
+    padding: 12px 16px;
     background: rgba(239,68,68,0.1);
     border: 1px solid rgba(239,68,68,0.2);
-    border-radius: 9px;
+    border-radius: 10px;
     color: #f87171;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     display: flex;
