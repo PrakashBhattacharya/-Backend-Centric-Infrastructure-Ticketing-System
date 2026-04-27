@@ -117,10 +117,15 @@ def assign(current_user, ticket_id):
     except (ValueError, TypeError):
         return jsonify({'message': 'Invalid Engineer ID format'}), 400
 
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket:
+        return jsonify({'message': 'Ticket not found'}), 404
+    if ticket['status'] in ('Resolved', 'Closed'):
+        return jsonify({'message': 'Cannot reassign a resolved or closed ticket.'}), 400
+
     success = assign_ticket(ticket_id, engineer_id, current_user['id'])
     if not success:
         return jsonify({'message': 'User not found or not an engineer'}), 404
-        
     return jsonify({'success': True})
 
 @tickets_bp.route('/<int:ticket_id>/comments', methods=['POST'])

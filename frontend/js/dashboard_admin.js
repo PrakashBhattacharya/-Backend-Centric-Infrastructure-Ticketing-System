@@ -438,6 +438,7 @@ function populateAllTicketsTable(tickets) {
         const statusClass = t.status === 'Resolved' ? 'resolved' : (t.status === 'In Progress' ? 'prog' : t.status === 'Pending Approval' ? 'pending' : 'open');
         const isAssigned = t.assigned_to !== null && t.assigned_to !== undefined;
         const isPending = t.status === 'Pending Approval';
+        const isActive = ['Open', 'In Progress', 'Pending Approval'].includes(t.status);
 
         return `
             <tr style="cursor:pointer;${isPending ? 'background:rgba(245,158,11,0.04);' : ''}" onclick="openTicketDetail(${t.id})">
@@ -456,12 +457,12 @@ function populateAllTicketsTable(tickets) {
                             <button class="primary-btn sm" style="background:#ef4444; padding:4px 10px; font-size:11px;" onclick="event.stopPropagation(); openRejectModal(${t.id})">
                                 <i class="fas fa-times"></i> Reject
                             </button>
-                        ` : `
+                        ` : isActive ? `
                             <button class="primary-btn sm assign-btn" data-id="${t.id}" style="padding:4px 12px; font-size:11px;"
                                 onclick="event.stopPropagation(); window.showAssignModal(${t.id})">
                                 ${isAssigned ? 'Reassign' : 'Assign'}
                             </button>
-                        `}
+                        ` : `<span style="font-size:11px; color:var(--text-secondary);">—</span>`}
                     </div>
                 </td>
             </tr>
