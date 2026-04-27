@@ -521,51 +521,84 @@ function logout() {
 function toggleProfileDropdown() {
     const dropdown = document.getElementById('profile-dropdown');
     if (!dropdown) return;
-    if (!dropdown.classList.contains('open')) {
-        const name  = localStorage.getItem('user_name')  || '—';
-        const email = localStorage.getItem('user_email') || '—';
-        const role  = localStorage.getItem('user_role')  || '—';
-        const ddName   = document.getElementById('dd-name');
-        const ddEmail  = document.getElementById('dd-email');
-        const ddRole   = document.getElementById('dd-role');
-        const ddAvatar = document.getElementById('dd-avatar');
-        const ddSince  = document.getElementById('dd-since');
-        const ddUserId = document.getElementById('dd-user-id');
-        const ddStat1  = document.getElementById('dd-stat-1');
-        const ddStat2  = document.getElementById('dd-stat-2');
-        const ddStat3  = document.getElementById('dd-stat-3');
-        const ddSession = document.getElementById('dd-session');
 
-        if (ddName)   ddName.textContent  = name;
-        if (ddEmail)  ddEmail.textContent = email;
-        if (ddRole)   ddRole.textContent  = "Support Engineer";
-        if (ddAvatar) ddAvatar.textContent = name.charAt(0).toUpperCase();
-
-        try {
-            const token = localStorage.getItem('auth_token');
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            
-            if (ddSince) {
-                ddSince.textContent = payload.iat
-                    ? new Date(payload.iat * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-                    : '—';
-            }
-            if (ddUserId) {
-                ddUserId.textContent = payload.sub ? `#ID-${payload.sub.toString().padStart(4, '0')}` : '—';
-            }
-        } catch { 
-            if (ddSince) ddSince.textContent = '—';
-            if (ddUserId) ddUserId.textContent = '—';
-        }
-
-        if (engineerStore) {
-            if (ddStat1) ddStat1.textContent = engineerStore.queue ? engineerStore.queue.length : '—';
-            if (ddStat2) ddStat2.textContent = engineerStore.resolved ? engineerStore.resolved.length : '—';
-            if (ddStat3) ddStat3.textContent = document.querySelectorAll('.kpi-value')[3] ? document.querySelectorAll('.kpi-value')[3].textContent : '—';
-            if (ddSession) ddSession.textContent = "Active";
-        }
+    if (dropdown.classList.contains('open')) {
+        dropdown.classList.remove('open');
+        return;
     }
-    dropdown.classList.toggle('open');
+
+    // Populate from localStorage immediately
+    const name  = localStorage.getItem('user_name')  || '—';
+    const email = localStorage.getItem('user_email') || '—';
+    const role  = localStorage.getItem('user_role')  || '—';
+    const uid   = localStorage.getItem('user_id')    || '—';
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+    set('dd-name',   name);
+    set('dd-email',  email);
+    set('dd-email2', email);
+    set('dd-uid',    uid ? '#' + String(uid).padStart(4, '0') : '—');
+
+    // Decode JWT for session expiry
+    try {
+        const token = localStorage.getItem('auth_token');
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp) {
+            const exp = new Date(payload.exp * 1000);
+            const now = new Date();
+            const diffMs = exp - now;
+            if (diffMs > 0) {
+                const h = Math.floor(diffMs / 3600000);
+                const m = Math.floor((diffMs % 3600000) / 60000);
+                set('dd-session', h > 0 ? h + 'h ' + m + 'm' : m + 'm');
+            } else {
+                set('dd-session', 'Expired');
+            }
+        }
+    } catch(e) { set('dd-session', '—'); }
+
+    dropdown.classList.add('open');
+
+    // Fetch live stats from /api/me
+    const token = localStorage.getItem('auth_token');
+    fetch(window.API_BASE + '/api/me', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) return;
+        const u = data.user;
+
+        set('dd-name',   u.full_name || name);
+        set('dd-email',  u.email || email);
+        set('dd-email2', u.email || email);
+
+        // Joined date
+        if (u.created_at) {
+            try {
+                const d = new Date(u.created_at.replace(' ', 'T') + 'Z');
+                set('dd-since', d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }));
+            } catch(e) { set('dd-since', u.created_at); }
+        }
+
+        // Stats
+        const s = u.stats || {};
+        if (u.role === 'member') {
+            set('dd-s1', s.total_tickets   ?? '—');
+            set('dd-s2', s.open_tickets    ?? '—');
+            set('dd-s3', s.resolved_tickets ?? '—');
+        } else if (u.role === 'engineer') {
+            set('dd-s1', s.assigned_tickets  ?? '—');
+            set('dd-s2', s.resolved_tickets  ?? '—');
+            set('dd-s3', s.avg_mttr          ?? '—');
+        } else {
+            set('dd-s1', s.total_tickets ?? '—');
+            set('dd-s2', s.engineers     ?? '—');
+            set('dd-s3', s.members       ?? '—');
+        }
+    })
+    .catch(() => {});
 }
 
 document.addEventListener('click', function(e) {
@@ -575,42 +608,3 @@ document.addEventListener('click', function(e) {
         dropdown.classList.remove('open');
     }
 });
-
-// ─── SLA Extension Modal ─────────────────────────────────────────────────────
-let _slaExtTicketId = null;
-
-window.openSlaExtModal = function(ticketId) {
-    _slaExtTicketId = ticketId;
-    document.getElementById('sla-ext-ticket-id').textContent = `#INC-${ticketId}`;
-    document.getElementById('sla-ext-hours').value = '';
-    document.getElementById('sla-ext-reason').value = '';
-    document.getElementById('sla-ext-error').textContent = '';
-    openModal('sla-ext-modal');
-};
-
-window.submitSlaExtension = async function() {
-    const hours = parseFloat(document.getElementById('sla-ext-hours').value);
-    const reason = document.getElementById('sla-ext-reason').value.trim();
-    const errEl = document.getElementById('sla-ext-error');
-
-    if (!hours || hours <= 0) { errEl.textContent = 'Enter a valid number of hours.'; return; }
-    if (!reason) { errEl.textContent = 'Please provide a reason.'; return; }
-    errEl.textContent = '';
-
-    try {
-        const res = await fetch(`${API_BASE}/api/tickets/${_slaExtTicketId}/sla-extension`, {
-            method: 'POST',
-            headers: authHeaders(),
-            body: JSON.stringify({ requested_hours: hours, reason })
-        });
-        const data = await res.json();
-        if (data.success) {
-            closeModal('sla-ext-modal');
-            alert(`✅ SLA extension request submitted for #INC-${_slaExtTicketId}.\nRequested: +${hours}h\nAwaiting admin approval.`);
-        } else {
-            errEl.textContent = data.message || 'Request failed.';
-        }
-    } catch (err) {
-        errEl.textContent = 'Network error. Please try again.';
-    }
-};

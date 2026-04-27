@@ -752,40 +752,84 @@ function logout() {
 function toggleProfileDropdown() {
     const dropdown = document.getElementById('profile-dropdown');
     if (!dropdown) return;
-    if (!dropdown.classList.contains('open')) {
-        const name  = localStorage.getItem('user_name')  || '—';
-        const email = localStorage.getItem('user_email') || '—';
-        const role  = localStorage.getItem('user_role')  || '—';
-        const ddName   = document.getElementById('dd-name');
-        const ddEmail  = document.getElementById('dd-email');
-        const ddRole   = document.getElementById('dd-role');
-        const ddAvatar = document.getElementById('dd-avatar');
-        const ddSince  = document.getElementById('dd-since');
-        const ddUserId = document.getElementById('dd-user-id');
-        
-        if (ddName)   ddName.textContent  = name;
-        if (ddEmail)  ddEmail.textContent = email;
-        if (ddRole)   ddRole.textContent  = role.charAt(0).toUpperCase() + role.slice(1);
-        if (ddAvatar) ddAvatar.textContent = name.charAt(0).toUpperCase();
-        
-        try {
-            const token = localStorage.getItem('auth_token');
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            
-            if (ddSince) {
-                ddSince.textContent = payload.iat
-                    ? new Date(payload.iat * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-                    : '—';
-            }
-            if (ddUserId) {
-                ddUserId.textContent = payload.sub ? `#ID-${payload.sub.toString().padStart(4, '0')}` : '—';
-            }
-        } catch { 
-            if (ddSince) ddSince.textContent = '—';
-            if (ddUserId) ddUserId.textContent = '—';
-        }
+
+    if (dropdown.classList.contains('open')) {
+        dropdown.classList.remove('open');
+        return;
     }
-    dropdown.classList.toggle('open');
+
+    // Populate from localStorage immediately
+    const name  = localStorage.getItem('user_name')  || '—';
+    const email = localStorage.getItem('user_email') || '—';
+    const role  = localStorage.getItem('user_role')  || '—';
+    const uid   = localStorage.getItem('user_id')    || '—';
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+    set('dd-name',   name);
+    set('dd-email',  email);
+    set('dd-email2', email);
+    set('dd-uid',    uid ? '#' + String(uid).padStart(4, '0') : '—');
+
+    // Decode JWT for session expiry
+    try {
+        const token = localStorage.getItem('auth_token');
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp) {
+            const exp = new Date(payload.exp * 1000);
+            const now = new Date();
+            const diffMs = exp - now;
+            if (diffMs > 0) {
+                const h = Math.floor(diffMs / 3600000);
+                const m = Math.floor((diffMs % 3600000) / 60000);
+                set('dd-session', h > 0 ? h + 'h ' + m + 'm' : m + 'm');
+            } else {
+                set('dd-session', 'Expired');
+            }
+        }
+    } catch(e) { set('dd-session', '—'); }
+
+    dropdown.classList.add('open');
+
+    // Fetch live stats from /api/me
+    const token = localStorage.getItem('auth_token');
+    fetch(window.API_BASE + '/api/me', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) return;
+        const u = data.user;
+
+        set('dd-name',   u.full_name || name);
+        set('dd-email',  u.email || email);
+        set('dd-email2', u.email || email);
+
+        // Joined date
+        if (u.created_at) {
+            try {
+                const d = new Date(u.created_at.replace(' ', 'T') + 'Z');
+                set('dd-since', d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }));
+            } catch(e) { set('dd-since', u.created_at); }
+        }
+
+        // Stats
+        const s = u.stats || {};
+        if (u.role === 'member') {
+            set('dd-s1', s.total_tickets   ?? '—');
+            set('dd-s2', s.open_tickets    ?? '—');
+            set('dd-s3', s.resolved_tickets ?? '—');
+        } else if (u.role === 'engineer') {
+            set('dd-s1', s.assigned_tickets  ?? '—');
+            set('dd-s2', s.resolved_tickets  ?? '—');
+            set('dd-s3', s.avg_mttr          ?? '—');
+        } else {
+            set('dd-s1', s.total_tickets ?? '—');
+            set('dd-s2', s.engineers     ?? '—');
+            set('dd-s3', s.members       ?? '—');
+        }
+    })
+    .catch(() => {});
 }
 
 document.addEventListener('click', function(e) {
