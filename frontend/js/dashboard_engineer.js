@@ -517,6 +517,49 @@ window.logout = function() {
     window.location.href = 'login.html';
 };
 
+// ─── SLA Extension Modal ──────────────────────────────────────────────────────
+let _slaExtTicketId = null;
+
+window.openSlaExtModal = function(ticketId) {
+    _slaExtTicketId = ticketId;
+    const idEl = document.getElementById('sla-ext-ticket-id');
+    if (idEl) idEl.textContent = `#INC-${ticketId}`;
+    const hoursEl = document.getElementById('sla-ext-hours');
+    const reasonEl = document.getElementById('sla-ext-reason');
+    const errEl = document.getElementById('sla-ext-error');
+    if (hoursEl) hoursEl.value = '';
+    if (reasonEl) reasonEl.value = '';
+    if (errEl) errEl.textContent = '';
+    openModal('sla-ext-modal');
+};
+
+window.submitSlaExtension = async function() {
+    const hours = parseFloat(document.getElementById('sla-ext-hours').value);
+    const reason = document.getElementById('sla-ext-reason').value.trim();
+    const errEl = document.getElementById('sla-ext-error');
+
+    if (!hours || hours <= 0) { errEl.textContent = 'Enter a valid number of hours.'; return; }
+    if (!reason) { errEl.textContent = 'Please provide a reason.'; return; }
+    errEl.textContent = '';
+
+    try {
+        const res = await fetch(`${API_BASE}/api/tickets/${_slaExtTicketId}/sla-extension`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ requested_hours: hours, reason })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('sla-ext-modal');
+            alert(`SLA extension request submitted for #INC-${_slaExtTicketId}.\nRequested: +${hours}h\nAwaiting admin approval.`);
+        } else {
+            errEl.textContent = data.message || 'Request failed.';
+        }
+    } catch (err) {
+        errEl.textContent = 'Network error. Please try again.';
+    }
+};
+
 // ─── Profile Dropdown ────────────────────────────────────────────────────────
 function _closePd() {
     const dropdown = document.getElementById('profile-dropdown');
