@@ -670,33 +670,25 @@
 }
 
 /* ─── Mobile / Responsive ────────────────────────────────────────────────── */
+
+/* Sidebar hidden state — works on ALL screen sizes */
+.chat-sidebar.hidden {
+    display: none !important;
+}
+
+/* When sidebar is hidden, main takes full width */
+.chat-sidebar.hidden ~ .chat-main {
+    width: 100%;
+}
+
 @media (max-width: 700px) {
     .chat-sidebar {
         width: 100%;
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 10;
-        transition: transform 0.25s ease;
-    }
-
-    .chat-sidebar.hidden {
-        transform: translateX(-100%);
-        pointer-events: none;
-    }
-
-    .chat-main {
-        width: 100%;
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 5;
-    }
-
-    /* Show a back-to-list button inside the chat header on mobile */
-    .chat-mobile-back {
-        display: flex !important;
+        min-width: unset;
     }
 }
 
-@media (min-width: 701px) {
-    .chat-mobile-back { display: none !important; }
+/* Back button always visible when chat is open */
+.chat-mobile-back {
+    display: flex !important;
 }

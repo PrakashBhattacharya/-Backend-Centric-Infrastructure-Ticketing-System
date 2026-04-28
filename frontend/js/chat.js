@@ -210,19 +210,31 @@ async function openPrivateChat(userId, userName, userRole) {
     activeChat = { type:'private', id:userId, name:userName };
     lastMsgTime = null;
 
-    show('chat-window'); hide('chat-empty');
+    const debugStatus = document.getElementById('debug-status');
+    if (debugStatus) { debugStatus.textContent = 'Opening chat with ' + userName; debugStatus.style.color = '#f59e0b'; }
+
+    const chatEmpty  = document.getElementById('chat-empty');
+    const chatWindow = document.getElementById('chat-window');
+
+    if (chatEmpty)  chatEmpty.style.display  = 'none';
+    if (chatWindow) chatWindow.style.display = 'flex';
+
     setText('chat-name', userName);
     setText('chat-sub', cap(userRole));
     setHtml('chat-avatar', userName[0].toUpperCase());
     setClass('chat-avatar', 'chat-header-avatar');
     const ib = document.getElementById('chat-info-btn'); if (ib) ib.onclick = null;
     setHtml('chat-messages', '');
-    // Hide sidebar on mobile
+
+    // On any screen size: hide sidebar, show chat
     const sidebar = document.querySelector('.chat-sidebar');
-    if (sidebar && window.innerWidth <= 700) sidebar.classList.add('hidden');
+    if (sidebar) sidebar.classList.add('hidden');
+
     markActive();
     await fetchMsgs();
     startPoll();
+
+    if (debugStatus) { debugStatus.textContent = '✓ Chat open: ' + userName; debugStatus.style.color = '#10b981'; }
 }
 
 async function openGroupChat(groupId, groupName, memberCount) {
@@ -230,19 +242,31 @@ async function openGroupChat(groupId, groupName, memberCount) {
     activeChat = { type:'group', id:groupId, name:groupName };
     lastMsgTime = null;
 
-    show('chat-window'); hide('chat-empty');
-    setText('chat-name', groupName);
-    setText('chat-sub', memberCount + ' members');
+    const debugStatus = document.getElementById('debug-status');
+    if (debugStatus) { debugStatus.textContent = 'Opening group: ' + groupName; debugStatus.style.color = '#f59e0b'; }
+
+    const chatEmpty  = document.getElementById('chat-empty');
+    const chatWindow = document.getElementById('chat-window');
+
+    if (chatEmpty)  chatEmpty.style.display  = 'none';
+    if (chatWindow) chatWindow.style.display = 'flex';
+
     setHtml('chat-avatar', '<i class="fas fa-users" style="font-size:16px;"></i>');
     setClass('chat-avatar', 'chat-header-avatar group');
+    setText('chat-name', groupName);
+    setText('chat-sub', memberCount + ' members');
     const ib = document.getElementById('chat-info-btn'); if (ib) ib.onclick = () => showGroupInfo(groupId);
     setHtml('chat-messages', '');
-    // Hide sidebar on mobile
+
+    // On any screen size: hide sidebar, show chat
     const sidebar = document.querySelector('.chat-sidebar');
-    if (sidebar && window.innerWidth <= 700) sidebar.classList.add('hidden');
+    if (sidebar) sidebar.classList.add('hidden');
+
     markActive();
     await fetchMsgs();
     startPoll();
+
+    if (debugStatus) { debugStatus.textContent = '✓ Group open: ' + groupName; debugStatus.style.color = '#10b981'; }
 }
 
 function closeChatMobile() {
@@ -250,8 +274,10 @@ function closeChatMobile() {
     if (sidebar) sidebar.classList.remove('hidden');
     stopPoll();
     activeChat = null;
-    hide('chat-window');
-    show('chat-empty');
+    const chatWindow = document.getElementById('chat-window');
+    const chatEmpty  = document.getElementById('chat-empty');
+    if (chatWindow) chatWindow.style.display = 'none';
+    if (chatEmpty)  chatEmpty.style.display  = 'flex';
 }
 
 function markActive() {
