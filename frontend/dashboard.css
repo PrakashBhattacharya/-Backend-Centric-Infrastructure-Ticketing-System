@@ -29,7 +29,7 @@
 */
 
 [data-theme="light"] {
-    --bg-primary: #f5f7fa;
+    --bg-primary: #eef6ff;
     --bg-secondary: #ffffff;
     --accent-blue: #2563eb;
     --accent-purple: #7c3aed;
@@ -43,7 +43,7 @@
 
 /* Page background — clean gradient wash */
 [data-theme="light"] body {
-    background: #f5f7fa;
+    background: #eef6ff;
     background-image:
         radial-gradient(ellipse 70% 50% at 90% 10%, rgba(37, 99, 235, 0.06), transparent 60%),
         radial-gradient(ellipse 60% 40% at 10% 90%, rgba(124, 58, 237, 0.04), transparent 60%);
