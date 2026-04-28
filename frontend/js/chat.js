@@ -84,26 +84,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadAll() {
-    await loadUsers();
-    await Promise.all([loadInbox(), loadGroups()]);
+    try {
+        await loadUsers();
+        await Promise.all([loadInbox(), loadGroups()]);
+    } catch(e) {
+        console.error('loadAll failed:', e);
+    }
 }
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 async function loadUsers() {
     try {
         const r = await api('/api/chat/users');
+        if (!r.ok) { console.error('loadUsers HTTP', r.status); return; }
         const d = await r.json();
         if (d.success) allUsers = d.users || [];
-    } catch(e) { console.error(e); }
+        else console.error('loadUsers error:', d.message);
+    } catch(e) { console.error('loadUsers:', e); }
 }
 
 // ─── Inbox ────────────────────────────────────────────────────────────────────
 async function loadInbox() {
     try {
         const r = await api('/api/chat/inbox');
+        if (!r.ok) { console.error('loadInbox HTTP', r.status); return; }
         const d = await r.json();
         renderInbox(d.conversations || []);
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('loadInbox:', e); }
 }
 
 function renderInbox(convs) {
@@ -130,9 +137,10 @@ function renderInbox(convs) {
 async function loadGroups() {
     try {
         const r = await api('/api/chat/groups');
+        if (!r.ok) { console.error('loadGroups HTTP', r.status); return; }
         const d = await r.json();
         renderGroups(d.groups || []);
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('loadGroups:', e); }
 }
 
 function renderGroups(groups) {
@@ -207,12 +215,16 @@ async function fetchMsgs() {
             : '/api/chat/groups/' + activeChat.id + '/messages';
         if (lastMsgTime) url += '?since=' + encodeURIComponent(lastMsgTime);
         const r = await api(url);
+        if (!r.ok) { console.error('fetchMsgs HTTP', r.status); return; }
         const d = await r.json();
         if (d.success && d.messages && d.messages.length) {
             appendMsgs(d.messages);
             lastMsgTime = d.messages[d.messages.length-1].created_at;
+        } else if (d.success && !lastMsgTime) {
+            // Initial load returned no messages — set a sentinel so polls use since=
+            lastMsgTime = new Date().toISOString().replace('T', ' ').substring(0, 19);
         }
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('fetchMsgs:', e); }
 }
 
 function appendMsgs(msgs) {
@@ -247,14 +259,19 @@ async function sendMessage() {
             ? '/api/chat/private/' + activeChat.id
             : '/api/chat/groups/' + activeChat.id + '/messages';
         const r = await api(url, { method:'POST', body: JSON.stringify({text}) });
+        if (!r.ok) { console.error('sendMessage HTTP', r.status); return; }
         const d = await r.json();
-        if (d.success) {
+        if (d.success && d.message) {
+            // Append immediately with the server timestamp, then update lastMsgTime
+            // so the next poll only fetches messages AFTER this one
             d.message.sender_name = MY_NAME;
+            d.message.sender_role = MY_ROLE;
             appendMsgs([d.message]);
             lastMsgTime = d.message.created_at;
-            loadInbox(); loadGroups();
+            loadInbox();
+            loadGroups();
         }
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('sendMessage:', e); }
 }
 
 // ─── Poll ─────────────────────────────────────────────────────────────────────

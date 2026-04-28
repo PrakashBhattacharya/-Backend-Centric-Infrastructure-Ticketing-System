@@ -121,17 +121,19 @@ def list_groups(current_user):
     uid = current_user['id']
     groups = execute_query(
         """
-        SELECT * FROM (
-            SELECT g.*, u.full_name as creator_name,
-                   (SELECT COUNT(*) FROM chat_group_members WHERE group_id = g.id) as member_count,
-                   (SELECT text FROM chat_messages WHERE group_id = g.id ORDER BY created_at DESC LIMIT 1) as last_message,
-                   (SELECT created_at FROM chat_messages WHERE group_id = g.id ORDER BY created_at DESC LIMIT 1) as last_at
-            FROM chat_groups g
-            JOIN users u ON g.created_by = u.id
-            JOIN chat_group_members gm ON gm.group_id = g.id
-            WHERE gm.user_id = %s
-        ) sub
-        ORDER BY COALESCE(last_at, created_at) DESC
+        SELECT g.id, g.name, g.description, g.created_by, g.created_at,
+               u.full_name as creator_name,
+               (SELECT COUNT(*) FROM chat_group_members WHERE group_id = g.id) as member_count,
+               (SELECT text FROM chat_messages WHERE group_id = g.id ORDER BY created_at DESC LIMIT 1) as last_message,
+               (SELECT created_at FROM chat_messages WHERE group_id = g.id ORDER BY created_at DESC LIMIT 1) as last_at
+        FROM chat_groups g
+        JOIN users u ON g.created_by = u.id
+        JOIN chat_group_members gm ON gm.group_id = g.id
+        WHERE gm.user_id = %s
+        ORDER BY COALESCE(
+            (SELECT created_at FROM chat_messages WHERE group_id = g.id ORDER BY created_at DESC LIMIT 1),
+            g.created_at
+        ) DESC
         """,
         (uid,)
     ) or []
