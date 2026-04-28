@@ -60,8 +60,8 @@ function closeModal(modalId) {
 }
 
 // Close modal when clicking outside
-window.onclick = function (event) {
+document.addEventListener('click', function (event) {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
     }
-}
+})

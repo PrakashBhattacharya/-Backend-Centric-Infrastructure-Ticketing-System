@@ -31,6 +31,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
     setupInput();
     setupModals();
+
+    // Patch the nav item for chat to also call initChat
+    // This runs after dashboard.js has already set up nav listeners
+    const chatNavItem = document.querySelector('.nav-item[data-view="chat"]');
+    if (chatNavItem) {
+        chatNavItem.addEventListener('click', () => {
+            // Small delay to let dashboard.js show the view first
+            setTimeout(initChat, 50);
+        });
+    }
 });
 
 // ─── Called every time the chat view becomes visible ─────────────────────────
@@ -41,17 +51,9 @@ async function initChat() {
     chatInitialized = true;
 }
 
-// Listen for dashboard view changes (dispatched by dashboard.js)
+// Also listen for dashboardViewChanged as a fallback
 window.addEventListener('dashboardViewChanged', async (e) => {
     if (e.detail && e.detail.viewId === 'chat') {
-        await initChat();
-    }
-});
-
-// Also handle direct page load if chat is the active view
-document.addEventListener('DOMContentLoaded', async () => {
-    const chatView = $id('chat');
-    if (chatView && chatView.classList.contains('active')) {
         await initChat();
     }
 });
@@ -552,9 +554,6 @@ async function confirmDissolveGroup() {
 // ─── Modal helpers ────────────────────────────────────────────────────────────
 function openModal(id)  { const el = $id(id); if (el) el.style.display = 'flex'; }
 function closeModal(id) { const el = $id(id); if (el) el.style.display = 'none'; }
-window.addEventListener('click', e => {
-    if (e.target.classList && e.target.classList.contains('modal')) e.target.style.display = 'none';
-});
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 function esc(str) {
