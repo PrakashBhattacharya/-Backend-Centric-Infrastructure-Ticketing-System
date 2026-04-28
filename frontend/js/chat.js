@@ -22,6 +22,7 @@ let selectedGroupMembers = new Set();
 let managingGroupId      = null;
 let manageSelectedMembers = new Set();
 let dissolveGroupId      = null;
+let renderedMsgIds       = new Set();
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -209,6 +210,7 @@ async function openPrivateChat(userId, userName, userRole) {
     stopPoll();
     activeChat = { type:'private', id:userId, name:userName };
     lastMsgTime = null;
+    renderedMsgIds.clear();
 
     const debugStatus = document.getElementById('debug-status');
     if (debugStatus) { debugStatus.textContent = 'Opening chat with ' + userName; debugStatus.style.color = '#f59e0b'; }
@@ -241,6 +243,7 @@ async function openGroupChat(groupId, groupName, memberCount) {
     stopPoll();
     activeChat = { type:'group', id:groupId, name:groupName };
     lastMsgTime = null;
+    renderedMsgIds.clear();
 
     const debugStatus = document.getElementById('debug-status');
     if (debugStatus) { debugStatus.textContent = 'Opening group: ' + groupName; debugStatus.style.color = '#f59e0b'; }
@@ -313,6 +316,9 @@ function appendMsgs(msgs) {
     if (!box) return;
     const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
     msgs.forEach(msg => {
+        if (!msg || !msg.id || renderedMsgIds.has(msg.id)) return;
+        renderedMsgIds.add(msg.id);
+        
         const mine = msg.sender_id === MY_ID;
         const div = document.createElement('div');
         div.className = 'chat-msg ' + (mine ? 'mine' : 'other');
