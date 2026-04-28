@@ -24,22 +24,22 @@ function $id(id) { return document.getElementById(id); }
 document.addEventListener('DOMContentLoaded', () => {
     // Show admin group button
     const groupBtn = $id('new-group-btn');
-    if (groupBtn) {
-        groupBtn.style.display = MY_ROLE === 'admin' ? 'flex' : 'none';
-    }
+    if (groupBtn) groupBtn.style.display = MY_ROLE === 'admin' ? 'flex' : 'none';
 
     setupTabs();
     setupInput();
     setupModals();
 
-    // Patch the nav item for chat to also call initChat
-    // This runs after dashboard.js has already set up nav listeners
-    const chatNavItem = document.querySelector('.nav-item[data-view="chat"]');
+    // Attach to the Chat nav item directly — works regardless of which dashboard JS is loaded
+    const chatNavItem = document.querySelector('a.nav-item[data-view="chat"]');
     if (chatNavItem) {
-        chatNavItem.addEventListener('click', () => {
-            // Small delay to let dashboard.js show the view first
-            setTimeout(initChat, 50);
-        });
+        chatNavItem.addEventListener('click', () => setTimeout(initChat, 30));
+    }
+
+    // If chat view is already active on load (e.g. direct URL), init immediately
+    const chatView = $id('chat');
+    if (chatView && chatView.classList.contains('active')) {
+        initChat();
     }
 });
 
@@ -51,11 +51,9 @@ async function initChat() {
     chatInitialized = true;
 }
 
-// Also listen for dashboardViewChanged as a fallback
+// Fallback: also listen for dashboardViewChanged in case dashboard.js is loaded
 window.addEventListener('dashboardViewChanged', async (e) => {
-    if (e.detail && e.detail.viewId === 'chat') {
-        await initChat();
-    }
+    if (e.detail && e.detail.viewId === 'chat') await initChat();
 });
 
 // ─── Load users ───────────────────────────────────────────────────────────────
