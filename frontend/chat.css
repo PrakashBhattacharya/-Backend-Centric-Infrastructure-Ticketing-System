@@ -572,3 +572,42 @@
 .chat-user-picker::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 [data-theme="light"] .chat-messages::-webkit-scrollbar-thumb,
 [data-theme="light"] .chat-list::-webkit-scrollbar-thumb { background: #cbd5e1; }
+
+/* ─── Embedded Chat (inside dashboard views) ─────────────────────────────── */
+.chat-embed-wrap {
+    display: flex;
+    height: calc(100vh - 120px);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+}
+
+.chat-embed-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: rgba(8, 12, 24, 0.6);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+[data-theme="light"] .chat-embed-sidebar {
+    background: #f8fafc;
+}
+
+.chat-embed-tabs {
+    display: flex;
+    padding: 12px 10px 0;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.chat-embed-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}

@@ -412,6 +412,11 @@ async function showGroupInfo(groupId) {
         if (!data.success) return;
         document.getElementById('ginfo-name').textContent = data.group.name;
         document.getElementById('ginfo-desc').textContent = data.group.description || 'No description.';
+
+        // Show manage button for admins
+        const manageBtn = document.getElementById('ginfo-manage-btn');
+        if (manageBtn) manageBtn.style.display = MY_ROLE === 'admin' ? 'flex' : 'none';
+
         document.getElementById('ginfo-members').innerHTML = (data.members || []).map(m => `
             <div class="ginfo-member-row">
                 <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#1e40af);
@@ -427,6 +432,22 @@ async function showGroupInfo(groupId) {
                     : ''}
             </div>
         `).join('');
+
+        // Add dissolve button for admins
+        const existingDissolve = document.getElementById('ginfo-dissolve-btn');
+        if (existingDissolve) existingDissolve.remove();
+        if (MY_ROLE === 'admin') {
+            const footer = document.createElement('div');
+            footer.id = 'ginfo-dissolve-btn';
+            footer.style.cssText = 'margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);';
+            footer.innerHTML = `<button onclick="openDissolveModal(${groupId}, '${esc(data.group.name)}')"
+                style="width:100%;padding:9px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);
+                border-radius:8px;color:#f87171;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">
+                <i class="fas fa-trash" style="margin-right:6px;"></i>Dissolve Group
+            </button>`;
+            document.getElementById('ginfo-members').after(footer);
+        }
+
         openModal('group-info-modal');
     } catch (e) { console.error('showGroupInfo:', e); }
 }
@@ -467,3 +488,145 @@ function fmtMsgTime(ts) {
         return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch (e) { return ''; }
 }
+
+// ─── Group Management (admin only) ───────────────────────────────────────────
+let managingGroupId = null;
+let manageSelectedMembers = new Set();
+
+function openManageMembersModal() {
+    if (!activeChat || activeChat.type !== 'group') return;
+    managingGroupId = activeChat.id;
+    manageSelectedMembers = new Set();
+
+    // Pre-populate with current members
+    fetch(`${getBase()}/api/chat/groups/${managingGroupId}`, { headers: authHeaders() })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) return;
+            // Pre-select current members (excluding self)
+            (data.members || []).forEach(m => {
+                if (m.id !== MY_ID) manageSelectedMembers.add(m.id);
+            });
+            document.getElementById('manage-member-search').value = '';
+            renderManagePicker('');
+            renderManageChips();
+            closeModal('group-info-modal');
+            openModal('manage-members-modal');
+        });
+}
+
+function renderManagePicker(query) {
+    const container = document.getElementById('manage-member-list');
+    if (!container) return;
+    const q = query.toLowerCase();
+    const filtered = allUsers.filter(u =>
+        u.full_name.toLowerCase().includes(q) || u.role.toLowerCase().includes(q)
+    );
+    container.innerHTML = filtered.map(u => `
+        <div class="chat-user-item ${manageSelectedMembers.has(u.id) ? 'selected' : ''}"
+             onclick="toggleManageMember(${u.id})">
+            <div class="chat-user-item-avatar">${u.full_name.charAt(0).toUpperCase()}</div>
+            <div>
+                <div class="chat-user-item-name">${esc(u.full_name)}</div>
+                <span class="chat-user-item-role role-${u.role}">${u.role.toUpperCase()}</span>
+            </div>
+            <div class="chat-user-item-check"><i class="fas fa-check"></i></div>
+        </div>
+    `).join('') || '<div style="padding:12px;text-align:center;color:var(--text-secondary);font-size:13px;">No users found</div>';
+}
+
+function toggleManageMember(userId) {
+    if (manageSelectedMembers.has(userId)) {
+        manageSelectedMembers.delete(userId);
+    } else {
+        manageSelectedMembers.add(userId);
+    }
+    renderManagePicker(document.getElementById('manage-member-search').value);
+    renderManageChips();
+}
+
+function renderManageChips() {
+    const container = document.getElementById('manage-selected-members');
+    if (!container) return;
+    if (!manageSelectedMembers.size) { container.innerHTML = ''; return; }
+    container.innerHTML = [...manageSelectedMembers].map(uid => {
+        const u = allUsers.find(x => x.id === uid);
+        if (!u) return '';
+        return `<div class="chat-member-chip">${esc(u.full_name)}
+            <button onclick="toggleManageMember(${u.id})" title="Remove">&times;</button>
+        </div>`;
+    }).join('');
+}
+
+async function saveGroupMembers() {
+    if (!managingGroupId) return;
+    try {
+        const res = await fetch(`${getBase()}/api/chat/groups/${managingGroupId}/members`, {
+            method: 'PUT', headers: authHeaders(),
+            body: JSON.stringify({ member_ids: [...manageSelectedMembers] })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('manage-members-modal');
+            // Refresh group sub-count
+            const sub = document.getElementById('chat-sub');
+            if (sub) sub.textContent = (manageSelectedMembers.size + 1) + ' members';
+            await loadGroups();
+        } else {
+            alert(data.message || 'Failed to update members.');
+        }
+    } catch (e) { alert('Network error.'); }
+}
+
+// ─── Dissolve group ───────────────────────────────────────────────────────────
+let dissolveGroupId = null;
+
+function openDissolveModal(groupId, groupName) {
+    dissolveGroupId = groupId;
+    const el = document.getElementById('dissolve-group-name');
+    if (el) el.textContent = groupName;
+    closeModal('group-info-modal');
+    openModal('dissolve-group-modal');
+}
+
+async function confirmDissolveGroup() {
+    if (!dissolveGroupId) return;
+    try {
+        const res = await fetch(`${getBase()}/api/chat/groups/${dissolveGroupId}`, {
+            method: 'DELETE', headers: authHeaders()
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('dissolve-group-modal');
+            dissolveGroupId = null;
+            activeChat = null;
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('chat-empty').style.display  = 'flex';
+            stopPolling();
+            await loadGroups();
+        } else {
+            alert(data.message || 'Failed to dissolve group.');
+        }
+    } catch (e) { alert('Network error.'); }
+}
+
+// Wire up manage-member-search if it exists
+document.addEventListener('DOMContentLoaded', () => {
+    const mms = document.getElementById('manage-member-search');
+    if (mms) mms.addEventListener('input', e => renderManagePicker(e.target.value));
+});
+
+// ─── Init chat when view becomes active ──────────────────────────────────────
+// The dashboard.js dispatches 'dashboardViewChanged' when a nav item is clicked
+window.addEventListener('dashboardViewChanged', async (e) => {
+    if (e.detail && e.detail.viewId === 'chat') {
+        // Load data when chat view is first opened
+        if (!allUsers.length) {
+            await loadUsers();
+            await Promise.all([loadInbox(), loadGroups()]);
+            setupTabs();
+            setupInput();
+            setupModals();
+        }
+    }
+});

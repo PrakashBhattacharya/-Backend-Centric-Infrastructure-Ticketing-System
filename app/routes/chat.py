@@ -224,6 +224,20 @@ def update_group_members(current_user, group_id):
     return jsonify({'success': True})
 
 
+@chat_bp.route('/groups/<int:group_id>', methods=['DELETE'])
+@token_required
+def dissolve_group(current_user, group_id):
+    """Admin dissolves (permanently deletes) a group."""
+    if current_user['role'] != 'admin':
+        return jsonify({'message': 'Only admins can dissolve groups.'}), 403
+    group = execute_query("SELECT id FROM chat_groups WHERE id = %s", (group_id,), fetchone=True)
+    if not group:
+        return jsonify({'message': 'Group not found.'}), 404
+    # CASCADE deletes members and messages
+    execute_query("DELETE FROM chat_groups WHERE id = %s", (group_id,), commit=True)
+    return jsonify({'success': True})
+
+
 @chat_bp.route('/groups/<int:group_id>/messages', methods=['GET'])
 @token_required
 def get_group_messages(current_user, group_id):
