@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InfraTick - Member Service Portal</title>
-    <link rel="stylesheet" href="dashboard.css">
+    <title>InfraTick - Member Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css?v=1.1">
     <link rel="stylesheet" href="chat.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/dashboard.js"></script>
 </head>
 
 <body>
@@ -19,15 +20,20 @@
                 <span class="logo-text">InfraTick</span>
             </div>
             <nav class="nav-menu">
-                <a href="#" class="nav-item active" data-view="tickets"><i class="fas fa-ticket-alt"></i><span>My Tickets</span></a>
-                <a href="#" class="nav-item" data-view="chat"><i class="fas fa-comments"></i><span>Secure Chat</span></a>
+                <a href="#" class="nav-item active" data-view="overview"><i class="fas fa-home"></i><span>My
+                        Dashboard</span></a>
+                <a href="#" class="nav-item" data-view="tickets"><i class="fas fa-list-ul"></i><span>My
+                        Tickets</span></a>
+                <a href="#" class="nav-item" data-view="knowledge"><i class="fas fa-book"></i><span>Knowledge
+                        Base</span></a>
+                <a href="#" class="nav-item" data-view="chat"><i class="fas fa-comments"></i><span>Chat</span></a>
             </nav>
             <div class="sidebar-footer">
                 <div class="user-profile" id="profile-trigger" onclick="toggleProfileDropdown()">
                     <div class="profile-avatar">M</div>
                     <div class="user-info">
-                        <span class="user-name">Member User</span>
-                        <span class="user-role">ORGANISATION MEMBER</span>
+                        <span class="user-name">Prakash B.</span>
+                        <span class="user-role">MEMBER</span>
                     </div>
                 </div>
                 <a href="login.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i></a>
@@ -38,44 +44,245 @@
             <header class="top-bar">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search my tickets...">
+                    <input type="text" id="global-search" placeholder="Search my tickets, resources, docs...">
                 </div>
-                <div class="header-actions">
-                    <button id="theme-toggle" class="theme-toggle-btn"><i class="fas fa-sun"></i></button>
-                    <button class="primary-btn" onclick="openModal('new-ticket-modal')"><i class="fas fa-plus"></i> Raise Ticket</button>
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <button class="primary-btn" onclick="openModal('ticket-modal')">
+                        <i class="fas fa-plus"></i> New Ticket
+                    </button>
+                    <button id="theme-toggle" class="theme-toggle-btn" title="Switch to Light Mode">
+                        <i class="fas fa-sun"></i>
+                    </button>
                 </div>
             </header>
 
-            <!-- VIEW: TICKETS -->
-            <div id="tickets" class="dashboard-view active">
+            <!-- VIEW: OVERVIEW -->
+            <div id="overview" class="dashboard-view active">
                 <div class="view-header">
-                    <h2>Service History</h2>
+                    <h2>Member Console</h2>
+                    <p>Track your submitted infrastructure incidents and resolution status.</p>
                 </div>
+
+                <div class="stats-grid member-stats-grid">
+
+                    <div class="kpi-card kpi-blue">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-blue"><i class="fas fa-ticket-alt"></i></div>
+                            <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 3</span>
+                        </div>
+                        <div class="kpi-value">0</div>
+                        <div class="kpi-label">Active Tickets</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">Tickets currently open or being worked on by an assigned engineer.</div>
+                    </div>
+
+                    <div class="kpi-card kpi-green">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-green"><i class="fas fa-check-circle"></i></div>
+                            <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 8</span>
+                        </div>
+                        <div class="kpi-value">0</div>
+                        <div class="kpi-label">Resolved Total</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">All tickets successfully closed and confirmed resolved since account
+                            creation.</div>
+                    </div>
+
+                    <div class="kpi-card kpi-cyan">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-cyan"><i class="fas fa-bolt"></i></div>
+                            <span class="kpi-trend trend-down"><i class="fas fa-arrow-down"></i> 0.3h</span>
+                        </div>
+                        <div class="kpi-value">0.0h</div>
+                        <div class="kpi-label">Avg. Response Time</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">Average time from ticket submission to first engineer acknowledgment.
+                        </div>
+                    </div>
+
+                    <div class="kpi-card kpi-purple">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-purple"><i class="fas fa-shield-alt"></i></div>
+                            <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 2%</span>
+                        </div>
+                        <div class="kpi-value">0%</div>
+                        <div class="kpi-label">SLA Compliance</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">Percentage of your tickets resolved within the contracted service-level
+                            deadline.</div>
+                    </div>
+
+                    <div class="kpi-card kpi-orange">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-orange"><i class="fas fa-exclamation-triangle"></i></div>
+                            <span class="kpi-trend trend-neutral"><i class="fas fa-minus"></i> 0</span>
+                        </div>
+                        <div class="kpi-value">0</div>
+                        <div class="kpi-label">Urgent Tickets</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">High or critical priority issues requiring immediate engineer
+                            intervention.</div>
+                    </div>
+
+                    <div class="kpi-card kpi-red">
+                        <div class="kpi-top">
+                            <div class="kpi-icon-wrap kpi-icon-red"><i class="fas fa-hourglass-end"></i></div>
+                            <span class="kpi-trend trend-warn"><i class="fas fa-arrow-up"></i> 1</span>
+                        </div>
+                        <div class="kpi-value">0</div>
+                        <div class="kpi-label">Breached SLA</div>
+                        <div class="kpi-divider"></div>
+                        <div class="kpi-desc">Tickets that exceeded the agreed resolution deadline and require
+                            escalation.</div>
+                    </div>
+
+                </div>
+
                 <div class="content-grid-ecosystem">
-                    <div class="span-full">
+                    <div class="span-lg">
                         <div class="widget-v2">
                             <div class="widget-v2-header">
-                                <h3 class="widget-v2-title"><i class="fas fa-list"></i> Active Requests</h3>
+                                <h3 class="widget-v2-title"><i class="fas fa-chart-line"></i> Resolution Velocity</h3>
                             </div>
-                            <div class="table-wrapper">
-                                <table class="professional-table">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>SUBJECT</th>
-                                            <th>PRIORITY</th>
-                                            <th>STATUS</th>
-                                            <th>CREATED</th>
-                                            <th>ACTION</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="member-tickets-body"></tbody>
-                                </table>
+                            <div style="height: 250px;">
+                                <canvas id="memberChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span-sm">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-chart-pie"></i> Priority Breakdown</h3>
+                            </div>
+                            <div style="height: 250px;">
+                                <canvas id="priorityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span-md">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-history"></i> Backlog Trend</h3>
+                            </div>
+                            <div style="height: 200px;">
+                                <canvas id="backlogChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span-md">
+                        <div class="widget-v2">
+                            <div class="widget-v2-header">
+                                <h3 class="widget-v2-title"><i class="fas fa-tasks"></i> SLA Status</h3>
+                            </div>
+                            <div style="height: 200px;">
+                                <canvas id="slaDonutChart"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- VIEW: TICKETS -->
+            <div id="tickets" class="dashboard-view">
+                <div class="view-header">
+                    <h2>Ticket Archive</h2>
+                    <p>Comprehensive list of all your reported incidents.</p>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select class="filter-select" id="filter-status">
+                            <option>All Status</option>
+                            <option>Open</option>
+                            <option>In Progress</option>
+                            <option>Resolved</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Priority</label>
+                        <select class="filter-select" id="filter-priority">
+                            <option>All Priorities</option>
+                            <option>Critical</option>
+                            <option>High</option>
+                            <option>Medium</option>
+                            <option>Low</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>SLA Status</label>
+                        <select class="filter-select" id="filter-sla">
+                            <option>All</option>
+                            <option>On Track</option>
+                            <option>Breached</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="widget-v2">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>SLA Status</th>
+                                    <th>Created On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 30px;">No tickets found. You haven't submitted any incidents yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: KNOWLEDGE -->
+            <div id="knowledge" class="dashboard-view">
+                <div class="view-header">
+                    <h2>Knowledge Central</h2>
+                    <p>Browse internal guides and infrastructure protocols.</p>
+                </div>
+                <div class="resource-grid">
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('Getting Started')" style="cursor:pointer;">
+                        <i class="fas fa-rocket"></i>
+                        <h4>Getting Started</h4>
+                        <p>How to create tickets and manage your infrastructure requests efficiently.</p>
+                        <div class="tag-cloud">
+                            <span class="tag">Guide</span><span class="tag">Basics</span>
+                        </div>
+                    </div>
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('SLA Guidelines')" style="cursor:pointer;">
+                        <i class="fas fa-shield-alt"></i>
+                        <h4>SLA Guidelines</h4>
+                        <p>Response time policies and escalation workflows for critical incidents.</p>
+                        <div class="tag-cloud">
+                            <span class="tag">Policy</span><span class="tag">SLA</span>
+                        </div>
+                    </div>
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('Troubleshooting')" style="cursor:pointer;">
+                        <i class="fas fa-tools"></i>
+                        <h4>Troubleshooting</h4>
+                        <p>Common database, server, and connectivity issue resolution steps.</p>
+                        <div class="tag-cloud">
+                            <span class="tag">Technical</span><span class="tag">Fixes</span>
+                        </div>
+                    </div>
+                    <div class="resource-card" onclick="window.showKnowledgeDetail('FAQs')" style="cursor:pointer;">
+                        <i class="fas fa-question-circle"></i>
+                        <h4>FAQs</h4>
+                        <p>Most common questions about infrastructure management.</p>
+                        <div class="tag-cloud">
+                            <span class="tag">Help</span><span class="tag">Quick Link</span>
+                        </div>
+                    </div>
+                </div>
+            </div></div>
+
 
             <!-- VIEW: CHAT -->
             <div id="chat" class="dashboard-view">
@@ -88,39 +295,41 @@
                         <div id="tab-private" class="chat-tab-content active">
                             <div class="chat-list-header">
                                 <span>Direct Messages</span>
-                                <button class="chat-new-btn" id="new-dm-btn"><i class="fas fa-plus"></i></button>
+                                <button class="chat-new-btn" id="new-dm-btn" title="New message"><i class="fas fa-plus"></i></button>
                             </div>
-                            <div class="chat-list" id="dm-list"></div>
+                            <div class="chat-list" id="dm-list"><div class="chat-list-empty">No conversations yet.<br>Click <b>+</b> to start one.</div></div>
                         </div>
                         <div id="tab-groups" class="chat-tab-content">
                             <div class="chat-list-header">
                                 <span>Group Chats</span>
+                                <button class="chat-new-btn" id="new-group-btn" title="Create group" style="display:none;"><i class="fas fa-plus"></i></button>
                             </div>
-                            <div class="chat-list" id="group-list"></div>
+                            <div class="chat-list" id="group-list"><div class="chat-list-empty">No groups yet.</div></div>
                         </div>
                     </div>
                     <div class="chat-embed-main">
                         <div class="chat-empty-state" id="chat-empty">
                             <div class="chat-empty-icon"><i class="fas fa-comments"></i></div>
                             <h2>Select a conversation</h2>
+                            <p>Choose a direct message or group from the left to start chatting.</p>
                         </div>
                         <div class="chat-window" id="chat-window" style="display:none;">
                             <div class="chat-window-header">
                                 <div class="chat-header-info">
                                     <div class="chat-header-avatar" id="chat-avatar">?</div>
                                     <div>
-                                        <div class="chat-header-name" id="chat-name">Select chat</div>
-                                        <div class="chat-header-sub" id="chat-sub">Online</div>
+                                        <div class="chat-header-name" id="chat-name">&#8212;</div>
+                                        <div class="chat-header-sub" id="chat-sub">&#8212;</div>
                                     </div>
                                 </div>
                                 <div class="chat-header-actions">
-                                    <button class="chat-icon-btn" id="chat-info-btn"><i class="fas fa-info-circle"></i></button>
+                                    <button class="chat-icon-btn" id="chat-info-btn" title="Info"><i class="fas fa-info-circle"></i></button>
                                 </div>
                             </div>
                             <div class="chat-messages" id="chat-messages"></div>
                             <div class="chat-input-area">
                                 <div class="chat-input-wrap">
-                                    <textarea id="chat-input" placeholder="Type a message..." rows="1"></textarea>
+                                    <textarea id="chat-input" placeholder="Type a message... (Enter to send)" rows="1"></textarea>
                                     <button class="chat-send-btn" id="send-btn"><i class="fas fa-paper-plane"></i></button>
                                 </div>
                             </div>
@@ -128,107 +337,839 @@
                     </div>
                 </div>
             </div>
+
         </main>
     </div>
 
-    <!-- Modals -->
-    <div id="new-ticket-modal" class="modal">
-        <div class="modal-content" style="max-width:500px;">
+    <!-- Create Ticket Modal -->
+    <div id="ticket-modal" class="modal">
+        <div class="modal-content" style="max-width: 540px;">
             <div class="modal-header">
-                <h3>New Incident Report</h3>
-                <button class="close-btn" onclick="closeModal('new-ticket-modal')">&times;</button>
+                <div>
+                    <h3>Submit Infrastructure Incident</h3>
+                    <p style="font-size:12px; color:var(--text-secondary); margin-top:3px;">All fields are required.
+                        Priority determines your SLA deadline.</p>
+                </div>
+                <button class="close-btn" onclick="closeModal('ticket-modal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <form id="new-ticket-form">
+            <form class="modal-body" id="new-ticket-form" onsubmit="submitNewTicket(event)">
+
+                <!-- Incident Subject -->
+                <div class="form-group">
+                    <label>Incident Subject</label>
+                    <input type="text" id="ticket-subject" placeholder="e.g. S3 Bucket access denied in production"
+                        required>
+                </div>
+
+                <!-- Two-column row: Service Area + Priority -->
+                <div class="form-row">
                     <div class="form-group">
-                        <label>Subject</label>
-                        <input type="text" id="ticket-subject" required placeholder="Brief description of the issue">
-                    </div>
-                    <div class="form-group" style="margin-top:15px;">
-                        <label>Description</label>
-                        <textarea id="ticket-description" rows="4" required placeholder="Detailed steps to reproduce..."></textarea>
-                    </div>
-                    <div class="form-group" style="margin-top:15px;">
-                        <label>Priority</label>
-                        <select id="ticket-priority">
-                            <option value="Low">Low</option>
-                            <option value="Medium" selected>Medium</option>
-                            <option value="High">High</option>
-                            <option value="Critical">Critical</option>
+                        <label>Service Area</label>
+                        <select class="filter-select" id="ticket-service" style="width:100%;">
+                            <option>Database</option>
+                            <option>Networking</option>
+                            <option>Compute / VM</option>
+                            <option>Security / IAM</option>
+                            <option>Storage</option>
+                            <option>Other</option>
                         </select>
                     </div>
-                </form>
+                    <div class="form-group">
+                        <label>Environment</label>
+                        <select class="filter-select" id="ticket-env" style="width:100%;">
+                            <option>Production</option>
+                            <option>Staging</option>
+                            <option>Development</option>
+                            <option>DR / Backup</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Priority Picker -->
+                <div class="form-group">
+                    <label>Priority <span
+                            style="color:var(--text-secondary); font-weight:400; font-size:11px;">(determines SLA
+                            response deadline)</span></label>
+                    <div class="priority-picker" id="priority-picker">
+                        <button type="button" class="pri-btn pri-critical" data-priority="Critical" data-sla="2"
+                            onclick="selectPriority(this)">
+                            <div class="pri-icon-wrap"><i class="fas fa-fire"></i></div>
+                            <div class="pri-text">
+                                <span class="pri-name">Critical</span>
+                                <span class="pri-sla">≤ 2 hrs SLA</span>
+                            </div>
+                        </button>
+                        <button type="button" class="pri-btn pri-high" data-priority="High" data-sla="8"
+                            onclick="selectPriority(this)">
+                            <div class="pri-icon-wrap"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="pri-text">
+                                <span class="pri-name">High</span>
+                                <span class="pri-sla">≤ 8 hrs SLA</span>
+                            </div>
+                        </button>
+                        <button type="button" class="pri-btn pri-medium" data-priority="Medium" data-sla="20"
+                            onclick="selectPriority(this)">
+                            <div class="pri-icon-wrap"><i class="fas fa-minus-circle"></i></div>
+                            <div class="pri-text">
+                                <span class="pri-name">Medium</span>
+                                <span class="pri-sla">≤ 20 hrs SLA</span>
+                            </div>
+                        </button>
+                        <button type="button" class="pri-btn pri-low" data-priority="Low" data-sla="50"
+                            onclick="selectPriority(this)">
+                            <div class="pri-icon-wrap"><i class="fas fa-arrow-down"></i></div>
+                            <div class="pri-text">
+                                <span class="pri-name">Low</span>
+                                <span class="pri-sla">≤ 50 hrs SLA</span>
+                            </div>
+                        </button>
+                    </div>
+                    <input type="hidden" id="ticket-priority" value="" required>
+                </div>
+
+                <!-- SLA Info Banner -->
+                <div class="sla-info-banner" id="sla-banner" style="display:none;">
+                    <div class="sla-banner-left">
+                        <i class="fas fa-clock" id="sla-icon"></i>
+                        <div>
+                            <div class="sla-banner-title" id="sla-title">Resolution Deadline</div>
+                            <div class="sla-banner-time" id="sla-deadline-text">—</div>
+                        </div>
+                    </div>
+                    <div class="sla-banner-right" id="sla-breach-info"></div>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label>Description &amp; Error Codes</label>
+                    <textarea id="ticket-desc" rows="4"
+                        placeholder="Detail the environment, impact, steps to reproduce, and any error logs..."
+                        required></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="secondary-btn" onclick="closeModal('ticket-modal')">Cancel</button>
+                    <button type="submit" class="primary-btn" style="padding: 10px 32px;">
+                        <i class="fas fa-paper-plane"></i> Submit Incident
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <style>
+        .status.resolved::before {
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        .status.resolved {
+            color: #10b981;
+        }
+
+        /* ── KPI Cards ─────────────────────────────────────────── */
+        .member-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: rgba(16, 24, 40, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 22px 22px 18px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* Colour-coded top accent bar */
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 14px 14px 0 0;
+        }
+
+        .kpi-blue::before {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+
+        .kpi-green::before {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        .kpi-cyan::before {
+            background: linear-gradient(90deg, #06b6d4, #22d3ee);
+        }
+
+        .kpi-purple::before {
+            background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+        }
+
+        .kpi-orange::before {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .kpi-red::before {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
+        /* Subtle gradient glow on hover */
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .kpi-blue:hover {
+            border-color: rgba(59, 130, 246, 0.35);
+            box-shadow: 0 12px 32px rgba(59, 130, 246, 0.15);
+        }
+
+        .kpi-green:hover {
+            border-color: rgba(16, 185, 129, 0.35);
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.15);
+        }
+
+        .kpi-cyan:hover {
+            border-color: rgba(6, 182, 212, 0.35);
+            box-shadow: 0 12px 32px rgba(6, 182, 212, 0.15);
+        }
+
+        .kpi-purple:hover {
+            border-color: rgba(139, 92, 246, 0.35);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.15);
+        }
+
+        .kpi-orange:hover {
+            border-color: rgba(245, 158, 11, 0.35);
+            box-shadow: 0 12px 32px rgba(245, 158, 11, 0.15);
+        }
+
+        .kpi-red:hover {
+            border-color: rgba(239, 68, 68, 0.35);
+            box-shadow: 0 12px 32px rgba(239, 68, 68, 0.15);
+        }
+
+        /* Top row: icon + trend chip */
+        .kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .kpi-icon-wrap {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .kpi-icon-blue {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        .kpi-icon-green {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .kpi-icon-cyan {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+        }
+
+        .kpi-icon-purple {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+        }
+
+        .kpi-icon-orange {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+        }
+
+        .kpi-icon-red {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        /* Trend chips */
+        .kpi-trend {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            letter-spacing: 0.02em;
+        }
+
+        .trend-up {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+        }
+
+        .trend-down {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34d399;
+        }
+
+        .trend-warn {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+        }
+
+        .trend-neutral {
+            background: rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+        }
+
+        /* Value */
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: #f1f5f9;
+            line-height: 1;
+        }
+
+        /* Label */
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* Divider */
+        .kpi-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            margin: 12px 0 10px;
+        }
+
+        /* Description */
+        .kpi-desc {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.55;
+        }
+
+        /* ── Priority Picker ─────────────────────────── */
+        .priority-picker {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .pri-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 10px 12px;
+            border-radius: 12px;
+            border: 1.5px solid rgba(255, 255, 255, 0.07);
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle shimmer line at top on hover */
+        .pri-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .pri-critical::after {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
+        .pri-high::after {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .pri-medium::after {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+
+        .pri-low::after {
+            background: linear-gradient(90deg, #64748b, #94a3b8);
+        }
+
+        .pri-btn:hover::after,
+        .pri-btn.selected::after {
+            opacity: 1;
+        }
+
+        .pri-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Icon wrapper */
+        .pri-icon-wrap {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .pri-btn:hover .pri-icon-wrap {
+            transform: scale(1.1);
+        }
+
+        .pri-critical .pri-icon-wrap {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+        }
+
+        .pri-high .pri-icon-wrap {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+        }
+
+        .pri-medium .pri-icon-wrap {
+            background: rgba(59, 130, 246, 0.12);
+            color: #60a5fa;
+        }
+
+        .pri-low .pri-icon-wrap {
+            background: rgba(100, 116, 139, 0.1);
+            color: #94a3b8;
+        }
+
+        .pri-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .pri-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .pri-sla {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.02em;
+        }
+
+        /* Selected states */
+        .pri-btn.selected {
+            transform: translateY(-2px);
+        }
+
+        .pri-btn.selected.pri-critical {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2), 0 0 0 1px rgba(239, 68, 68, 0.4);
+        }
+
+        .pri-btn.selected.pri-high {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.2), 0 0 0 1px rgba(245, 158, 11, 0.4);
+        }
+
+        .pri-btn.selected.pri-medium {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.4);
+        }
+
+        .pri-btn.selected.pri-low {
+            border-color: #64748b;
+            background: rgba(100, 116, 139, 0.1);
+            box-shadow: 0 4px 20px rgba(100, 116, 139, 0.15), 0 0 0 1px rgba(100, 116, 139, 0.4);
+        }
+
+        /* ── SLA Info Banner ─────────────────────────── */
+        .sla-info-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin: 4px 0 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.03);
+            transition: all 0.2s ease;
+        }
+
+        .sla-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sla-banner-left i {
+            font-size: 20px;
+        }
+
+        .sla-banner-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+        }
+
+        .sla-banner-time {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        .sla-banner-right {
+            font-size: 11px;
+            text-align: right;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .sla-banner-critical {
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.06);
+        }
+
+        .sla-banner-critical .sla-banner-left i {
+            color: #f87171;
+        }
+
+        .sla-banner-high {
+            border-color: rgba(245, 158, 11, 0.3);
+            background: rgba(245, 158, 11, 0.06);
+        }
+
+        .sla-banner-high .sla-banner-left i {
+            color: #fbbf24;
+        }
+
+        .sla-banner-medium {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.06);
+        }
+
+        .sla-banner-medium .sla-banner-left i {
+            color: #60a5fa;
+        }
+
+        .sla-banner-low {
+            border-color: rgba(100, 116, 139, 0.3);
+            background: rgba(100, 116, 139, 0.06);
+        }
+
+        .sla-banner-low .sla-banner-left i {
+            color: #94a3b8;
+        }
+    </style>
+    <!-- Ticket Detail Modal -->
+    <div id="ticket-detail-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h3 id="modal-ticket-id">#TKT-10234</h3>
+                    <span class="badge badge-critical" id="modal-priority">Critical</span>
+                </div>
+                <button class="close-btn" onclick="closeModal('ticket-detail-modal')">&times;</button>
+            </div>
+            <div class="modal-body"
+                style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; padding: 20px 0;">
+                <div class="ticket-main-info">
+                    <h2 id="modal-title" style="margin-bottom: 10px;">Server Downtime Issue</h2>
+                    <div style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
+                        Status: <span class="status open" id="modal-status">Open</span> |
+                        Created: <span id="modal-created">2026-02-10</span>
+                    </div>
+
+                    <h4 style="margin-bottom: 8px;">Description</h4>
+                    <p id="modal-desc" style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
+                        Staging database cluster is unresponsive since early morning. All attempts to connect via VPN
+                        are failing with timeout errors.
+                    </p>
+
+                    <h4 style="margin-bottom: 10px;">Activity Log</h4>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-point"></div>
+                            <div class="timeline-info">Admin | 10-Feb-2026 09:00</div>
+                            <div class="timeline-action">Ticket Created</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-point"></div>
+                            <div class="timeline-info">System | 10-Feb-2026 09:05</div>
+                            <div class="timeline-action">Assigned to Engineer: Alex Smith</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ticket-side-info" style="border-left: 1px solid var(--border-color); padding-left: 24px;">
+                    <div class="stat-card" style="margin-bottom: 20px; padding: 15px;">
+                        <div class="stat-details">
+                            <span class="stat-label">SLA Due In</span>
+                            <span class="stat-value" style="color: #ef4444;" id="modal-sla-countdown">Expired</span>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-bottom: 10px;">SLA Metrics</h4>
+                    <div class="density-list">
+                        <div class="density-item">
+                            <div class="density-content">
+                                <div class="density-label">Response Time</div>
+                                <div class="density-sub">15m (Within limit)</div>
+                            </div>
+                        </div>
+                        <div class="density-item">
+                            <div class="density-content" style="color: #ef4444;">
+                                <div class="density-label">Resolution Due</div>
+                                <div class="density-sub">Breached by 2h</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="secondary-btn" onclick="closeModal('new-ticket-modal')">Cancel</button>
-                <button class="primary-btn" type="submit" form="new-ticket-form">Submit Ticket</button>
+                <button class="secondary-btn" onclick="closeModal('ticket-detail-modal')">Close</button>
+                <button class="primary-btn">Add Comment</button>
             </div>
-        </div>
-    </div>
-
-    <!-- Chat Modals -->
-    <div id="new-dm-modal" class="chat-modal">
-        <div class="modal-content" style="max-width: 450px;">
-            <div class="modal-header">
-                <h3>New Private Chat</h3>
-                <button class="close-btn" onclick="closeModal('new-dm-modal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="chat-search-wrap">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="user-search" placeholder="Search by name or role...">
-                </div>
-                <div id="user-list" class="chat-user-list"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="group-info-modal" class="chat-modal">
-        <div class="modal-content" style="max-width: 450px;">
-            <div class="modal-header">
-                <h3>Group Info</h3>
-                <button class="close-btn" onclick="closeModal('group-info-modal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <h4 id="ginfo-name"></h4>
-                <p id="ginfo-desc" style="margin-bottom:20px;"></p>
-                <div class="pd-section-label">Members</div>
-                <div id="ginfo-members"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="js/config.js"></script>
-    <script src="js/theme.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script src="js/dashboard_member.js?v=2.4"></script>
-    <script src="js/chat.js?v=2.5"></script>
-
-    <!-- Profile Dropdown -->
-    <div class="profile-dropdown" id="profile-dropdown">
-        <div class="pd-banner">
-            <div class="pd-banner-avatar" id="dd-avatar">M</div>
-            <div class="pd-banner-info">
-                <div class="pd-banner-name" id="dd-name">Member User</div>
-                <div class="pd-banner-email" id="dd-email">user@infratick.com</div>
-                <span class="pd-role-chip">MEMBER</span>
-            </div>
-        </div>
-        <div class="pd-footer">
-            <button class="pd-logout-btn" onclick="logout()">Sign Out</button>
         </div>
     </div>
 
     <script>
-        function toggleProfileDropdown() {
-            const dd = document.getElementById('profile-dropdown');
-            dd.classList.toggle('active');
+        /* ── Priority Picker ── */
+        const SLA_CONFIG = {
+            Critical: { hours: 2, label: 'Critical — 2 Hours', breach: 'P1 — System outage. Immediate engineer response required.', cls: 'sla-banner-critical' },
+            High: { hours: 8, label: 'High — 8 Hours', breach: 'P2 — Major service degradation. Response within 8 hours.', cls: 'sla-banner-high' },
+            Medium: { hours: 20, label: 'Medium — 20 Hours', breach: 'P3 — Moderate impact. Response within 20 hours.', cls: 'sla-banner-medium' },
+            Low: { hours: 50, label: 'Low — 50 Hours', breach: 'P4 — Minimal impact. Response within 50 hours.', cls: 'sla-banner-low' }
+        };
+
+        function selectPriority(btn) {
+            // Deselect all
+            document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+
+            const priority = btn.dataset.priority;
+            document.getElementById('ticket-priority').value = priority;
+
+            // Update SLA banner
+            const cfg = SLA_CONFIG[priority];
+            const now = new Date();
+            const deadline = new Date(now.getTime() + cfg.hours * 3600 * 1000);
+            const pad = n => String(n).padStart(2, '0');
+            const deadlineStr = `${deadline.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at ${pad(deadline.getHours())}:${pad(deadline.getMinutes())}`;
+
+            const banner = document.getElementById('sla-banner');
+            banner.className = 'sla-info-banner ' + cfg.cls;
+            banner.style.display = 'flex';
+            document.getElementById('sla-title').textContent = 'SLA Deadline — ' + cfg.label;
+            document.getElementById('sla-deadline-text').textContent = deadlineStr;
+            document.getElementById('sla-breach-info').innerHTML =
+                `<span>${cfg.breach}</span><br><span style="color:#ef4444; font-weight:600;">Breach time: +${cfg.hours}h from submission</span>`;
         }
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'login.html';
+
+        function submitNewTicket(e) {
+            e.preventDefault();
+            const priority = document.getElementById('ticket-priority').value;
+            if (!priority) {
+                alert('Please select a priority level before submitting.');
+                return;
+            }
+            alert(`✅ Ticket submitted successfully!\n\nPriority: ${priority}\nSLA Deadline: ${document.getElementById('sla-deadline-text').textContent}`);
+            // Reset form
+            document.getElementById('new-ticket-form').reset();
+            document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('sla-banner').style.display = 'none';
+            document.getElementById('ticket-priority').value = '';
+            closeModal('ticket-modal');
         }
     </script>
+    <!-- Knowledge detail Modal -->
+    <div id="knowledge-detail-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <div>
+                    <h3 id="knowledge-title">Resource Detail</h3>
+                    <p id="knowledge-subtitle" style="font-size:12px; color:var(--text-secondary); margin-top:3px;"></p>
+                </div>
+                <button class="close-btn" onclick="closeModal('knowledge-detail-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="knowledge-body" style="line-height:1.6; color:var(--text-primary); padding: 20px;">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="primary-btn" onclick="closeModal('knowledge-detail-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+    <!-- Chat Modals -->
+    <div id="new-dm-modal" class="modal">
+        <div class="modal-content" style="max-width:440px;">
+            <div class="modal-header">
+                <h3>New Direct Message</h3>
+                <button class="close-btn" onclick="closeModal('new-dm-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="user-search" placeholder="Search by name or role..."
+                    style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;margin-bottom:12px;">
+                <div id="user-list" class="chat-user-picker"></div>
+            </div>
+        </div>
+    </div>
+    <div id="create-group-modal" class="modal">
+        <div class="modal-content" style="max-width:500px;">
+            <div class="modal-header">
+                <h3>Create Group Chat</h3>
+                <button class="close-btn" onclick="closeModal('create-group-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Group Name *</label>
+                    <input type="text" id="group-name" placeholder="e.g. Incident Response Team"
+                        style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="group-desc" placeholder="Optional description"
+                        style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;">
+                </div>
+                <div class="form-group">
+                    <label>Add Members *</label>
+                    <input type="text" id="group-member-search" placeholder="Search users..."
+                        style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;margin-bottom:10px;">
+                    <div id="group-member-list" class="chat-user-picker"></div>
+                    <div id="selected-members" class="chat-selected-members"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;gap:10px;">
+                <button class="secondary-btn" onclick="closeModal('create-group-modal')" style="flex:1;">Cancel</button>
+                <button class="primary-btn" onclick="createGroup()" style="flex:1;">Create Group</button>
+            </div>
+        </div>
+    </div>
+    <div id="group-info-modal" class="modal">
+        <div class="modal-content" style="max-width:480px;">
+            <div class="modal-header">
+                <h3 id="ginfo-name">Group Info</h3>
+                <button class="close-btn" onclick="closeModal('group-info-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="ginfo-desc" style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;"></p>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);">Members</div>
+                    <button id="ginfo-manage-btn" class="primary-btn" style="display:none;padding:5px 14px;font-size:12px;" onclick="openManageMembersModal()">Manage</button>
+                </div>
+                <div id="ginfo-members"></div>
+            </div>
+        </div>
+    </div>
+    <div id="manage-members-modal" class="modal">
+        <div class="modal-content" style="max-width:500px;">
+            <div class="modal-header">
+                <h3>Manage Members</h3>
+                <button class="close-btn" onclick="closeModal('manage-members-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="manage-member-search" placeholder="Search users..."
+                    style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;margin-bottom:10px;">
+                <div id="manage-member-list" class="chat-user-picker"></div>
+                <div id="manage-selected-members" class="chat-selected-members" style="margin-top:10px;"></div>
+            </div>
+            <div class="modal-footer" style="display:flex;gap:10px;">
+                <button class="secondary-btn" onclick="closeModal('manage-members-modal')" style="flex:1;">Cancel</button>
+                <button class="primary-btn" onclick="saveGroupMembers()" style="flex:1;">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    <div id="dissolve-group-modal" class="modal">
+        <div class="modal-content" style="max-width:420px;">
+            <div class="modal-header">
+                <h3>Dissolve Group</h3>
+                <button class="close-btn" onclick="closeModal('dissolve-group-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;">
+                    Are you sure you want to dissolve <strong id="dissolve-group-name"></strong>?
+                    This will permanently delete the group and all its messages.
+                </p>
+            </div>
+            <div class="modal-footer" style="display:flex;gap:10px;">
+                <button class="secondary-btn" onclick="closeModal('dissolve-group-modal')" style="flex:1;">Cancel</button>
+                <button class="primary-btn" onclick="confirmDissolveGroup()" style="flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);">Dissolve</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/dashboard_member.js?v=2.0"></script>
+
+    <div class="profile-dropdown" id="profile-dropdown">
+                        <div class="pd-banner">
+                            <div class="pd-banner-avatar" id="dd-avatar">P</div>
+                            <div class="pd-banner-info">
+                                <div class="pd-banner-name" id="dd-name">&mdash;</div>
+                                <div class="pd-banner-email" id="dd-email">&mdash;</div>
+                                <span class="pd-role-chip pd-role-member">MEMBER</span>
+                            </div>
+                        </div>
+                        <div class="pd-section-label">Account</div>
+                        <div class="pd-rows">
+                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-fingerprint"></i> User ID</span><span class="pd-row-val" id="dd-uid">&mdash;</span></div>
+                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-envelope"></i> Email</span><span class="pd-row-val" id="dd-email2">&mdash;</span></div>
+                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-calendar-alt"></i> Joined</span><span class="pd-row-val" id="dd-since">&mdash;</span></div>
+                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-shield-alt"></i> Status</span><span class="pd-row-val" style="color:#10b981;font-weight:700;">&#9679; Active</span></div>
+                            <div class="pd-row"><span class="pd-row-label"><i class="fas fa-clock"></i> Session Exp.</span><span class="pd-row-val" id="dd-session">&mdash;</span></div>
+                        </div>
+                        <div class="pd-section-label">My Tickets</div>
+                        <div class="pd-stat-grid">
+                            <div class="pd-stat"><div class="pd-stat-val" id="dd-s1">&mdash;</div><div class="pd-stat-label">Total</div></div>
+                            <div class="pd-stat"><div class="pd-stat-val" id="dd-s2">&mdash;</div><div class="pd-stat-label">Open</div></div>
+                            <div class="pd-stat"><div class="pd-stat-val" id="dd-s3">&mdash;</div><div class="pd-stat-label">Resolved</div></div>
+                        </div>
+                        <div class="pd-footer">
+                            <button class="pd-logout-btn" onclick="event.stopPropagation(); logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+                        </div>
+                    </div>
+
+    <script src="js/chat.js?v=2.1"></script>
 </body>
+
 </html>

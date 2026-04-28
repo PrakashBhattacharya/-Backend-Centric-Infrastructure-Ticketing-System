@@ -613,7 +613,7 @@
 }
 
 /* ─── Modals (Chat Specific) ────────────────────────────────────────────── */
-.chat-modal {
+.modal {
     display: none;
     position: fixed;
     top: 0;
@@ -628,11 +628,11 @@
     padding: 20px;
 }
 
-.chat-modal.active {
+.modal.active {
     display: flex;
 }
 
-.chat-modal .modal-content {
+.modal-content {
     background: #111827;
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 20px;
@@ -643,12 +643,12 @@
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-[data-theme="light"] .chat-modal .modal-content {
+[data-theme="light"] .modal-content {
     background: #ffffff;
     border-color: #e2e8f0;
 }
 
-.chat-modal .modal-header {
+.modal-header {
     padding: 20px 24px;
     border-bottom: 1px solid rgba(255,255,255,0.06);
     display: flex;
@@ -656,11 +656,11 @@
     align-items: center;
 }
 
-.chat-modal .modal-body {
+.modal-body {
     padding: 24px;
 }
 
-.chat-modal .modal-footer {
+.modal-footer {
     padding: 16px 24px;
     border-top: 1px solid rgba(255,255,255,0.06);
     display: flex;
