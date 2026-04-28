@@ -4,6 +4,7 @@ Uses PostgreSQL via psycopg2 for persistence.
 """
 
 import pg8000.native
+import pg8000.dbapi
 import os
 import json
 from datetime import datetime, timedelta
@@ -137,6 +138,36 @@ def init_db():
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
     ''')
+
+    # Create chat tables
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS chat_groups (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            created_by INTEGER NOT NULL REFERENCES users(id),
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS chat_group_members (
+            id SERIAL PRIMARY KEY,
+            group_id INTEGER NOT NULL REFERENCES chat_groups(id) ON DELETE CASCADE,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(group_id, user_id)
+        );
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS chat_messages (
+            id SERIAL PRIMARY KEY,
+            sender_id INTEGER NOT NULL REFERENCES users(id),
+            group_id INTEGER REFERENCES chat_groups(id) ON DELETE CASCADE,
+            recipient_id INTEGER REFERENCES users(id),
+            text TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
     
     # Seed admin account if not exists
     cursor.execute("SELECT id FROM users WHERE email = %s", ('manik102@gmail.com',))
@@ -158,11 +189,11 @@ def init_db():
     cursor.close()
     conn.close()
 
-def _serialize_row(row):
-    """Convert datetime objects in a RealDictRow to ISO format strings."""
+def _serialize_row(row, columns):
+    """Convert datetime objects in a row to ISO format strings."""
     if row is None:
         return None
-    result = dict(row)
+    result = dict(zip(columns, row))
     for key, value in result.items():
         if isinstance(value, datetime):
             result[key] = value.strftime('%Y-%m-%d %H:%M:%S')
@@ -171,17 +202,17 @@ def _serialize_row(row):
 def execute_query(query, params=(), commit=False, fetchone=False):
     conn = get_db()
     if not conn: return None
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     try:
-        cursor.execute(query, params)
-        if commit:
-            conn.commit()
+        cursor = conn.cursor()
+        cursor.execute(query, params or ())
+        if commit: conn.commit()
         if cursor.description:
+            columns = [col[0] for col in cursor.description]
             if fetchone:
                 row = cursor.fetchone()
-                return _serialize_row(row)
+                return _serialize_row(row, columns)
             rows = cursor.fetchall()
-            return [_serialize_row(r) for r in rows]
+            return [_serialize_row(r, columns) for r in rows]
         return None
     finally:
         cursor.close()
@@ -207,6 +238,7 @@ def get_user_by_id(user_id):
     return dict(user) if user else None
 
 def get_all_users():
+    """Return all registered users."""
     users = execute_query("SELECT id, full_name, email, role, created_at FROM users")
     return [dict(u) for u in (users or [])]
 
@@ -562,12 +594,3 @@ def get_admin_stats():
     except Exception as e:
         _debug_log('ADMIN_STATS_FATAL', 'models.py', str(e), {})
         return stats
-n_counts,
-            'engineers': engineer_data, 'all_tickets': [dict(t) for t in (all_tickets or [])]
-        }
-    except Exception as e:
-        import traceback
-        err_msg = traceback.format_exc()
-        _debug_log('ADMIN_STATS_ERR', 'models.py:get_admin_stats', f'Aggregation failed: {str(e)}', {'traceback': err_msg})
-        print(f"CRITICAL ERROR in get_admin_stats: {e}")
-        return defaults

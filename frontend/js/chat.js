@@ -2,7 +2,7 @@
 const AUTH_TOKEN = localStorage.getItem('auth_token');
 const MY_ID      = parseInt(localStorage.getItem('user_id'), 10);
 const MY_NAME    = localStorage.getItem('user_name') || 'Me';
-const MY_ROLE    = localStorage.getItem('user_role') || 'member';
+const MY_ROLE    = (localStorage.getItem('user_role') || 'member').toLowerCase();
 
 function getBase() { return window.API_BASE || ''; }
 function authHeaders() {
@@ -20,8 +20,9 @@ let chatInitialized      = false;
 // ─── Safe element getter ──────────────────────────────────────────────────────
 function $id(id) { return document.getElementById(id); }
 
-// ─── Init on DOM ready ────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+// ─── Init logic ──────────────────────────────────────────────────────────────
+function startChatApp() {
+    console.log('[Chat] Starting app logic...');
     // Show admin group button
     const groupBtn = $id('new-group-btn');
     if (groupBtn) groupBtn.style.display = MY_ROLE === 'admin' ? 'flex' : 'none';
@@ -30,25 +31,41 @@ document.addEventListener('DOMContentLoaded', () => {
     setupInput();
     setupModals();
 
-    // Attach to the Chat nav item directly — works regardless of which dashboard JS is loaded
+    // Attach to the Chat nav item directly
     const chatNavItem = document.querySelector('a.nav-item[data-view="chat"]');
     if (chatNavItem) {
-        chatNavItem.addEventListener('click', () => setTimeout(initChat, 30));
+        chatNavItem.addEventListener('click', () => {
+            console.log('[Chat] Nav item clicked.');
+            setTimeout(initChat, 50);
+        });
     }
 
-    // If chat view is already active on load (e.g. direct URL), init immediately
+    // If chat view is already active on load, init immediately
     const chatView = $id('chat');
     if (chatView && chatView.classList.contains('active')) {
+        console.log('[Chat] View already active on load.');
         initChat();
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startChatApp);
+} else {
+    startChatApp();
+}
 
 // ─── Called every time the chat view becomes visible ─────────────────────────
 async function initChat() {
-    if (!AUTH_TOKEN) return;
-    await loadUsers();
-    await Promise.all([loadInbox(), loadGroups()]);
-    chatInitialized = true;
+    if (!AUTH_TOKEN) { console.warn('[Chat] No auth token found.'); return; }
+    console.log('[Chat] Initializing chat...');
+    try {
+        await loadUsers();
+        await Promise.all([loadInbox(), loadGroups()]);
+        chatInitialized = true;
+        console.log('[Chat] Initialized successfully.');
+    } catch (err) {
+        console.error('[Chat] Init failure:', err);
+    }
 }
 
 // Fallback: also listen for dashboardViewChanged in case dashboard.js is loaded
@@ -577,3 +594,24 @@ function fmtMsgTime(ts) {
         return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     } catch(e) { return ''; }
 }
+// ─── Export to window for onclick handlers ───────────────────────────────────
+window.initChat             = initChat;
+window.openPrivateChat      = openPrivateChat;
+window.openGroupChat        = openGroupChat;
+window.sendMessage          = sendMessage;
+window.openNewDmModal       = openNewDmModal;
+window.selectDmUser         = selectDmUser;
+window.openCreateGroupModal = openCreateGroupModal;
+window.toggleGroupMember    = toggleGroupMember;
+window.createGroup          = createGroup;
+window.showGroupInfo        = showGroupInfo;
+window.openManageMembersModal = openManageMembersModal;
+window.toggleManageMember   = toggleManageMember;
+window.saveGroupMembers     = saveGroupMembers;
+window.openDissolveModal    = openDissolveModal;
+window.confirmDissolveGroup = confirmDissolveGroup;
+window.openModal            = openModal;
+window.closeModal           = closeModal;
+window.renderDmPicker       = renderDmPicker;
+window.renderGroupMemberPicker = renderGroupMemberPicker;
+window.renderManagePicker    = renderManagePicker;
