@@ -10,7 +10,8 @@
 
 /* ── Sidebar ── */
 .chat-sidebar {
-    width: 300px;
+    width: 320px;
+    min-width: 280px;
     flex-shrink: 0;
     background: rgba(8, 12, 24, 0.98);
     border-right: 1px solid var(--border-color);

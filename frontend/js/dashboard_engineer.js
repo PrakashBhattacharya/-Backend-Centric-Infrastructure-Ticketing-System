@@ -103,6 +103,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
+            const href = item.getAttribute('href');
+            // If it's a real link (not #), let the browser navigate normally
+            if (href && href !== '#') {
+                navItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                return; // don't prevent default — let browser follow the link
+            }
             e.preventDefault();
             const viewId = item.getAttribute('data-view');
             navItems.forEach(i => i.classList.remove('active'));

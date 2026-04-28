@@ -156,6 +156,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
+            const href = item.getAttribute('href');
+            if (href && href !== '#') {
+                navItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                return;
+            }
             e.preventDefault();
             const viewId = item.getAttribute('data-view');
             navItems.forEach(i => i.classList.remove('active'));
