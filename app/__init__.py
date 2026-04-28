@@ -74,6 +74,9 @@ def create_app(config_class=Config):
                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                     );
                 """)
+                cursor.execute("ALTER TABLE chat_groups ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';")
+                cursor.execute("ALTER TABLE chat_groups ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;")
+
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS chat_group_members (
                         id SERIAL PRIMARY KEY,
@@ -83,6 +86,8 @@ def create_app(config_class=Config):
                         UNIQUE(group_id, user_id)
                     );
                 """)
+                cursor.execute("ALTER TABLE chat_group_members ADD COLUMN IF NOT EXISTS joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;")
+
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS chat_messages (
                         id SERIAL PRIMARY KEY,
@@ -93,6 +98,9 @@ def create_app(config_class=Config):
                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                     );
                 """)
+                cursor.execute("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES chat_groups(id) ON DELETE CASCADE;")
+                cursor.execute("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS recipient_id INTEGER REFERENCES users(id);")
+                cursor.execute("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;")
                 conn.commit()
                 conn.close()
         except Exception as e:

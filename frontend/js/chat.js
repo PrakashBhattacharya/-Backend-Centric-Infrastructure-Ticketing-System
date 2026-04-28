@@ -2,7 +2,9 @@
 const AUTH_TOKEN = localStorage.getItem('auth_token');
 const MY_ID      = parseInt(localStorage.getItem('user_id'), 10);
 const MY_NAME    = localStorage.getItem('user_name') || 'Me';
-const MY_ROLE    = (localStorage.getItem('user_role') || 'member').toLowerCase();
+const MY_ROLE    = (localStorage.getItem('user_role') || localStorage.getItem('userRole') || 'member').toLowerCase();
+
+console.log('[Chat] App State:', { role: MY_ROLE, id: MY_ID, name: MY_NAME });
 
 function getBase() { return window.API_BASE || ''; }
 function authHeaders() {
