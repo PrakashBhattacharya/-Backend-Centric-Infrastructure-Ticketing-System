@@ -3,7 +3,7 @@
 .chat-app {
     display: flex;
     height: 100vh;
-    background: var(--bg-primary);
+    background: transparent;
     color: var(--text-primary);
     overflow: hidden;
 }
