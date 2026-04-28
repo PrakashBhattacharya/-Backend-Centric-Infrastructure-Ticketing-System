@@ -151,7 +151,7 @@ function renderInbox(convs) {
         const conv = convMap[u.id];
         return `
         <div class="chat-conv-item" data-type="private" data-id="${u.id}"
-             onclick="openPrivateChat(${u.id},${JSON.stringify(u.full_name)},${JSON.stringify(u.role)})">
+             onclick="openPrivateChat(${u.id}, ${esc(JSON.stringify(u.full_name))}, ${esc(JSON.stringify(u.role))})">
             <div class="chat-conv-avatar">${u.full_name[0].toUpperCase()}</div>
             <div class="chat-conv-info">
                 <div class="chat-conv-name">${esc(u.full_name)}</div>
@@ -193,7 +193,7 @@ function renderGroups(groups) {
     }
     el.innerHTML = groups.map(g => `
         <div class="chat-conv-item" data-type="group" data-id="${g.id}"
-             onclick="openGroupChat(${g.id},${JSON.stringify(g.name)},${g.member_count||0})">
+             onclick="openGroupChat(${g.id}, ${esc(JSON.stringify(g.name))}, ${g.member_count||0})">
             <div class="chat-conv-avatar group"><i class="fas fa-users" style="font-size:14px;"></i></div>
             <div class="chat-conv-info">
                 <div class="chat-conv-name">${esc(g.name)}</div>
@@ -456,7 +456,7 @@ async function showGroupInfo(groupId) {
             if (MY_ROLE==='admin') {
                 const f = document.createElement('div'); f.id='ginfo-dissolve-btn';
                 f.style.cssText='margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);';
-                f.innerHTML=`<button onclick="openDissolveModal(${groupId},'${esc(d.group.name)}')" style="width:100%;padding:9px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;color:#f87171;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;"><i class="fas fa-trash" style="margin-right:6px;"></i>Dissolve Group</button>`;
+                f.innerHTML=`<button onclick="openDissolveModal(${groupId}, ${esc(JSON.stringify(d.group.name))})" style="width:100%;padding:9px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;color:#f87171;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;"><i class="fas fa-trash" style="margin-right:6px;"></i>Dissolve Group</button>`;
                 me.after(f);
             }
         }
