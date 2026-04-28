@@ -84,11 +84,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadAll() {
+    // Show user info in debug bar
+    const debugUser = document.getElementById('debug-user');
+    const debugStatus = document.getElementById('debug-status');
+    if (debugUser) debugUser.textContent = `User: ${MY_NAME} | Role: ${MY_ROLE} | ID: ${MY_ID} | Token: ${AUTH_TOKEN ? AUTH_TOKEN.substring(0,20)+'...' : 'MISSING'}`;
+
+    // Show loading state
+    const dmList = document.getElementById('dm-list');
+    const grpList = document.getElementById('group-list');
+    if (dmList) dmList.innerHTML = '<div class="chat-list-empty" style="color:#f59e0b;">Loading...</div>';
+    if (grpList) grpList.innerHTML = '<div class="chat-list-empty" style="color:#f59e0b;">Loading...</div>';
+
     try {
         await loadUsers();
         await Promise.all([loadInbox(), loadGroups()]);
+        if (debugStatus) debugStatus.textContent = `✓ Loaded ${allUsers.length} users`;
+        if (debugStatus) debugStatus.style.color = '#10b981';
     } catch(e) {
         console.error('loadAll failed:', e);
+        if (debugStatus) { debugStatus.textContent = 'Error: ' + e.message; debugStatus.style.color = '#ef4444'; }
+        if (dmList) dmList.innerHTML = '<div class="chat-list-empty" style="color:#ef4444;">Error: ' + e.message + '</div>';
     }
 }
 
@@ -107,10 +122,20 @@ async function loadUsers() {
 async function loadInbox() {
     try {
         const r = await api('/api/chat/inbox');
-        if (!r.ok) { console.error('loadInbox HTTP', r.status); return; }
+        if (!r.ok) {
+            const txt = await r.text();
+            console.error('loadInbox HTTP', r.status, txt);
+            const el = document.getElementById('dm-list');
+            if (el) el.innerHTML = `<div class="chat-list-empty" style="color:#ef4444;">Error ${r.status}: ${txt.substring(0,100)}</div>`;
+            return;
+        }
         const d = await r.json();
         renderInbox(d.conversations || []);
-    } catch(e) { console.error('loadInbox:', e); }
+    } catch(e) {
+        console.error('loadInbox:', e);
+        const el = document.getElementById('dm-list');
+        if (el) el.innerHTML = `<div class="chat-list-empty" style="color:#ef4444;">Network error: ${e.message}</div>`;
+    }
 }
 
 function renderInbox(convs) {
@@ -137,10 +162,20 @@ function renderInbox(convs) {
 async function loadGroups() {
     try {
         const r = await api('/api/chat/groups');
-        if (!r.ok) { console.error('loadGroups HTTP', r.status); return; }
+        if (!r.ok) {
+            const txt = await r.text();
+            console.error('loadGroups HTTP', r.status, txt);
+            const el = document.getElementById('group-list');
+            if (el) el.innerHTML = `<div class="chat-list-empty" style="color:#ef4444;">Error ${r.status}: ${txt.substring(0,100)}</div>`;
+            return;
+        }
         const d = await r.json();
         renderGroups(d.groups || []);
-    } catch(e) { console.error('loadGroups:', e); }
+    } catch(e) {
+        console.error('loadGroups:', e);
+        const el = document.getElementById('group-list');
+        if (el) el.innerHTML = `<div class="chat-list-empty" style="color:#ef4444;">Network error: ${e.message}</div>`;
+    }
 }
 
 function renderGroups(groups) {

@@ -26,6 +26,12 @@
             </button>
         </div>
 
+        <!-- Debug bar — shows current user, removed after confirming it works -->
+        <div id="chat-debug-bar" style="padding:8px 16px;background:rgba(34,211,238,0.08);border-bottom:1px solid rgba(34,211,238,0.15);font-size:11px;color:#64748b;display:flex;gap:12px;align-items:center;">
+            <span id="debug-user">Loading...</span>
+            <span id="debug-status" style="margin-left:auto;color:#f59e0b;">Connecting...</span>
+        </div>
+
         <!-- Tab switcher -->
         <div class="chat-tabs">
             <button class="chat-tab active" data-tab="private">
