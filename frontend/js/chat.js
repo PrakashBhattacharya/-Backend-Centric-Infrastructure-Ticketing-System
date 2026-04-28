@@ -569,8 +569,28 @@ async function confirmDissolveGroup() {
 }
 
 // ─── Modal helpers ────────────────────────────────────────────────────────────
-function openModal(id)  { const el = $id(id); if (el) el.style.display = 'flex'; }
-function closeModal(id) { const el = $id(id); if (el) el.style.display = 'none'; }
+function openModal(id)  {
+    const el = $id(id);
+    if (el) {
+        el.classList.add('active');
+        console.log(`[Chat] Modal opened: ${id}`);
+    }
+}
+function closeModal(id) {
+    const el = $id(id);
+    if (el) {
+        el.classList.remove('active');
+        console.log(`[Chat] Modal closed: ${id}`);
+    }
+}
+
+// Close modals when clicking backdrop
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('chat-modal')) {
+        e.target.classList.remove('active');
+        console.log('[Chat] Modal backdrop clicked - closing.');
+    }
+});
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 function esc(str) {
