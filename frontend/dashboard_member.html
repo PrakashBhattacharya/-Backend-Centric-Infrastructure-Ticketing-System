@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InfraTick - Member Dashboard</title>
     <link rel="stylesheet" href="dashboard.css?v=1.1">
+    <link rel="stylesheet" href="chat.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -279,12 +280,12 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div></div>
+
 
             <!-- VIEW: CHAT -->
             <div id="chat" class="dashboard-view">
                 <div class="chat-embed-wrap">
-                    <!-- Sidebar: conversations -->
                     <div class="chat-embed-sidebar">
                         <div class="chat-embed-tabs">
                             <button class="chat-tab active" data-tab="private"><i class="fas fa-user"></i> Direct</button>
@@ -300,11 +301,11 @@
                         <div id="tab-groups" class="chat-tab-content">
                             <div class="chat-list-header">
                                 <span>Group Chats</span>
+                                <button class="chat-new-btn" id="new-group-btn" title="Create group" style="display:none;"><i class="fas fa-plus"></i></button>
                             </div>
                             <div class="chat-list" id="group-list"><div class="chat-list-empty">No groups yet.</div></div>
                         </div>
                     </div>
-                    <!-- Main: messages -->
                     <div class="chat-embed-main">
                         <div class="chat-empty-state" id="chat-empty">
                             <div class="chat-empty-icon"><i class="fas fa-comments"></i></div>
@@ -316,8 +317,8 @@
                                 <div class="chat-header-info">
                                     <div class="chat-header-avatar" id="chat-avatar">?</div>
                                     <div>
-                                        <div class="chat-header-name" id="chat-name">—</div>
-                                        <div class="chat-header-sub" id="chat-sub">—</div>
+                                        <div class="chat-header-name" id="chat-name">&#8212;</div>
+                                        <div class="chat-header-sub" id="chat-sub">&#8212;</div>
                                     </div>
                                 </div>
                                 <div class="chat-header-actions">
@@ -327,7 +328,7 @@
                             <div class="chat-messages" id="chat-messages"></div>
                             <div class="chat-input-area">
                                 <div class="chat-input-wrap">
-                                    <textarea id="chat-input" placeholder="Type a message… (Enter to send)" rows="1"></textarea>
+                                    <textarea id="chat-input" placeholder="Type a message... (Enter to send)" rows="1"></textarea>
                                     <button class="chat-send-btn" id="send-btn"><i class="fas fa-paper-plane"></i></button>
                                 </div>
                             </div>
@@ -1037,32 +1038,29 @@
             </div>
         </div>
     </div>
-
-
-    <!-- ── Chat Modals ── -->
+    <!-- Chat Modals -->
     <div id="new-dm-modal" class="modal">
         <div class="modal-content" style="max-width:440px;">
             <div class="modal-header">
-                <h3><i class="fas fa-user" style="color:var(--accent-blue);margin-right:8px;"></i>New Direct Message</h3>
+                <h3>New Direct Message</h3>
                 <button class="close-btn" onclick="closeModal('new-dm-modal')">&times;</button>
             </div>
             <div class="modal-body">
-                <input type="text" id="user-search" placeholder="Search by name or role…"
+                <input type="text" id="user-search" placeholder="Search by name or role..."
                     style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;margin-bottom:12px;">
                 <div id="user-list" class="chat-user-picker"></div>
             </div>
         </div>
     </div>
-
     <div id="create-group-modal" class="modal">
         <div class="modal-content" style="max-width:500px;">
             <div class="modal-header">
-                <h3><i class="fas fa-users" style="color:var(--accent-blue);margin-right:8px;"></i>Create Group Chat</h3>
+                <h3>Create Group Chat</h3>
                 <button class="close-btn" onclick="closeModal('create-group-modal')">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label>Group Name <span style="color:#ef4444;">*</span></label>
+                    <label>Group Name *</label>
                     <input type="text" id="group-name" placeholder="e.g. Incident Response Team"
                         style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;">
                 </div>
@@ -1072,8 +1070,8 @@
                         style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;">
                 </div>
                 <div class="form-group">
-                    <label>Add Members <span style="color:#ef4444;">*</span></label>
-                    <input type="text" id="group-member-search" placeholder="Search users…"
+                    <label>Add Members *</label>
+                    <input type="text" id="group-member-search" placeholder="Search users..."
                         style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;margin-bottom:10px;">
                     <div id="group-member-list" class="chat-user-picker"></div>
                     <div id="selected-members" class="chat-selected-members"></div>
@@ -1081,11 +1079,10 @@
             </div>
             <div class="modal-footer" style="display:flex;gap:10px;">
                 <button class="secondary-btn" onclick="closeModal('create-group-modal')" style="flex:1;">Cancel</button>
-                <button class="primary-btn" onclick="createGroup()" style="flex:1;"><i class="fas fa-plus"></i> Create Group</button>
+                <button class="primary-btn" onclick="createGroup()" style="flex:1;">Create Group</button>
             </div>
         </div>
     </div>
-
     <div id="group-info-modal" class="modal">
         <div class="modal-content" style="max-width:480px;">
             <div class="modal-header">
@@ -1095,39 +1092,35 @@
             <div class="modal-body">
                 <p id="ginfo-desc" style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;"></p>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-secondary);">Members</div>
-                    <button id="ginfo-manage-btn" class="primary-btn" style="display:none;padding:5px 14px;font-size:12px;" onclick="openManageMembersModal()">
-                        <i class="fas fa-user-cog"></i> Manage
-                    </button>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-secondary);">Members</div>
+                    <button id="ginfo-manage-btn" class="primary-btn" style="display:none;padding:5px 14px;font-size:12px;" onclick="openManageMembersModal()">Manage</button>
                 </div>
                 <div id="ginfo-members"></div>
             </div>
         </div>
     </div>
-
     <div id="manage-members-modal" class="modal">
         <div class="modal-content" style="max-width:500px;">
             <div class="modal-header">
-                <h3><i class="fas fa-user-cog" style="color:var(--accent-blue);margin-right:8px;"></i>Manage Members</h3>
+                <h3>Manage Members</h3>
                 <button class="close-btn" onclick="closeModal('manage-members-modal')">&times;</button>
             </div>
             <div class="modal-body">
-                <input type="text" id="manage-member-search" placeholder="Search users to add…"
+                <input type="text" id="manage-member-search" placeholder="Search users..."
                     style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;margin-bottom:10px;">
                 <div id="manage-member-list" class="chat-user-picker"></div>
                 <div id="manage-selected-members" class="chat-selected-members" style="margin-top:10px;"></div>
             </div>
             <div class="modal-footer" style="display:flex;gap:10px;">
                 <button class="secondary-btn" onclick="closeModal('manage-members-modal')" style="flex:1;">Cancel</button>
-                <button class="primary-btn" onclick="saveGroupMembers()" style="flex:1;"><i class="fas fa-save"></i> Save Changes</button>
+                <button class="primary-btn" onclick="saveGroupMembers()" style="flex:1;">Save Changes</button>
             </div>
         </div>
     </div>
-
     <div id="dissolve-group-modal" class="modal">
         <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
-                <h3 style="color:#ef4444;"><i class="fas fa-trash" style="margin-right:8px;"></i>Dissolve Group</h3>
+                <h3>Dissolve Group</h3>
                 <button class="close-btn" onclick="closeModal('dissolve-group-modal')">&times;</button>
             </div>
             <div class="modal-body">
@@ -1138,9 +1131,7 @@
             </div>
             <div class="modal-footer" style="display:flex;gap:10px;">
                 <button class="secondary-btn" onclick="closeModal('dissolve-group-modal')" style="flex:1;">Cancel</button>
-                <button class="primary-btn" onclick="confirmDissolveGroup()" style="flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);">
-                    <i class="fas fa-trash"></i> Dissolve
-                </button>
+                <button class="primary-btn" onclick="confirmDissolveGroup()" style="flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);">Dissolve</button>
             </div>
         </div>
     </div>
