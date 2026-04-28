@@ -46,12 +46,9 @@
         <div id="tab-private" class="chat-tab-content active">
             <div class="chat-list-header">
                 <span>Direct Messages</span>
-                <button class="chat-new-btn" id="new-dm-btn" title="New message">
-                    <i class="fas fa-plus"></i>
-                </button>
             </div>
             <div class="chat-list" id="dm-list">
-                <div class="chat-list-empty">No conversations yet.<br>Click + to start one.</div>
+                <div class="chat-list-empty">Loading...</div>
             </div>
         </div>
 
@@ -82,6 +79,9 @@
         <div class="chat-window" id="chat-window" style="display:none;">
             <div class="chat-window-header" id="chat-header">
                 <div class="chat-header-info">
+                    <button class="chat-mobile-back chat-icon-btn" onclick="closeChatMobile()" title="Back" style="display:none;margin-right:8px;">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
                     <div class="chat-header-avatar" id="chat-avatar">?</div>
                     <div>
                         <div class="chat-header-name" id="chat-name">—</div>

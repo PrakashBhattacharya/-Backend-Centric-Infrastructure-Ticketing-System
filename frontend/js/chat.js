@@ -58,10 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Wire up + buttons
-    const dmBtn = document.getElementById('new-dm-btn');
-    if (dmBtn) dmBtn.addEventListener('click', openNewDmModal);
-
+    // Wire up + buttons (group creation for admin only)
     if (MY_ROLE === 'admin') {
         if (groupBtn) groupBtn.addEventListener('click', openCreateGroupModal);
         const gms = document.getElementById('group-member-search');
@@ -100,8 +97,7 @@ async function loadAll() {
         await Promise.all([loadInbox(), loadGroups()]);
         if (debugStatus) debugStatus.textContent = `✓ Loaded ${allUsers.length} users`;
         if (debugStatus) debugStatus.style.color = '#10b981';
-    } catch(e) {
-        console.error('loadAll failed:', e);
+    } catch(e) {        console.error('loadAll failed:', e);
         if (debugStatus) { debugStatus.textContent = 'Error: ' + e.message; debugStatus.style.color = '#ef4444'; }
         if (dmList) dmList.innerHTML = '<div class="chat-list-empty" style="color:#ef4444;">Error: ' + e.message + '</div>';
     }
@@ -141,20 +137,29 @@ async function loadInbox() {
 function renderInbox(convs) {
     const el = document.getElementById('dm-list');
     if (!el) return;
-    if (!convs.length) {
-        el.innerHTML = '<div class="chat-list-empty">No conversations yet.<br>Click <b>+</b> to start one.</div>';
+
+    // Always show all users, with existing conversations highlighted
+    const convMap = {};
+    convs.forEach(c => { convMap[c.other_id] = c; });
+
+    if (!allUsers.length) {
+        el.innerHTML = '<div class="chat-list-empty">No users found.</div>';
         return;
     }
-    el.innerHTML = convs.map(c => `
-        <div class="chat-conv-item" data-type="private" data-id="${c.other_id}"
-             onclick="openPrivateChat(${c.other_id},${JSON.stringify(c.other_name)},${JSON.stringify(c.other_role)})">
-            <div class="chat-conv-avatar">${(c.other_name||'?')[0].toUpperCase()}</div>
+
+    el.innerHTML = allUsers.map(u => {
+        const conv = convMap[u.id];
+        return `
+        <div class="chat-conv-item" data-type="private" data-id="${u.id}"
+             onclick="openPrivateChat(${u.id},${JSON.stringify(u.full_name)},${JSON.stringify(u.role)})">
+            <div class="chat-conv-avatar">${u.full_name[0].toUpperCase()}</div>
             <div class="chat-conv-info">
-                <div class="chat-conv-name">${esc(c.other_name)}</div>
-                <div class="chat-conv-preview">${esc(c.last_text||'')}</div>
+                <div class="chat-conv-name">${esc(u.full_name)}</div>
+                <div class="chat-conv-preview">${conv ? esc(conv.last_text||'') : '<span style="color:var(--text-secondary);font-style:italic;">'+u.role+'</span>'}</div>
             </div>
-            <div class="chat-conv-meta">${fmtTime(c.last_at)}</div>
-        </div>`).join('');
+            <div class="chat-conv-meta">${conv ? fmtTime(conv.last_at) : ''}</div>
+        </div>`;
+    }).join('');
     markActive();
 }
 
@@ -212,6 +217,9 @@ async function openPrivateChat(userId, userName, userRole) {
     setClass('chat-avatar', 'chat-header-avatar');
     const ib = document.getElementById('chat-info-btn'); if (ib) ib.onclick = null;
     setHtml('chat-messages', '');
+    // Hide sidebar on mobile
+    const sidebar = document.querySelector('.chat-sidebar');
+    if (sidebar && window.innerWidth <= 700) sidebar.classList.add('hidden');
     markActive();
     await fetchMsgs();
     startPoll();
@@ -229,9 +237,21 @@ async function openGroupChat(groupId, groupName, memberCount) {
     setClass('chat-avatar', 'chat-header-avatar group');
     const ib = document.getElementById('chat-info-btn'); if (ib) ib.onclick = () => showGroupInfo(groupId);
     setHtml('chat-messages', '');
+    // Hide sidebar on mobile
+    const sidebar = document.querySelector('.chat-sidebar');
+    if (sidebar && window.innerWidth <= 700) sidebar.classList.add('hidden');
     markActive();
     await fetchMsgs();
     startPoll();
+}
+
+function closeChatMobile() {
+    const sidebar = document.querySelector('.chat-sidebar');
+    if (sidebar) sidebar.classList.remove('hidden');
+    stopPoll();
+    activeChat = null;
+    hide('chat-window');
+    show('chat-empty');
 }
 
 function markActive() {
