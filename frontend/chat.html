@@ -164,8 +164,57 @@
         </div>
         <div class="modal-body">
             <p id="ginfo-desc" style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;"></p>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-secondary);margin-bottom:10px;">Members</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-secondary);">Members</div>
+                <button id="ginfo-manage-btn" class="primary-btn" style="display:none;padding:5px 14px;font-size:12px;" onclick="openManageMembersModal()">
+                    <i class="fas fa-user-cog"></i> Manage
+                </button>
+            </div>
             <div id="ginfo-members"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Manage Members Modal (admin only) ── -->
+<div id="manage-members-modal" class="modal">
+    <div class="modal-content" style="max-width:500px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-cog" style="color:var(--accent-blue);margin-right:8px;"></i>Manage Members</h3>
+            <button class="close-btn" onclick="closeModal('manage-members-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="text" id="manage-member-search" placeholder="Search users…"
+                style="width:100%;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;margin-bottom:10px;">
+            <div id="manage-member-list" class="chat-user-picker"></div>
+            <div id="manage-selected-members" class="chat-selected-members" style="margin-top:10px;"></div>
+        </div>
+        <div class="modal-footer" style="display:flex;gap:10px;">
+            <button class="secondary-btn" onclick="closeModal('manage-members-modal')" style="flex:1;">Cancel</button>
+            <button class="primary-btn" onclick="saveGroupMembers()" style="flex:1;">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Dissolve Group Modal (admin only) ── -->
+<div id="dissolve-group-modal" class="modal">
+    <div class="modal-content" style="max-width:420px;">
+        <div class="modal-header">
+            <h3 style="color:#ef4444;"><i class="fas fa-trash" style="margin-right:8px;"></i>Dissolve Group</h3>
+            <button class="close-btn" onclick="closeModal('dissolve-group-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;">
+                Are you sure you want to dissolve <strong id="dissolve-group-name"></strong>?
+                This will permanently delete the group and all its messages.
+            </p>
+        </div>
+        <div class="modal-footer" style="display:flex;gap:10px;">
+            <button class="secondary-btn" onclick="closeModal('dissolve-group-modal')" style="flex:1;">Cancel</button>
+            <button class="primary-btn" onclick="confirmDissolveGroup()" style="flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);">
+                <i class="fas fa-trash"></i> Dissolve
+            </button>
         </div>
     </div>
 </div>
