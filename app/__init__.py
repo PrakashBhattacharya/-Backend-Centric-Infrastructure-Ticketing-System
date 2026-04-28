@@ -64,6 +64,35 @@ def create_app(config_class=Config):
                 """)
                 # Add rejection_note column to tickets if missing
                 cursor.execute("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS rejection_note TEXT NOT NULL DEFAULT '';")
+                # Create chat tables
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS chat_groups (
+                        id SERIAL PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        description TEXT NOT NULL DEFAULT '',
+                        created_by INTEGER NOT NULL REFERENCES users(id),
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    );
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS chat_group_members (
+                        id SERIAL PRIMARY KEY,
+                        group_id INTEGER NOT NULL REFERENCES chat_groups(id) ON DELETE CASCADE,
+                        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                        joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(group_id, user_id)
+                    );
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS chat_messages (
+                        id SERIAL PRIMARY KEY,
+                        sender_id INTEGER NOT NULL REFERENCES users(id),
+                        group_id INTEGER REFERENCES chat_groups(id) ON DELETE CASCADE,
+                        recipient_id INTEGER REFERENCES users(id),
+                        text TEXT NOT NULL,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    );
+                """)
                 conn.commit()
                 conn.close()
         except Exception as e:
@@ -72,10 +101,12 @@ def create_app(config_class=Config):
     from .routes.auth import auth_bp
     from .routes.dashboard import dashboard_bp
     from .routes.tickets import tickets_bp
+    from .routes.chat import chat_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(tickets_bp)
+    app.register_blueprint(chat_bp)
 
     # API Health Check
     @app.route('/api/status', methods=['GET'])

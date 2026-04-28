@@ -26,7 +26,7 @@
       "dest": "/frontend/js/$1"
     },
     {
-      "src": "/(dashboard\\.css|login\\.css|signup\\.css)",
+      "src": "/(dashboard\\.css|login\\.css|signup\\.css|chat\\.css)",
       "dest": "/frontend/$1"
     },
     {
