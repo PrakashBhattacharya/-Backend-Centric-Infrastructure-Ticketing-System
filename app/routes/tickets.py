@@ -9,7 +9,8 @@ from ..models import (
     update_ticket_status, assign_ticket, add_comment, get_comments,
     approve_ticket, reject_ticket,
     request_sla_extension, get_sla_extension_requests,
-    approve_sla_extension, reject_sla_extension
+    approve_sla_extension, reject_sla_extension,
+    add_attachment, get_ticket_attachments, get_attachment_data
 )
 
 tickets_bp = Blueprint('tickets', __name__, url_prefix='/api/tickets')
@@ -17,17 +18,29 @@ tickets_bp = Blueprint('tickets', __name__, url_prefix='/api/tickets')
 @tickets_bp.route('', methods=['POST'])
 @token_required
 def submit_ticket(current_user):
-    data = request.json
+    data = request.json or {}
     subject = data.get('subject')
     description = data.get('description', '')
     service_area = data.get('serviceArea', 'Other')
     environment = data.get('environment', 'Production')
     priority = data.get('priority', 'Medium')
+    file_name = data.get('fileName')
+    file_type = data.get('fileType', 'application/octet-stream')
+    file_data = data.get('fileData')
 
     if not subject:
         return jsonify({'success': False, 'message': 'Subject is required'}), 400
 
     ticket = create_ticket(subject, description, service_area, environment, priority, current_user['id'])
+    if not ticket:
+        return jsonify({'success': False, 'message': 'Failed to create ticket'}), 500
+
+    if file_name and file_data:
+        try:
+            add_attachment(ticket['id'], current_user['id'], file_name, file_type, file_data)
+        except Exception as e:
+            print(f"[ATTACHMENT] Failed to save attachment: {e}")
+
     return jsonify({'success': True, 'ticket': ticket}), 201
 
 @tickets_bp.route('/my', methods=['GET'])
@@ -51,12 +64,12 @@ def get_ticket(current_user, ticket_id):
     if not ticket:
         return jsonify({'message': 'Ticket not found'}), 404
     
-    # Simple ACL: members can only see their own tickets
     if current_user['role'] == 'member' and ticket['created_by'] != current_user['id']:
         return jsonify({'message': 'Unauthorized'}), 403
         
     comments = get_comments(ticket_id)
-    return jsonify({'success': True, 'ticket': ticket, 'comments': comments})
+    attachments = get_ticket_attachments(ticket_id)
+    return jsonify({'success': True, 'ticket': ticket, 'comments': comments, 'attachments': attachments})
 
 @tickets_bp.route('/<int:ticket_id>/status', methods=['PUT'])
 @token_required
@@ -137,6 +150,46 @@ def post_comment(current_user, ticket_id):
     
     add_comment(ticket_id, current_user['id'], text)
     return jsonify({'success': True})
+
+# ─── Attachment Endpoints ─────────────────────────────────────────────────────
+
+@tickets_bp.route('/<int:ticket_id>/attachments', methods=['POST'])
+@token_required
+def upload_attachment(current_user, ticket_id):
+    """Engineer attaches a file when submitting for approval."""
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket:
+        return jsonify({'message': 'Ticket not found'}), 404
+    
+    # Only assigned engineer or ticket creator can attach files
+    if current_user['role'] == 'engineer' and ticket.get('assigned_to') != current_user['id']:
+        return jsonify({'message': 'You can only attach files to tickets assigned to you.'}), 403
+    if current_user['role'] == 'member' and ticket.get('created_by') != current_user['id']:
+        return jsonify({'message': 'You can only attach files to your own tickets.'}), 403
+
+    data = request.json or {}
+    file_name = data.get('fileName')
+    file_type = data.get('fileType', 'application/octet-stream')
+    file_data = data.get('fileData')
+
+    if not file_name or not file_data:
+        return jsonify({'message': 'File name and data are required.'}), 400
+
+    try:
+        add_attachment(ticket_id, current_user['id'], file_name, file_type, file_data)
+        return jsonify({'success': True}), 201
+    except Exception as e:
+        print(f"[ATTACHMENT] Error: {e}")
+        return jsonify({'message': 'Failed to save attachment.'}), 500
+
+@tickets_bp.route('/attachments/<int:attachment_id>', methods=['GET'])
+@token_required
+def download_attachment(current_user, attachment_id):
+    """Download an attachment (returns base64 data for client-side decoding)."""
+    attachment = get_attachment_data(attachment_id)
+    if not attachment:
+        return jsonify({'message': 'Attachment not found.'}), 404
+    return jsonify({'success': True, 'attachment': attachment})
 
 # ─── SLA Extension Endpoints ─────────────────────────────────────────────────
 

@@ -24,6 +24,9 @@ def create_app(config_class=Config):
     # Initialize CORS
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+    # Allow up to 20MB request bodies (base64 overhead: 10MB file → ~14MB encoded)
+    app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
+
     # Run DB migrations on startup (idempotent — safe to run every cold start)
     with app.app_context():
         try:
@@ -64,6 +67,18 @@ def create_app(config_class=Config):
                 """)
                 # Add rejection_note column to tickets if missing
                 cursor.execute("ALTER TABLE tickets ADD COLUMN IF NOT EXISTS rejection_note TEXT NOT NULL DEFAULT '';")
+                # Create ticket_attachments table
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS ticket_attachments (
+                        id SERIAL PRIMARY KEY,
+                        ticket_id INTEGER NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+                        user_id INTEGER NOT NULL REFERENCES users(id),
+                        file_name TEXT NOT NULL,
+                        mime_type TEXT NOT NULL DEFAULT 'application/octet-stream',
+                        file_data TEXT NOT NULL,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    );
+                """)
                 # Create chat tables
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS chat_groups (

@@ -634,6 +634,38 @@ def reject_sla_extension(request_id, admin_id, admin_note=''):
     )
     return True, None
 
+# ─── Ticket Attachments ──────────────────────────────────────────────────────
+
+def add_attachment(ticket_id, user_id, file_name, mime_type, file_data):
+    """Store a base64-encoded file attachment for a ticket."""
+    execute_query(
+        "INSERT INTO ticket_attachments (ticket_id, user_id, file_name, mime_type, file_data) "
+        "VALUES (%s, %s, %s, %s, %s)",
+        (ticket_id, user_id, file_name, mime_type, file_data), commit=True
+    )
+    execute_query(
+        "INSERT INTO audit_logs (action, details, icon, color, user_id, ticket_id) VALUES (%s,%s,%s,%s,%s,%s)",
+        ('File Attached', f'Attached {file_name} to ticket #{ticket_id}',
+         'fa-paperclip', '#6b7280', user_id, ticket_id), commit=True
+    )
+
+def get_ticket_attachments(ticket_id):
+    """Return attachment metadata (no file_data) for a ticket."""
+    rows = execute_query(
+        "SELECT a.id, a.file_name, a.mime_type, a.created_at, a.user_id, u.full_name as user_name "
+        "FROM ticket_attachments a JOIN users u ON a.user_id = u.id "
+        "WHERE a.ticket_id = %s ORDER BY a.created_at ASC",
+        (ticket_id,)
+    ) or []
+    return rows
+
+def get_attachment_data(attachment_id):
+    """Return the full attachment including base64 file_data."""
+    return execute_query(
+        "SELECT id, file_name, mime_type, file_data FROM ticket_attachments WHERE id = %s",
+        (attachment_id,), fetchone=True
+    )
+
 def get_engineer_stats(uid):
     now = datetime.utcnow()
     now_str = now.strftime('%Y-%m-%d %H:%M:%S')
