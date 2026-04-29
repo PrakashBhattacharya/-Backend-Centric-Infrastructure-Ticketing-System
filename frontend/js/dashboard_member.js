@@ -176,11 +176,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // 1. Resolution Velocity Chart (Bar) — upgraded to modern SaaS style
+    // 1. Resolution Velocity Chart (Bar) — upgraded with gradients
     const ctxMember = document.getElementById('memberChart');
     if (ctxMember) {
         const ctx = ctxMember.getContext('2d');
         
+        // Define Gradients
+        const gradCrit = ctx.createLinearGradient(0, 0, 0, 400);
+        gradCrit.addColorStop(0, '#f87171'); gradCrit.addColorStop(1, 'rgba(248, 113, 113, 0.1)');
+        
+        const gradHigh = ctx.createLinearGradient(0, 0, 0, 400);
+        gradHigh.addColorStop(0, '#fbbf24'); gradHigh.addColorStop(1, 'rgba(251, 191, 36, 0.1)');
+        
+        const gradMed = ctx.createLinearGradient(0, 0, 0, 400);
+        gradMed.addColorStop(0, '#3b82f6'); gradMed.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
+        
+        const gradLow = ctx.createLinearGradient(0, 0, 0, 400);
+        gradLow.addColorStop(0, '#94a3b8'); gradLow.addColorStop(1, 'rgba(148, 163, 184, 0.1)');
+
         new Chart(ctx, {
             type: 'bar',
             data: {
@@ -188,11 +201,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 datasets: [{
                     label: 'TICKETS',
                     data: dbData.priorityData,
-                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#64748b'],
-                    hoverBackgroundColor: ['#f87171', '#fbbf24', '#60a5fa', '#94a3b8'],
-                    borderRadius: 6,
-                    barThickness: 'flex',
-                    maxBarThickness: 32
+                    backgroundColor: [gradCrit, gradHigh, gradMed, gradLow],
+                    borderColor: ['#f87171', '#fbbf24', '#3b82f6', '#94a3b8'],
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    hoverBorderWidth: 2
                 }]
             },
             options: {
@@ -201,12 +214,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 scales: {
                     y: { 
                         beginAtZero: true, 
-                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, 
-                        ticks: { color: '#64748b', stepSize: 1, font: { size: 11 } } 
+                        grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, 
+                        ticks: { color: '#64748b', stepSize: 1, font: { size: 10 } } 
                     },
                     x: { 
                         grid: { display: false }, 
-                        ticks: { color: '#64748b', font: { weight: '500', size: 11 } } 
+                        ticks: { color: '#94a3b8', font: { weight: '600', size: 10 } } 
                     }
                 }
             }
@@ -216,20 +229,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Priority Breakdown Chart (Donut)
     const ctxPriority = document.getElementById('priorityChart');
     if (ctxPriority) {
-        new Chart(ctxPriority.getContext('2d'), {
+        const ctx = ctxPriority.getContext('2d');
+        
+        // Define Donut Gradients for professional look
+        const gradCritD = ctx.createLinearGradient(0, 0, 0, 300);
+        gradCritD.addColorStop(0, '#f87171'); gradCritD.addColorStop(1, '#dc2626');
+        
+        const gradHighD = ctx.createLinearGradient(0, 0, 0, 300);
+        gradHighD.addColorStop(0, '#fbbf24'); gradHighD.addColorStop(1, '#d97706');
+        
+        const gradMedD = ctx.createLinearGradient(0, 0, 0, 300);
+        gradMedD.addColorStop(0, '#60a5fa'); gradMedD.addColorStop(1, '#2563eb');
+        
+        const gradLowD = ctx.createLinearGradient(0, 0, 0, 300);
+        gradLowD.addColorStop(0, '#94a3b8'); gradLowD.addColorStop(1, '#475569');
+
+        new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['Critical', 'High', 'Medium', 'Low'],
                 datasets: [{
                     data: dbData.priorityData,
-                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#64748b'],
-                    borderWidth: 0,
-                    hoverOffset: 4
+                    backgroundColor: [gradCritD, gradHighD, gradMedD, gradLowD],
+                    borderColor: '#0a0c14',
+                    borderWidth: 3,
+                    hoverOffset: 12
                 }]
             },
             options: { 
                 ...commonOptions, 
-                cutout: '80%',
+                cutout: '75%',
                 plugins: {
                     ...commonOptions.plugins,
                     legend: { ...commonOptions.plugins.legend, position: 'right' }
@@ -274,24 +303,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 4. SLA Status Chart (Donut) — Corrected logic for ALL tickets
     const ctxSla = document.getElementById('slaDonutChart');
     if (ctxSla) {
+        const ctx = ctxSla.getContext('2d');
         const total = dbData.total || 0;
         const breached = dbData.breached || 0;
         const met = Math.max(0, total - breached);
         
-        new Chart(ctxSla.getContext('2d'), {
+        const gradMetD = ctx.createLinearGradient(0, 0, 0, 300);
+        gradMetD.addColorStop(0, '#34d399'); gradMetD.addColorStop(1, '#059669');
+        
+        const gradBreachedD = ctx.createLinearGradient(0, 0, 0, 300);
+        gradBreachedD.addColorStop(0, '#f87171'); gradBreachedD.addColorStop(1, '#dc2626');
+
+        new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['Met SLA', 'Breached'],
                 datasets: [{
                     data: [met, breached],
-                    backgroundColor: ['#10b981', '#ef4444'],
-                    borderWidth: 0,
-                    hoverOffset: 4
+                    backgroundColor: [gradMetD, gradBreachedD],
+                    borderColor: '#0a0c14',
+                    borderWidth: 3,
+                    hoverOffset: 12
                 }]
             },
             options: { 
                 ...commonOptions, 
-                cutout: '80%',
+                cutout: '75%',
                 plugins: {
                     ...commonOptions.plugins,
                     legend: { ...commonOptions.plugins.legend, position: 'right' }

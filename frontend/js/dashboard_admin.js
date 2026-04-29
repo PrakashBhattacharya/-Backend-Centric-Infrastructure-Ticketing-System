@@ -621,23 +621,34 @@ function initCharts(data) {
         if (existingChart) existingChart.destroy();
     });
 
-    // 1. SLA Compliance Chart (Donut) — Enhanced with real data
+    // 1. SLA Compliance Chart (Donut) — Enhanced with real data and attractive gradients
     const ctxSla = document.getElementById('slaComplianceChart');
     if (ctxSla) {
-        new Chart(ctxSla, {
+        const ctx = ctxSla.getContext('2d');
+        const gradComp = ctx.createLinearGradient(0, 0, 0, 300);
+        gradComp.addColorStop(0, '#34d399'); gradComp.addColorStop(1, '#059669');
+        
+        const gradNear = ctx.createLinearGradient(0, 0, 0, 300);
+        gradNear.addColorStop(0, '#fbbf24'); gradNear.addColorStop(1, '#d97706');
+        
+        const gradBreach = ctx.createLinearGradient(0, 0, 0, 300);
+        gradBreach.addColorStop(0, '#f87171'); gradBreach.addColorStop(1, '#dc2626');
+
+        new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['Compliant', 'Near Breach', 'Breached'],
                 datasets: [{
                     data: data.slaComplianceData || [0, 0, 0],
-                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-                    borderWidth: 0,
-                    hoverOffset: 4
+                    backgroundColor: [gradComp, gradNear, gradBreach],
+                    borderColor: '#0a0c14',
+                    borderWidth: 3,
+                    hoverOffset: 12
                 }]
             },
             options: { 
                 ...commonOptions, 
-                cutout: '80%',
+                cutout: '75%',
                 plugins: {
                     ...commonOptions.plugins,
                     legend: { ...commonOptions.plugins.legend, position: 'right' }
@@ -741,23 +752,37 @@ function initCharts(data) {
         });
     }
 
-    // 5. Regional Load Chart (Doughnut) — Mapped Real Data
+    // 5. Regional Load Chart (Doughnut) — Mapped Real Data and attractive gradients
     const ctxRegion = document.getElementById('regionLoadChart');
     if (ctxRegion) {
-        new Chart(ctxRegion, {
+        const ctx = ctxRegion.getContext('2d');
+        const gradAm = ctx.createLinearGradient(0, 0, 0, 300);
+        gradAm.addColorStop(0, '#60a5fa'); gradAm.addColorStop(1, '#2563eb');
+        
+        const gradEu = ctx.createLinearGradient(0, 0, 0, 300);
+        gradEu.addColorStop(0, '#34d399'); gradEu.addColorStop(1, '#059669');
+        
+        const gradAp = ctx.createLinearGradient(0, 0, 0, 300);
+        gradAp.addColorStop(0, '#fbbf24'); gradAp.addColorStop(1, '#d97706');
+        
+        const gradGl = ctx.createLinearGradient(0, 0, 0, 300);
+        gradGl.addColorStop(0, '#94a3b8'); gradGl.addColorStop(1, '#475569');
+
+        new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['Americas (Prod)', 'Europe (Stage)', 'Asia-Pac (Dev)', 'Global (Edge)'],
                 datasets: [{
                     data: data.regionLoadData || [0, 0, 0, 0],
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#94a3b8'],
-                    borderWidth: 0,
-                    hoverOffset: 4
+                    backgroundColor: [gradAm, gradEu, gradAp, gradGl],
+                    borderColor: '#0a0c14',
+                    borderWidth: 3,
+                    hoverOffset: 12
                 }]
             },
             options: { 
                 ...commonOptions, 
-                cutout: '80%', 
+                cutout: '75%', 
                 plugins: { 
                     ...commonOptions.plugins, 
                     legend: { 
