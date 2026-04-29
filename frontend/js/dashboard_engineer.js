@@ -611,15 +611,15 @@ window.submitForApproval = async function() {
     let fileType = null;
     let fileData = null;
 
+    // Read file if one was selected (optional)
     if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        if (file.size > 10 * 1024 * 1024) {
-            errEl.textContent = 'File size must be less than 10MB.';
+        if (file.size > 3 * 1024 * 1024) {
+            errEl.textContent = 'File size must be less than 3MB (Vercel limit).';
             return;
         }
         fileName = file.name;
         fileType = file.type || 'application/octet-stream';
-        
         try {
             fileData = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -634,47 +634,43 @@ window.submitForApproval = async function() {
     }
     
     errEl.textContent = '';
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-    }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...'; }
 
     try {
-        const payload = { submitForApproval: true };
-        if (fileName && fileData) {
-            payload.fileName = fileName;
-            payload.fileType = fileType;
-            payload.fileData = fileData;
-        }
-
-        const res = await fetch(`${API_BASE}/api/tickets/${_submitApprovalTicketId}/attachments`, {
-            method: 'POST',
+        // Step 1: Change status to Pending Approval
+        const statusRes = await fetch(`${API_BASE}/api/tickets/${_submitApprovalTicketId}/status`, {
+            method: 'PUT',
             headers: authHeaders(),
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ status: 'Pending Approval' })
         });
-
-        if (!res.ok) {
-            const errorData = await res.json().catch(() => ({}));
-            throw new Error(errorData.message || `Server error: ${res.status}`);
+        const statusData = await statusRes.json();
+        if (!statusData.success) {
+            errEl.textContent = statusData.message || 'Failed to update status.';
+            return;
         }
 
-        const data = await res.json();
-        
-        if (data.success) {
-            closeModal('submit-approval-modal');
-            alert(`Ticket #INC-${_submitApprovalTicketId} submitted for approval.`);
-            refreshData();
-        } else {
-            errEl.textContent = data.message || 'Request failed.';
+        // Step 2: Upload attachment if provided (optional)
+        if (fileName && fileData) {
+            const attachRes = await fetch(`${API_BASE}/api/tickets/${_submitApprovalTicketId}/attachments`, {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ fileName, fileType, fileData })
+            });
+            if (!attachRes.ok) {
+                // Attachment failed but status was already updated — warn but don't block
+                console.warn('Attachment upload failed:', await attachRes.text());
+                errEl.textContent = 'Submitted, but file upload failed. Try attaching it again.';
+            }
         }
+
+        closeModal('submit-approval-modal');
+        alert(`Ticket #INC-${_submitApprovalTicketId} submitted for approval.`);
+        refreshData();
     } catch (err) {
-        console.error("Submission error:", err);
-        errEl.textContent = `Error: ${err.message}. Please check if the file is too large or try again.`;
+        console.error('Submission error:', err);
+        errEl.textContent = `Error: ${err.message}`;
     } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
-        }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit'; }
     }
 };
 

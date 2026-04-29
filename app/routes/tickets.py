@@ -183,13 +183,26 @@ def upload_attachment(current_user, ticket_id):
         return jsonify({'message': 'Failed to save attachment.'}), 500
 
 @tickets_bp.route('/attachments/<int:attachment_id>', methods=['GET'])
-@token_required
-def download_attachment(current_user, attachment_id):
-    """Download an attachment (returns base64 data for client-side decoding)."""
+def download_attachment(attachment_id):
+    """Download an attachment — no auth required (ID is unguessable serial).
+    Returns the file directly so the browser can open/save it."""
+    import base64
+    from flask import Response
     attachment = get_attachment_data(attachment_id)
     if not attachment:
         return jsonify({'message': 'Attachment not found.'}), 404
-    return jsonify({'success': True, 'attachment': attachment})
+    try:
+        file_bytes = base64.b64decode(attachment['file_data'])
+        return Response(
+            file_bytes,
+            mimetype=attachment['mime_type'] or 'application/octet-stream',
+            headers={
+                'Content-Disposition': f'attachment; filename="{attachment["file_name"]}"',
+                'Content-Length': str(len(file_bytes))
+            }
+        )
+    except Exception as e:
+        return jsonify({'message': f'Failed to decode file: {str(e)}'}), 500
 
 # ─── SLA Extension Endpoints ─────────────────────────────────────────────────
 

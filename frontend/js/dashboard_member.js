@@ -540,8 +540,8 @@ async function submitNewTicket(e) {
 
     if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        if (file.size > 10 * 1024 * 1024) {
-            alert('File size must be less than 10MB');
+        if (file.size > 3 * 1024 * 1024) {
+            alert('File size must be less than 3MB');
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Incident';
