@@ -59,6 +59,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Wire up file input
+    const fileInput = document.getElementById('chat-file-input');
+    if (fileInput) {
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            if (file.size > 3 * 1024 * 1024) {
+                alert('File size must be less than 3MB.');
+                fileInput.value = '';
+                return;
+            }
+            const preview = document.getElementById('chat-file-preview');
+            const nameEl  = document.getElementById('chat-file-name');
+            if (preview) preview.style.display = 'flex';
+            if (nameEl)  nameEl.textContent = file.name;
+        });
+    }
+
     // Wire up + buttons (group creation for admin only)
     if (MY_ROLE === 'admin') {
         if (groupBtn) groupBtn.addEventListener('click', openCreateGroupModal);
@@ -318,15 +336,37 @@ function appendMsgs(msgs) {
     msgs.forEach(msg => {
         if (!msg || !msg.id || renderedMsgIds.has(msg.id)) return;
         renderedMsgIds.add(msg.id);
-        
+
         const mine = msg.sender_id === MY_ID;
         const div = document.createElement('div');
         div.className = 'chat-msg ' + (mine ? 'mine' : 'other');
+
+        // Build bubble — text and/or file attachment
+        let bubbleContent = '';
+        if (msg.file_name) {
+            const isImage = (msg.file_type || '').startsWith('image/');
+            const caption = msg.text && msg.text !== '\uD83D\uDCCE ' + msg.file_name ? `<div style="margin-bottom:6px;">${esc(msg.text)}</div>` : '';
+            bubbleContent = `<div class="chat-msg-bubble chat-msg-file">
+                ${caption}
+                <a href="${window.API_BASE||''}/api/chat/files/${msg.id}" target="_blank"
+                   style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.1);border-radius:8px;text-decoration:none;color:inherit;">
+                    <i class="fas ${isImage ? 'fa-image' : 'fa-file-alt'}" style="font-size:18px;color:var(--accent-blue);flex-shrink:0;"></i>
+                    <div style="min-width:0;flex:1;">
+                        <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(msg.file_name)}</div>
+                        <div style="font-size:10px;opacity:0.65;">Click to download</div>
+                    </div>
+                    <i class="fas fa-download" style="font-size:12px;opacity:0.65;flex-shrink:0;"></i>
+                </a>
+            </div>`;
+        } else {
+            bubbleContent = `<div class="chat-msg-bubble">${esc(msg.text)}</div>`;
+        }
+
         div.innerHTML =
             (!mine ? `<div class="chat-msg-avatar">${(msg.sender_name||'?')[0].toUpperCase()}</div>` : '') +
             `<div class="chat-msg-body">` +
             (!mine && activeChat && activeChat.type==='group' ? `<div class="chat-msg-sender">${esc(msg.sender_name)}</div>` : '') +
-            `<div class="chat-msg-bubble">${esc(msg.text)}</div>` +
+            bubbleContent +
             `<div class="chat-msg-time">${fmtMsgTime(msg.created_at)}</div>` +
             `</div>`;
         box.appendChild(div);
@@ -335,22 +375,53 @@ function appendMsgs(msgs) {
 }
 
 // ─── Send ─────────────────────────────────────────────────────────────────────
+function clearChatFile() {
+    const fi = document.getElementById('chat-file-input');
+    const preview = document.getElementById('chat-file-preview');
+    if (fi) fi.value = '';
+    if (preview) preview.style.display = 'none';
+}
+
 async function sendMessage() {
-    const input = document.getElementById('chat-input');
-    if (!input || !activeChat) return;
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = ''; input.style.height = 'auto';
+    const input     = document.getElementById('chat-input');
+    const fileInput = document.getElementById('chat-file-input');
+    if (!activeChat) return;
+
+    const text = input ? input.value.trim() : '';
+    const file = fileInput && fileInput.files.length > 0 ? fileInput.files[0] : null;
+    if (!text && !file) return;
+
+    // Read file as base64 if present
+    let fileName = null, fileType = null, fileData = null;
+    if (file) {
+        try {
+            fileData = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            fileName = file.name;
+            fileType = file.type || 'application/octet-stream';
+        } catch(e) { console.error('File read error:', e); return; }
+    }
+
+    if (input) { input.value = ''; input.style.height = 'auto'; }
+    clearChatFile();
+
     try {
         const url = activeChat.type === 'private'
             ? '/api/chat/private/' + activeChat.id
             : '/api/chat/groups/' + activeChat.id + '/messages';
-        const r = await api(url, { method:'POST', body: JSON.stringify({text}) });
+
+        const payload = {};
+        if (text) payload.text = text;
+        if (fileName) { payload.file_name = fileName; payload.file_type = fileType; payload.file_data = fileData; }
+
+        const r = await api(url, { method:'POST', body: JSON.stringify(payload) });
         if (!r.ok) { console.error('sendMessage HTTP', r.status); return; }
         const d = await r.json();
         if (d.success && d.message) {
-            // Append immediately with the server timestamp, then update lastMsgTime
-            // so the next poll only fetches messages AFTER this one
             d.message.sender_name = MY_NAME;
             d.message.sender_role = MY_ROLE;
             appendMsgs([d.message]);

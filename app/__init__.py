@@ -116,6 +116,10 @@ def create_app(config_class=Config):
                 cursor.execute("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES chat_groups(id) ON DELETE CASCADE;")
                 cursor.execute("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS recipient_id INTEGER REFERENCES users(id);")
                 cursor.execute("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;")
+                # Add file attachment columns to chat_messages
+                cursor.execute("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS file_name TEXT;")
+                cursor.execute("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS file_type TEXT;")
+                cursor.execute("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS file_data TEXT;")
                 conn.commit()
                 conn.close()
         except Exception as e:

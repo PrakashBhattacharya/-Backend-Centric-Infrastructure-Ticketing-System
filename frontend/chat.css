@@ -418,6 +418,23 @@
 
 [data-theme="light"] .chat-input-wrap { background: #f8fafc; }
 
+.chat-attach-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+.chat-attach-btn:hover { color: var(--accent-blue); }
+
 #chat-input {
     flex: 1;
     background: transparent;

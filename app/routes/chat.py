@@ -57,20 +57,25 @@ def get_private_messages(current_user, other_user_id):
 @chat_bp.route('/private/<int:other_user_id>', methods=['POST'])
 @token_required
 def send_private_message(current_user, other_user_id):
-    """Send a private message to another user."""
+    """Send a private message (with optional file attachment) to another user."""
     data = request.json or {}
     text = (data.get('text') or '').strip()
-    if not text:
-        return jsonify({'message': 'Message cannot be empty.'}), 400
+    file_name = data.get('file_name')
+    file_type = data.get('file_type', 'application/octet-stream')
+    file_data = data.get('file_data')
 
-    # Verify recipient exists
+    if not text and not file_data:
+        return jsonify({'message': 'Message or file is required.'}), 400
+
     recipient = execute_query("SELECT id FROM users WHERE id = %s", (other_user_id,), fetchone=True)
     if not recipient:
         return jsonify({'message': 'Recipient not found.'}), 404
 
+    msg_text = text or f'📎 {file_name}'
     msg = execute_query(
-        "INSERT INTO chat_messages (sender_id, recipient_id, text) VALUES (%s, %s, %s) RETURNING *",
-        (current_user['id'], other_user_id, text), commit=True, fetchone=True
+        "INSERT INTO chat_messages (sender_id, recipient_id, text, file_name, file_type, file_data) "
+        "VALUES (%s, %s, %s, %s, %s, %s) RETURNING id, sender_id, recipient_id, text, file_name, file_type, created_at",
+        (current_user['id'], other_user_id, msg_text, file_name, file_type, file_data), commit=True, fetchone=True
     )
     return jsonify({'success': True, 'message': msg}), 201
 
@@ -275,7 +280,7 @@ def get_group_messages(current_user, group_id):
 @chat_bp.route('/groups/<int:group_id>/messages', methods=['POST'])
 @token_required
 def send_group_message(current_user, group_id):
-    """Send a message to a group."""
+    """Send a message (with optional file attachment) to a group."""
     member = execute_query(
         "SELECT id FROM chat_group_members WHERE group_id = %s AND user_id = %s",
         (group_id, current_user['id']), fetchone=True
@@ -285,11 +290,44 @@ def send_group_message(current_user, group_id):
 
     data = request.json or {}
     text = (data.get('text') or '').strip()
-    if not text:
-        return jsonify({'message': 'Message cannot be empty.'}), 400
+    file_name = data.get('file_name')
+    file_type = data.get('file_type', 'application/octet-stream')
+    file_data = data.get('file_data')
 
+    if not text and not file_data:
+        return jsonify({'message': 'Message or file is required.'}), 400
+
+    msg_text = text or f'📎 {file_name}'
     msg = execute_query(
-        "INSERT INTO chat_messages (sender_id, group_id, text) VALUES (%s, %s, %s) RETURNING *",
-        (current_user['id'], group_id, text), commit=True, fetchone=True
+        "INSERT INTO chat_messages (sender_id, group_id, text, file_name, file_type, file_data) "
+        "VALUES (%s, %s, %s, %s, %s, %s) RETURNING id, sender_id, group_id, text, file_name, file_type, created_at",
+        (current_user['id'], group_id, msg_text, file_name, file_type, file_data), commit=True, fetchone=True
     )
     return jsonify({'success': True, 'message': msg}), 201
+
+
+# ─── Chat File Download ───────────────────────────────────────────────────────
+
+@chat_bp.route('/files/<int:message_id>', methods=['GET'])
+def download_chat_file(message_id):
+    """Download a file attached to a chat message — no auth (ID is serial)."""
+    import base64
+    from flask import Response
+    row = execute_query(
+        "SELECT file_name, file_type, file_data FROM chat_messages WHERE id = %s AND file_data IS NOT NULL",
+        (message_id,), fetchone=True
+    )
+    if not row:
+        return jsonify({'message': 'File not found.'}), 404
+    try:
+        file_bytes = base64.b64decode(row['file_data'])
+        return Response(
+            file_bytes,
+            mimetype=row['file_type'] or 'application/octet-stream',
+            headers={
+                'Content-Disposition': f'attachment; filename="{row["file_name"]}"',
+                'Content-Length': str(len(file_bytes))
+            }
+        )
+    except Exception as e:
+        return jsonify({'message': f'Failed to decode file: {str(e)}'}), 500
