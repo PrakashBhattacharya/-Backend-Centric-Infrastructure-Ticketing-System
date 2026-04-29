@@ -3340,10 +3340,32 @@ th.sort-desc::after { content: ' ↓'; opacity: 1; color: var(--accent-blue); }
     }
 }
 
-/* ── Scrollbar Fine-Tuning ───────────────────────────────────────────────── */
+/* ── Global Scrollbar Polish ────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border: 2px solid #f8fafc;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
 }
 
 /* ── Misc Utility ────────────────────────────────────────────────────────── */
@@ -3450,7 +3472,7 @@ th.sort-desc::after { content: ' ↓'; opacity: 1; color: var(--accent-blue); }
 [data-theme="light"] .table-wrapper {
     border: 1.5px solid #cbd5e1;
     border-radius: 12px;
-    overflow: hidden;
+    overflow: auto !important;
     box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
 }
 
