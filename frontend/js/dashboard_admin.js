@@ -540,6 +540,27 @@ async function openTicketDetail(ticketId) {
         } else {
             commentsDiv.innerHTML = '<div style="color:var(--text-secondary); font-size:12px;">No activity logged yet.</div>';
         }
+        
+        // Attachments
+        const attachmentsDiv = document.getElementById('modal-attachments');
+        if (Array.isArray(data.attachments) && data.attachments.length > 0) {
+            attachmentsDiv.innerHTML = data.attachments.map(att => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="fas fa-file-alt" style="color:var(--text-secondary);"></i>
+                        <div>
+                            <div style="font-size:12px; color:var(--text-primary); font-weight:600;">${att.file_name}</div>
+                            <div style="font-size:10px; color:var(--text-secondary);">${parseDate(att.created_at).toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <a href="${API_BASE}/api/tickets/attachments/${att.id}" target="_blank" class="primary-btn sm" style="text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                </div>
+            `).join('');
+        } else {
+            attachmentsDiv.innerHTML = '<div style="color:var(--text-secondary); font-size:12px;">No attachments.</div>';
+        }
 
         openModal('ticket-detail-modal');
     } catch (err) {

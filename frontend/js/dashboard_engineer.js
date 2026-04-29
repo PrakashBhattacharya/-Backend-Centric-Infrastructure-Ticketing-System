@@ -613,8 +613,8 @@ window.submitForApproval = async function() {
 
     if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        if (file.size > 5 * 1024 * 1024) {
-            errEl.textContent = 'File size must be less than 5MB.';
+        if (file.size > 10 * 1024 * 1024) {
+            errEl.textContent = 'File size must be less than 10MB.';
             return;
         }
         fileName = file.name;
@@ -652,6 +652,12 @@ window.submitForApproval = async function() {
             headers: authHeaders(),
             body: JSON.stringify(payload)
         });
+
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.message || `Server error: ${res.status}`);
+        }
+
         const data = await res.json();
         
         if (data.success) {
@@ -662,7 +668,8 @@ window.submitForApproval = async function() {
             errEl.textContent = data.message || 'Request failed.';
         }
     } catch (err) {
-        errEl.textContent = 'Network error. Please try again.';
+        console.error("Submission error:", err);
+        errEl.textContent = `Error: ${err.message}. Please check if the file is too large or try again.`;
     } finally {
         if (btn) {
             btn.disabled = false;

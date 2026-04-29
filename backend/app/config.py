@@ -33,3 +33,6 @@ class Config:
     
     # Frontend assets location
     FRONTEND_DIR = os.environ.get('FRONTEND_DIR', os.path.join(PROJECT_ROOT, 'frontend'))
+
+    # Allow up to 16MB payloads (for 10MB files + base64 overhead)
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
