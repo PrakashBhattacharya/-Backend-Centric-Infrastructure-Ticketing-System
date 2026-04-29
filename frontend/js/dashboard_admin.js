@@ -597,19 +597,20 @@ function initCharts(data) {
                 } 
             },
             tooltip: {
-                backgroundColor: 'rgba(10, 14, 28, 0.98)',
-                titleFont: { family: chartFont.family, size: 12, weight: '700' },
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleFont: { family: chartFont.family, size: 12, weight: '600' },
                 bodyFont: { family: chartFont.family, size: 11 },
-                titleColor: '#f1f5f9',
-                bodyColor: '#94a3b8',
-                borderColor: 'rgba(59, 130, 246, 0.2)',
+                titleColor: '#f8fafc',
+                bodyColor: '#cbd5e1',
+                borderColor: 'rgba(255, 255, 255, 0.05)',
                 borderWidth: 1,
                 padding: 12,
-                cornerRadius: 10
+                cornerRadius: 8,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
             }
         },
         animation: {
-            duration: 2000,
+            duration: 1000,
             easing: 'easeOutQuart'
         }
     };
@@ -620,19 +621,18 @@ function initCharts(data) {
         if (existingChart) existingChart.destroy();
     });
 
-    // 1. SLA Compliance Chart (Donut) — Enhanced with real data & gradients
+    // 1. SLA Compliance Chart (Donut) — Enhanced with real data
     const ctxSla = document.getElementById('slaComplianceChart');
     if (ctxSla) {
         new Chart(ctxSla, {
             type: 'doughnut',
             data: {
-                labels: ['COMPLIANT', 'NEAR BREACH', 'BREACHED'],
+                labels: ['Compliant', 'Near Breach', 'Breached'],
                 datasets: [{
                     data: data.slaComplianceData || [0, 0, 0],
                     backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-                    borderColor: '#0f172a',
-                    borderWidth: 5,
-                    hoverOffset: 15
+                    borderWidth: 0,
+                    hoverOffset: 4
                 }]
             },
             options: { 
@@ -640,18 +640,16 @@ function initCharts(data) {
                 cutout: '80%',
                 plugins: {
                     ...commonOptions.plugins,
-                    legend: { ...commonOptions.plugins.legend, position: 'bottom' }
+                    legend: { ...commonOptions.plugins.legend, position: 'right' }
                 }
             }
         });
     }
 
-    // 2. Backlog Aging Chart (Bar) — Upgrade with gradients
+    // 2. Backlog Aging Chart (Bar) — Upgrade to modern SaaS style
     const ctxAging = document.getElementById('agingChart');
     if (ctxAging) {
         const ctx = ctxAging.getContext('2d');
-        const grad = ctx.createLinearGradient(0, 0, 0, 300);
-        grad.addColorStop(0, '#3b82f6'); grad.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
 
         new Chart(ctx, {
             type: 'bar',
@@ -660,18 +658,19 @@ function initCharts(data) {
                 datasets: [{
                     label: 'Tickets',
                     data: data.agingData || [0, 0, 0, 0],
-                    backgroundColor: grad,
-                    borderColor: '#3b82f6',
-                    borderWidth: 1,
-                    borderRadius: 8
+                    backgroundColor: '#3b82f6',
+                    hoverBackgroundColor: '#60a5fa',
+                    borderRadius: 6,
+                    barThickness: 'flex',
+                    maxBarThickness: 32
                 }]
             },
             options: {
                 ...commonOptions,
                 plugins: { ...commonOptions.plugins, legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, ticks: { color: '#64748b' } },
-                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { weight: '600' } } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, ticks: { color: '#64748b', font: { size: 11 } } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { weight: '500', size: 11 } } }
                 }
             }
         });
@@ -713,9 +712,6 @@ function initCharts(data) {
     const ctxBacklog = document.getElementById('backlogTrendChart');
     if (ctxBacklog) {
         const ctx = ctxBacklog.getContext('2d');
-        const gradFill = ctx.createLinearGradient(0, 0, 0, 300);
-        gradFill.addColorStop(0, 'rgba(139, 92, 246, 0.2)');
-        gradFill.addColorStop(1, 'rgba(139, 92, 246, 0)');
 
         new Chart(ctx, {
             type: 'line',
@@ -725,19 +721,21 @@ function initCharts(data) {
                     label: 'New Incidents',
                     data: data.backlogTrendData || [0, 0, 0, 0, 0, 0, 0],
                     borderColor: '#8b5cf6',
-                    tension: 0.45,
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    tension: 0.4,
                     fill: true,
-                    backgroundColor: gradFill,
-                    borderWidth: 3,
-                    pointRadius: 4,
-                    pointHoverRadius: 8
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#8b5cf6',
+                    pointBorderColor: 'transparent',
+                    pointHoverRadius: 5
                 }]
             },
             options: {
                 ...commonOptions,
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b' } },
-                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, ticks: { color: '#64748b', font: { size: 11 } } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11 } } }
                 }
             }
         });
@@ -753,13 +751,13 @@ function initCharts(data) {
                 datasets: [{
                     data: data.regionLoadData || [0, 0, 0, 0],
                     backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#94a3b8'],
-                    borderColor: '#0f172a',
-                    borderWidth: 3
+                    borderWidth: 0,
+                    hoverOffset: 4
                 }]
             },
             options: { 
                 ...commonOptions, 
-                cutout: '72%', 
+                cutout: '80%', 
                 plugins: { 
                     ...commonOptions.plugins, 
                     legend: { 

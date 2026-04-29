@@ -454,36 +454,29 @@ function initCharts(data) {
         plugins: { 
             legend: { display: false },
             tooltip: {
-                backgroundColor: 'rgba(10, 14, 28, 0.98)',
-                titleFont: { family: chartFont.family, size: 12, weight: '700' },
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleFont: { family: chartFont.family, size: 12, weight: '600' },
                 bodyFont: { family: chartFont.family, size: 11 },
-                titleColor: '#f1f5f9',
-                bodyColor: '#94a3b8',
-                borderColor: 'rgba(59, 130, 246, 0.2)',
+                titleColor: '#f8fafc',
+                bodyColor: '#cbd5e1',
+                borderColor: 'rgba(255, 255, 255, 0.05)',
                 borderWidth: 1,
                 padding: 10,
-                cornerRadius: 8
+                cornerRadius: 8,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
             }
         },
         animation: {
-            duration: 2000,
-            easing: 'easeOutElastic'
+            duration: 1000,
+            easing: 'easeOutQuart'
         }
     };
 
-    // Resolution Velocity Chart (Bar) — Upgraded with gradients
+    // Resolution Velocity Chart (Bar) — Upgraded to modern SaaS style
     const ctxEng = document.getElementById('engineerChart');
     if (ctxEng) {
         const ctx = ctxEng.getContext('2d');
-        const gradBlue = ctx.createLinearGradient(0, 0, 0, 300);
-        gradBlue.addColorStop(0, '#3b82f6'); gradBlue.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
         
-        const gradRed = ctx.createLinearGradient(0, 0, 0, 300);
-        gradRed.addColorStop(0, '#ef4444'); gradRed.addColorStop(1, 'rgba(239, 68, 68, 0.1)');
-        
-        const gradGreen = ctx.createLinearGradient(0, 0, 0, 300);
-        gradGreen.addColorStop(0, '#10b981'); gradGreen.addColorStop(1, 'rgba(16, 185, 129, 0.1)');
-
         new Chart(ctx, {
             type: 'bar',
             data: {
@@ -491,10 +484,11 @@ function initCharts(data) {
                 datasets: [{
                     label: 'Tickets',
                     data: [data.assigned, data.overdue, data.resolved_total],
-                    backgroundColor: [gradBlue, gradRed, gradGreen],
-                    borderColor: ['#3b82f6', '#ef4444', '#10b981'],
-                    borderWidth: 1,
-                    borderRadius: 6
+                    backgroundColor: ['#3b82f6', '#ef4444', '#10b981'],
+                    hoverBackgroundColor: ['#60a5fa', '#f87171', '#34d399'],
+                    borderRadius: 6,
+                    barThickness: 'flex',
+                    maxBarThickness: 32
                 }]
             },
             options: {
@@ -502,10 +496,10 @@ function initCharts(data) {
                 scales: {
                     y: { 
                         beginAtZero: true, 
-                        grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, 
-                        ticks: { color: '#64748b', stepSize: 1, font: { size: 10 } } 
+                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, 
+                        ticks: { color: '#64748b', stepSize: 1, font: { size: 11 } } 
                     },
-                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { weight: '600', size: 11 } } }
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { weight: '500', size: 11 } } }
                 }
             }
         });
@@ -515,9 +509,6 @@ function initCharts(data) {
     const ctxMttr = document.getElementById('mttrTrendChart');
     if (ctxMttr) {
         const ctx = ctxMttr.getContext('2d');
-        const gradFill = ctx.createLinearGradient(0, 0, 0, 50);
-        gradFill.addColorStop(0, 'rgba(34, 211, 238, 0.3)');
-        gradFill.addColorStop(1, 'rgba(34, 211, 238, 0)');
 
         new Chart(ctx, {
             type: 'line',
@@ -525,12 +516,13 @@ function initCharts(data) {
                 labels: ['', '', '', '', ''],
                 datasets: [{
                     data: data.mttr_trend || [0, 0, 0, 0, 0],
-                    borderColor: '#22d3ee',
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     borderWidth: 2,
-                    tension: 0.45,
+                    tension: 0.4,
                     pointRadius: 0,
-                    fill: true,
-                    backgroundColor: gradFill
+                    pointHoverRadius: 4,
+                    fill: true
                 }]
             },
             options: { 

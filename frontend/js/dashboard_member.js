@@ -157,43 +157,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             },
             tooltip: {
-                backgroundColor: 'rgba(10, 14, 28, 0.95)',
-                titleFont: { family: chartFont.family, size: 13, weight: '700' },
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleFont: { family: chartFont.family, size: 13, weight: '600' },
                 bodyFont: { family: chartFont.family, size: 12 },
-                titleColor: '#f1f5f9',
-                bodyColor: '#94a3b8',
-                borderColor: 'rgba(34, 211, 238, 0.15)',
+                titleColor: '#f8fafc',
+                bodyColor: '#cbd5e1',
+                borderColor: 'rgba(255, 255, 255, 0.05)',
                 borderWidth: 1,
                 padding: 12,
-                cornerRadius: 10,
+                cornerRadius: 8,
                 displayColors: true,
-                boxShadow: '0 8px 30px rgba(0,0,0,0.5)'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
             }
         },
         animation: {
-            duration: 2500,
-            easing: 'easeOutElastic'
+            duration: 1000,
+            easing: 'easeOutQuart'
         }
     };
 
-    // 1. Resolution Velocity Chart (Bar) — upgraded with gradients
+    // 1. Resolution Velocity Chart (Bar) — upgraded to modern SaaS style
     const ctxMember = document.getElementById('memberChart');
     if (ctxMember) {
         const ctx = ctxMember.getContext('2d');
         
-        // Define Gradients
-        const gradCrit = ctx.createLinearGradient(0, 0, 0, 400);
-        gradCrit.addColorStop(0, '#f87171'); gradCrit.addColorStop(1, 'rgba(248, 113, 113, 0.1)');
-        
-        const gradHigh = ctx.createLinearGradient(0, 0, 0, 400);
-        gradHigh.addColorStop(0, '#fbbf24'); gradHigh.addColorStop(1, 'rgba(251, 191, 36, 0.1)');
-        
-        const gradMed = ctx.createLinearGradient(0, 0, 0, 400);
-        gradMed.addColorStop(0, '#3b82f6'); gradMed.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
-        
-        const gradLow = ctx.createLinearGradient(0, 0, 0, 400);
-        gradLow.addColorStop(0, '#94a3b8'); gradLow.addColorStop(1, 'rgba(148, 163, 184, 0.1)');
-
         new Chart(ctx, {
             type: 'bar',
             data: {
@@ -201,11 +188,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 datasets: [{
                     label: 'TICKETS',
                     data: dbData.priorityData,
-                    backgroundColor: [gradCrit, gradHigh, gradMed, gradLow],
-                    borderColor: ['#f87171', '#fbbf24', '#3b82f6', '#94a3b8'],
-                    borderWidth: 1,
-                    borderRadius: 8,
-                    hoverBorderWidth: 2
+                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#64748b'],
+                    hoverBackgroundColor: ['#f87171', '#fbbf24', '#60a5fa', '#94a3b8'],
+                    borderRadius: 6,
+                    barThickness: 'flex',
+                    maxBarThickness: 32
                 }]
             },
             options: {
@@ -214,12 +201,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 scales: {
                     y: { 
                         beginAtZero: true, 
-                        grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, 
-                        ticks: { color: '#64748b', stepSize: 1, font: { size: 10 } } 
+                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, 
+                        ticks: { color: '#64748b', stepSize: 1, font: { size: 11 } } 
                     },
                     x: { 
                         grid: { display: false }, 
-                        ticks: { color: '#94a3b8', font: { weight: '600', size: 10 } } 
+                        ticks: { color: '#64748b', font: { weight: '500', size: 11 } } 
                     }
                 }
             }
@@ -232,18 +219,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         new Chart(ctxPriority.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'],
+                labels: ['Critical', 'High', 'Medium', 'Low'],
                 datasets: [{
                     data: dbData.priorityData,
-                    backgroundColor: ['#f87171', '#fbbf24', '#3b82f6', '#64748b'],
-                    borderColor: '#0a0c14',
-                    borderWidth: 4,
-                    hoverOffset: 15
+                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#64748b'],
+                    borderWidth: 0,
+                    hoverOffset: 4
                 }]
             },
             options: { 
                 ...commonOptions, 
-                cutout: '78%',
+                cutout: '80%',
                 plugins: {
                     ...commonOptions.plugins,
                     legend: { ...commonOptions.plugins.legend, position: 'right' }
@@ -256,9 +242,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ctxBacklog = document.getElementById('backlogChart');
     if (ctxBacklog) {
         const ctx = ctxBacklog.getContext('2d');
-        const gradFill = ctx.createLinearGradient(0, 0, 0, 300);
-        gradFill.addColorStop(0, 'rgba(34, 211, 238, 0.2)');
-        gradFill.addColorStop(1, 'rgba(34, 211, 238, 0)');
 
         new Chart(ctx, {
             type: 'line',
@@ -267,23 +250,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 datasets: [{
                     label: 'DAILY SUBMISSIONS',
                     data: dbData.backlogTrendData || [0, 0, 0, 0, 0, 0, dbData.active],
-                    borderColor: '#22d3ee',
-                    backgroundColor: gradFill,
-                    borderWidth: 3,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
                     fill: true,
-                    tension: 0.45,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#22d3ee',
-                    pointBorderColor: '#0a0c14',
-                    pointBorderWidth: 2,
-                    pointHoverRadius: 7
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: 'transparent',
+                    pointHoverRadius: 5
                 }]
             },
             options: {
                 ...commonOptions,
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', stepSize: 1 } },
-                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, ticks: { color: '#64748b', stepSize: 1 } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11 } } }
                 }
             }
         });
@@ -299,21 +281,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         new Chart(ctxSla.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['MET SLA', 'BREACHED'],
+                labels: ['Met SLA', 'Breached'],
                 datasets: [{
                     data: [met, breached],
                     backgroundColor: ['#10b981', '#ef4444'],
-                    borderColor: '#0a0c14',
-                    borderWidth: 5,
-                    hoverOffset: 10
+                    borderWidth: 0,
+                    hoverOffset: 4
                 }]
             },
             options: { 
                 ...commonOptions, 
-                cutout: '82%',
+                cutout: '80%',
                 plugins: {
                     ...commonOptions.plugins,
-                    legend: { ...commonOptions.plugins.legend, position: 'bottom' }
+                    legend: { ...commonOptions.plugins.legend, position: 'right' }
                 }
             }
         });
