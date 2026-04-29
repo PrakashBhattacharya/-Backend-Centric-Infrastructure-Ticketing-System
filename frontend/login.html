@@ -37,10 +37,9 @@
                 <div class="showcase-panel active" data-panel="track">
                     <h2 class="showcase-heading">Track every incident in real time</h2>
                     <ul class="showcase-features">
-                        <li><i class="fas fa-check"></i><span><strong>Full ticket lifecycle</strong> — Open → In Progress → Pending Approval → Resolved with admin gate</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>SLA monitoring</strong> — Auto-calculated deadlines per priority with live breach detection</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>Priority levels</strong> — Critical (2h), High (8h), Medium (20h), Low (50h) SLA windows</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>File attachments</strong> — Attach evidence files to tickets for full context</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>Full ticket lifecycle</strong> — Open → In Progress → Pending Approval → Resolved</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>SLA monitoring</strong> — Automatic breach detection with countdown timers</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>Priority levels</strong> — Critical, High, Medium, Low with auto-deadlines</span></li>
                     </ul>
                     <div class="showcase-img-wrap">
                         <div class="showcase-img-placeholder"><i class="fas fa-desktop"></i><span>Screenshot Preview</span></div>
@@ -52,10 +51,9 @@
                 <div class="showcase-panel" data-panel="manage">
                     <h2 class="showcase-heading">Manage your engineering queue</h2>
                     <ul class="showcase-features">
-                        <li><i class="fas fa-check"></i><span><strong>High-priority queue</strong> — All assigned tickets with SLA countdown timers at a glance</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>Admin approval gate</strong> — Engineers submit resolutions; admins approve or reject with written feedback</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>SLA extension requests</strong> — Request more time with justification; admin approves or rejects</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>Performance metrics</strong> — MTTR trend, Resolution Score (0–10), SLA compliance %</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>High-priority queue</strong> — See all assigned tickets with SLA status at a glance</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>Admin approval gate</strong> — Submit resolutions for review before closing</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>Rejection feedback</strong> — Admins send tickets back with written reasons</span></li>
                     </ul>
                     <div class="showcase-img-wrap">
                         <div class="showcase-img-placeholder"><i class="fas fa-desktop"></i><span>Screenshot Preview</span></div>
@@ -67,10 +65,9 @@
                 <div class="showcase-panel" data-panel="audit">
                     <h2 class="showcase-heading">Full audit trail &amp; compliance</h2>
                     <ul class="showcase-features">
-                        <li><i class="fas fa-check"></i><span><strong>Live audit feed</strong> — Every action logged with user identity, timestamp, and full details</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>Security posture</strong> — ISO 27001 &amp; SOC 2 compliance indicators with access tracking</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>Engineer performance matrix</strong> — SLA%, MTTR, resolved count, and status rating per engineer</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>Executive KPIs</strong> — Org-wide breach count, escalations, aging, and reopen rate</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>Live audit feed</strong> — Every action logged with user, timestamp, and details</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>Security posture</strong> — ISO 27001, SOC 2 compliance indicators</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>Risk visibility</strong> — High-risk cluster monitoring and access tracking</span></li>
                     </ul>
                     <div class="showcase-img-wrap">
                         <div class="showcase-img-placeholder"><i class="fas fa-desktop"></i><span>Screenshot Preview</span></div>
@@ -82,10 +79,9 @@
                 <div class="showcase-panel" data-panel="chat">
                     <h2 class="showcase-heading">Built-in team communication</h2>
                     <ul class="showcase-features">
-                        <li><i class="fas fa-check"></i><span><strong>Direct messages</strong> — Private 1-on-1 chat between any team members across all roles</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>Group chats</strong> — Admin-created groups with managed membership, add/remove anytime</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>File sharing</strong> — Send images, PDFs, and documents directly in chat (up to 3MB)</span></li>
-                        <li><i class="fas fa-check"></i><span><strong>Real-time updates</strong> — Messages sync every 3 seconds across all connected users</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>Direct messages</strong> — Private 1-on-1 chat between any team members</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>Group chats</strong> — Admin-created groups with managed membership</span></li>
+                        <li><i class="fas fa-check"></i><span><strong>File sharing</strong> — Send files and attachments directly in chat</span></li>
                     </ul>
                     <div class="showcase-img-wrap">
                         <div class="showcase-img-placeholder"><i class="fas fa-desktop"></i><span>Screenshot Preview</span></div>
@@ -106,103 +102,77 @@
         </div>
 
         <div class="right-panel">
-            <!-- Logo only on mobile -->
-            <div class="logo-section mobile-only">
+            <div class="logo-section">
                 <div class="logo-icon"></div>
                 <span class="logo-text">InfraTick</span>
             </div>
 
-            <div class="login-card">
-                <!-- Card header -->
-                <div class="login-card-header">
-                    <div class="login-logo">
-                        <div class="logo-icon"></div>
-                        <span class="logo-text">InfraTick</span>
-                    </div>
-                    <h2>Welcome back</h2>
-                    <p class="subtitle">Sign in to your infrastructure workspace</p>
-                </div>
+            <div id="login-page">
+                <h2>Access Control Center</h2>
+                <p class="subtitle">Sign in to manage infrastructure incidents, active tickets, and system operations
+                    securely.</p>
 
-                <!-- Role selector -->
                 <div class="role-section">
-                    <span class="role-label">Sign in as</span>
+                    <label class="role-label">VERIFICATION ROLE</label>
                     <div class="role-cards">
                         <div class="role-card" data-role="member">
-                            <div class="role-card-icon">
-                                <i class="fas fa-user"></i>
-                            </div>
+                            <div class="role-icon member-icon"></div>
                             <div class="role-info">
-                                <h4>Member</h4>
-                                <p>Submit &amp; track tickets</p>
+                                <h4>MEMBER</h4>
+                                <p>Create and track your submitted tickets.</p>
                             </div>
                         </div>
                         <div class="role-card active" data-role="engineer">
-                            <div class="role-card-icon">
-                                <i class="fas fa-wrench"></i>
-                            </div>
+                            <div class="role-icon engineer-icon"></div>
                             <div class="role-info">
-                                <h4>Engineer</h4>
-                                <p>Resolve incidents</p>
+                                <h4>ENGINEER</h4>
+                                <p>Manage, update, and resolve assigned infrastructure tickets.</p>
                             </div>
                         </div>
                         <div class="role-card" data-role="admin">
-                            <div class="role-card-icon">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
+                            <div class="role-icon admin-icon"></div>
                             <div class="role-info">
-                                <h4>Admin</h4>
-                                <p>Manage &amp; oversee</p>
+                                <h4>ADMIN</h4>
+                                <p>Oversee ticket assignment, SLA compliance, user roles, and system a...</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Form -->
-                <div class="login-form">
-                    <div class="form-field">
-                        <label for="login-email">Email address</label>
-                        <div class="field-input-wrap">
-                            <i class="fas fa-envelope field-icon"></i>
-                            <input type="email" id="login-email" placeholder="you@company.com" autocomplete="off">
-                        </div>
+                <div class="form-group">
+                    <label>Corporate Identity (SSO Email)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon email-icon"></span>
+                        <input type="email" id="login-email" placeholder="Enter your email" autocomplete="off">
                     </div>
-
-                    <div class="form-field">
-                        <div class="field-label-row">
-                            <label for="login-password">Password</label>
-                            <a href="#" class="forgot-link">Forgot password?</a>
-                        </div>
-                        <div class="field-input-wrap">
-                            <i class="fas fa-lock field-icon"></i>
-                            <input type="password" id="login-password" placeholder="Enter your password" autocomplete="new-password">
-                            <button type="button" class="field-eye-btn" onclick="togglePassword('login-password')" tabindex="-1">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="form-extras">
-                        <label class="remember-me">
-                            <input type="checkbox" id="remember-me">
-                            <span class="checkbox-custom"></span>
-                            <span>Remember me</span>
-                        </label>
-                    </div>
-
-                    <button class="login-btn" id="login-submit-btn">
-                        <span>Sign in</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-
-                    <p class="switch">New to InfraTick? <a href="signup.html">Create an account</a></p>
                 </div>
 
-                <!-- Footer -->
-                <div class="login-card-footer">
-                    <div class="security-badge">
-                        <i class="fas fa-lock"></i>
-                        <span>Secured by InfraTick OPS · All access is logged</span>
+                <div class="form-group">
+                    <div class="label-row">
+                        <label>Decryption Key (Password)</label>
+                        <a href="#" class="forgot-link">Forgot Token?</a>
                     </div>
+                    <div class="input-wrapper">
+                        <span class="input-icon lock-icon"></span>
+                        <input type="password" id="login-password" placeholder="Enter your password"
+                            autocomplete="new-password">
+                        <span class="input-icon eye-icon" onclick="togglePassword('login-password')"></span>
+                    </div>
+                </div>
+
+                <button class="primary-btn">Login</button>
+
+                <p class="switch">Don't have an account? <a href="signup.html">Sign up</a></p>
+
+                <div class="secure-section">
+                    <div class="divider">
+                        <span>SECURE HANDSHAKE</span>
+                    </div>
+                    <div class="secure-info">
+                        <span class="secure-icon lock-icon"></span>
+                        <span>Secure Login - Powered by InfraTick OPS</span>
+                    </div>
+                    <p class="unauthorized-text">Unauthorized access is logged. <a href="#">Request API Key</a></p>
                 </div>
             </div>
         </div>
