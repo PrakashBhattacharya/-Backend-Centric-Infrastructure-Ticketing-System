@@ -388,8 +388,20 @@
 
                 <!-- Attachment -->
                 <div class="form-group">
-                    <label>Attachment (Optional)</label>
-                    <input type="file" id="ticket-attachment" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; color: var(--text-primary); font-family: inherit;">
+                    <label>Attachment <span style="font-weight:400;color:var(--text-secondary);">(Optional · max 3MB)</span></label>
+                    <div class="file-drop-zone" id="ticket-drop-zone" onclick="document.getElementById('ticket-attachment').click()">
+                        <input type="file" id="ticket-attachment" style="display:none;" accept="*/*">
+                        <div class="file-drop-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <div class="file-drop-text">
+                            <span class="file-drop-primary">Drop file here or <span class="file-drop-link">browse</span></span>
+                            <span class="file-drop-secondary">Supports any file type up to 3MB</span>
+                        </div>
+                        <div class="file-drop-selected" id="ticket-file-selected" style="display:none;">
+                            <i class="fas fa-file-alt"></i>
+                            <span id="ticket-file-name"></span>
+                            <button type="button" class="file-drop-remove" onclick="event.stopPropagation(); clearFileInput('ticket-attachment','ticket-drop-zone','ticket-file-selected')">&times;</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Description -->
@@ -931,8 +943,64 @@
             Low: { hours: 50, label: 'Low — 50 Hours', breach: 'P4 — Minimal impact. Response within 50 hours.', cls: 'sla-banner-low' }
         };
 
+        // ─── File Drop Zone ───────────────────────────────────────────────
+        function initDropZone(inputId, zoneId, selectedId, nameId) {
+            const input = document.getElementById(inputId);
+            const zone  = document.getElementById(zoneId);
+            const sel   = document.getElementById(selectedId);
+            const nameEl = document.getElementById(nameId);
+            if (!input || !zone) return;
+
+            input.addEventListener('change', () => {
+                const file = input.files[0];
+                if (!file) return;
+                if (file.size > 3 * 1024 * 1024) {
+                    alert('File size must be less than 3MB.');
+                    input.value = '';
+                    return;
+                }
+                zone.querySelector('.file-drop-icon').style.display = 'none';
+                zone.querySelector('.file-drop-text').style.display = 'none';
+                if (nameEl) nameEl.textContent = file.name;
+                if (sel) sel.style.display = 'flex';
+                zone.classList.add('has-file');
+            });
+
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (!file) return;
+                if (file.size > 3 * 1024 * 1024) { alert('File size must be less than 3MB.'); return; }
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                input.dispatchEvent(new Event('change'));
+            });
+        }
+
+        function clearFileInput(inputId, zoneId, selectedId) {
+            const input = document.getElementById(inputId);
+            const zone  = document.getElementById(zoneId);
+            const sel   = document.getElementById(selectedId);
+            if (input) input.value = '';
+            if (zone) {
+                zone.classList.remove('has-file');
+                const icon = zone.querySelector('.file-drop-icon');
+                const text = zone.querySelector('.file-drop-text');
+                if (icon) icon.style.display = '';
+                if (text) text.style.display = '';
+            }
+            if (sel) sel.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initDropZone('ticket-attachment', 'ticket-drop-zone', 'ticket-file-selected', 'ticket-file-name');
+        });
+
         function selectPriority(btn) {
-            // Deselect all
             document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
 

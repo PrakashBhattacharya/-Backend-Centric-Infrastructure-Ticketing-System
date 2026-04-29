@@ -713,9 +713,21 @@
                 </div>
                 <div class="form-group" style="margin-bottom:18px;">
                     <label style="display:block; margin-bottom:8px; font-size:13px; font-weight:600; color:var(--text-secondary);">
-                        Attachment (Optional)
+                        Attachment <span style="font-weight:400;">(Optional · max 3MB)</span>
                     </label>
-                    <input type="file" id="submit-approval-attachment" style="width:100%; background:var(--card-bg); border:1px solid var(--border-color); border-radius:8px; padding:10px 14px; color:var(--text-primary); font-family:inherit;">
+                    <div class="file-drop-zone" id="approval-drop-zone" onclick="document.getElementById('submit-approval-attachment').click()">
+                        <input type="file" id="submit-approval-attachment" style="display:none;" accept="*/*">
+                        <div class="file-drop-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <div class="file-drop-text">
+                            <span class="file-drop-primary">Drop file here or <span class="file-drop-link">browse</span></span>
+                            <span class="file-drop-secondary">Attach resolution evidence (max 3MB)</span>
+                        </div>
+                        <div class="file-drop-selected" id="approval-file-selected" style="display:none;">
+                            <i class="fas fa-file-alt"></i>
+                            <span id="approval-file-name"></span>
+                            <button type="button" class="file-drop-remove" onclick="event.stopPropagation(); clearFileInput('submit-approval-attachment','approval-drop-zone','approval-file-selected')">&times;</button>
+                        </div>
+                    </div>
                 </div>
                 <div id="submit-approval-error" style="color:#f87171; font-size:12px; margin-top:4px;"></div>
             </div>
@@ -729,6 +741,62 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script>
+    // ─── File Drop Zone ───────────────────────────────────────────────────
+    function initDropZone(inputId, zoneId, selectedId, nameId) {
+        const input  = document.getElementById(inputId);
+        const zone   = document.getElementById(zoneId);
+        const sel    = document.getElementById(selectedId);
+        const nameEl = document.getElementById(nameId);
+        if (!input || !zone) return;
+
+        input.addEventListener('change', () => {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 3 * 1024 * 1024) { alert('File size must be less than 3MB.'); input.value = ''; return; }
+            const icon = zone.querySelector('.file-drop-icon');
+            const text = zone.querySelector('.file-drop-text');
+            if (icon) icon.style.display = 'none';
+            if (text) text.style.display = 'none';
+            if (nameEl) nameEl.textContent = file.name;
+            if (sel) sel.style.display = 'flex';
+            zone.classList.add('has-file');
+        });
+
+        zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', ()  => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (!file) return;
+            if (file.size > 3 * 1024 * 1024) { alert('File size must be less than 3MB.'); return; }
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change'));
+        });
+    }
+
+    function clearFileInput(inputId, zoneId, selectedId) {
+        const input = document.getElementById(inputId);
+        const zone  = document.getElementById(zoneId);
+        const sel   = document.getElementById(selectedId);
+        if (input) input.value = '';
+        if (zone) {
+            zone.classList.remove('has-file');
+            const icon = zone.querySelector('.file-drop-icon');
+            const text = zone.querySelector('.file-drop-text');
+            if (icon) icon.style.display = '';
+            if (text) text.style.display = '';
+        }
+        if (sel) sel.style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initDropZone('submit-approval-attachment', 'approval-drop-zone', 'approval-file-selected', 'approval-file-name');
+    });
+    </script>
     <script src="js/theme.js"></script>
     <script src="js/dashboard_engineer.js?v=2.0"></script>
 
