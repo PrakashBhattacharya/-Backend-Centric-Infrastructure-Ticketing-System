@@ -1,8 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -254,10 +258,11 @@ body {
 
 .form-group label {
     display: block;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
     color: #f1f5f9;
     margin-bottom: 8px;
+    letter-spacing: 0.01em;
 }
 
 .input-wrapper {
@@ -311,8 +316,9 @@ input[type="password"] {
     width: 100%;
     padding: 14px 16px 14px 48px;
     border-radius: 9999px;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 14px;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
     color: #1e293b;
     background: #ffffff;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -366,8 +372,10 @@ select:focus {
     border: none;
     border-radius: 9999px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 15px;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    letter-spacing: 0.01em;
     margin-top: 8px;
     transition: all 0.2s ease;
     box-shadow: 0 0 15px rgba(34, 211, 238, 0.35), 0 0 30px rgba(168, 85, 247, 0.2);
