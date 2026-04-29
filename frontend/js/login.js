@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
   setTimeout(clearLoginFields, 500);
 
   // Link Login button to Dashboard via backend API
-  const loginBtn = document.querySelector('.primary-btn');
+  const loginBtn = document.querySelector('.login-btn') || document.querySelector('.primary-btn');
   if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
       const emailInput = document.getElementById('login-email');
@@ -48,7 +48,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      loginBtn.textContent = 'Authenticating...';
+      const btnSpan = loginBtn.querySelector('span');
+      const origText = btnSpan ? btnSpan.textContent : loginBtn.textContent;
+      if (btnSpan) btnSpan.textContent = 'Signing in...';
+      else loginBtn.textContent = 'Signing in...';
       loginBtn.disabled = true;
 
       try {
@@ -61,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const data = await response.json();
         
         if (data.success) {
-            // Save full user info and token to localStorage
             localStorage.setItem('auth_token', data.token);
             localStorage.setItem('user_name', data.user.fullName);
             localStorage.setItem('user_email', data.user.email);
@@ -75,7 +77,8 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error(err);
         alert('Error connecting to backend.');
       } finally {
-        loginBtn.textContent = 'Login';
+        if (btnSpan) btnSpan.textContent = origText;
+        else loginBtn.textContent = origText;
         loginBtn.disabled = false;
       }
     });
