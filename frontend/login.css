@@ -6,10 +6,20 @@
 }
 
 body {
-    background: #060810;
+    background-color: #060810;
     color-scheme: dark;
-    background-image: radial-gradient(ellipse 100% 80% at 100% 30%, rgba(30, 64, 175, 0.12), transparent 50%),
-        radial-gradient(ellipse 80% 60% at 0% 100%, rgba(37, 99, 235, 0.06), transparent 50%);
+    background-image: 
+        /* Deep moody base gradients for the overall color fields */
+        radial-gradient(ellipse at top left, rgba(67, 56, 202, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse at bottom right, rgba(15, 118, 110, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at bottom left, rgba(190, 24, 93, 0.1) 0%, transparent 60%),
+        radial-gradient(ellipse at top right, rgba(30, 41, 59, 0.12) 0%, transparent 60%),
+        /* Sharp geometric shards intersecting the screen (subtle opacity for dark mode) */
+        linear-gradient(15deg, rgba(99, 102, 241, 0.04) 30%, transparent 30.1%),
+        linear-gradient(-155deg, rgba(13, 148, 136, 0.04) 25%, transparent 25.1%),
+        linear-gradient(105deg, rgba(244, 63, 94, 0.04) 35%, transparent 35.1%),
+        linear-gradient(-45deg, rgba(30, 41, 59, 0.08) 45%, transparent 45.1%);
+    background-attachment: fixed;
     background-size: cover;
     background-position: center;
     min-height: 100vh;
