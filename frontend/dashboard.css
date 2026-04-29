@@ -2817,67 +2817,6 @@ th.sort-desc::after { content: ' ↓'; opacity: 1; color: var(--accent-blue); }
     align-items: center;
 }
 
-/* ── Notification Bell Button ────────────────────────────────────────────── */
-.notif-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    background: var(--glass-bg);
-    color: var(--text-secondary);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    font-size: 15px;
-    flex-shrink: 0;
-}
-
-.notif-btn:hover {
-    color: var(--accent-blue);
-    border-color: var(--accent-blue);
-    background: rgba(34, 211, 238, 0.08);
-    transform: translateY(-1px);
-}
-
-[data-theme="light"] .notif-btn {
-    background: #ffffff;
-    border-color: #e2e8f0;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
-}
-
-[data-theme="light"] .notif-btn:hover {
-    background: #eff6ff;
-    border-color: #2563eb;
-    color: #2563eb;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
-}
-
-.notif-btn .notif-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    width: 16px;
-    height: 16px;
-    font-size: 9px;
-    font-weight: 800;
-    background: #ef4444;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--bg-primary);
-    padding: 0;
-    letter-spacing: 0;
-}
-
-[data-theme="light"] .notif-btn .notif-badge {
-    border-color: #fdfdfd;
-}
-
 /* ── Hamburger Button ────────────────────────────────────────────────────── */
 .hamburger-btn {
     display: none;
@@ -3416,4 +3355,218 @@ th.sort-desc::after { content: ' ↓'; opacity: 1; color: var(--accent-blue); }
 .fw-600 { font-weight: 600; }
 .fw-700 { font-weight: 700; }
 .fw-800 { font-weight: 800; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIGHT THEME v2 — Stronger Borders, Richer Shadows & Premium Dropdowns
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Stronger light-mode card borders & layered shadows ─────────────────── */
+[data-theme="light"] .widget-v2 {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.06),
+        0 4px 12px rgba(15, 23, 42, 0.07),
+        0 0 0 0.5px rgba(100, 116, 139, 0.08);
+}
+
+[data-theme="light"] .widget-v2:hover {
+    border-color: #94a3b8;
+    box-shadow:
+        0 4px 6px rgba(15, 23, 42, 0.06),
+        0 10px 28px rgba(15, 23, 42, 0.1),
+        0 0 0 1px rgba(37, 99, 235, 0.12);
+    transform: translateY(-2px);
+}
+
+[data-theme="light"] .kpi-card {
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    box-shadow:
+        0 1px 3px rgba(15, 23, 42, 0.07),
+        0 4px 16px rgba(15, 23, 42, 0.06) !important;
+}
+
+[data-theme="light"] .kpi-card:hover {
+    border-color: #94a3b8 !important;
+    box-shadow:
+        0 4px 20px rgba(15, 23, 42, 0.12),
+        0 1px 4px rgba(15, 23, 42, 0.07) !important;
+    transform: translateY(-3px);
+}
+
+[data-theme="light"] .modal-content {
+    border: 1.5px solid #cbd5e1;
+    box-shadow:
+        0 8px 24px rgba(15, 23, 42, 0.12),
+        0 32px 64px rgba(15, 23, 42, 0.14);
+}
+
+[data-theme="light"] .filter-bar {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    box-shadow:
+        0 1px 4px rgba(15, 23, 42, 0.06),
+        0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .search-box {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .search-box:focus-within {
+    border-color: #2563eb;
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.14),
+        0 1px 4px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .top-bar {
+    border-bottom: 1.5px solid #e2e8f0;
+    box-shadow: 0 1px 8px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .sidebar {
+    border-right: 1.5px solid #e2e8f0;
+    box-shadow: 2px 0 12px rgba(15, 23, 42, 0.05);
+}
+
+/* ── Light mode table — strong header & visible row separators ───────────── */
+[data-theme="light"] .professional-table th {
+    background: #f1f5f9;
+    color: #475569;
+    border-bottom: 2px solid #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+[data-theme="light"] .professional-table td {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .table-wrapper {
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] .professional-table tbody tr:hover td {
+    background: #f0f7ff;
+}
+
+/* ── Custom Select / Dropdown — dark mode ────────────────────────────────── */
+select,
+.filter-select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 9px 36px 9px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    min-width: 140px;
+    outline: none;
+}
+
+select:hover,
+.filter-select:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+select:focus,
+.filter-select:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.14);
+}
+
+/* ── Custom Select — light mode ──────────────────────────────────────────── */
+[data-theme="light"] select,
+[data-theme="light"] .filter-select {
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    border: 1.5px solid #cbd5e1;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] select:hover,
+[data-theme="light"] .filter-select:hover {
+    border-color: #94a3b8;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+}
+
+[data-theme="light"] select:focus,
+[data-theme="light"] .filter-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14), 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+/* ── Stronger light-mode input borders & focus rings ─────────────────────── */
+[data-theme="light"] input[type="text"],
+[data-theme="light"] input[type="email"],
+[data-theme="light"] input[type="password"],
+[data-theme="light"] input[type="number"],
+[data-theme="light"] textarea {
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] input[type="text"]:focus,
+[data-theme="light"] input[type="email"]:focus,
+[data-theme="light"] input[type="password"]:focus,
+[data-theme="light"] input[type="number"]:focus,
+[data-theme="light"] textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14), 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+/* ── Light mode view-header divider ──────────────────────────────────────── */
+[data-theme="light"] .view-header {
+    border-bottom: 2px solid #e2e8f0;
+}
+
+/* ── Light mode resource cards ───────────────────────────────────────────── */
+[data-theme="light"] .resource-card {
+    border: 1.5px solid #cbd5e1;
+    box-shadow:
+        0 1px 4px rgba(15, 23, 42, 0.06),
+        0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .resource-card:hover {
+    border-color: #94a3b8;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.1);
+}
+
+/* ── Light mode profile dropdown ─────────────────────────────────────────── */
+[data-theme="light"] .profile-dropdown {
+    border: 1.5px solid #cbd5e1;
+    box-shadow:
+        0 8px 24px rgba(15, 23, 42, 0.12),
+        0 2px 6px rgba(15, 23, 42, 0.07);
+}
+
+/* ── Light mode status badges (richer colors) ────────────────────────────── */
+[data-theme="light"] .status.resolved { background: #dcfce7; color: #15803d; border-color: #86efac; }
+[data-theme="light"] .status.prog     { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+[data-theme="light"] .status.open     { background: #fef9c3; color: #a16207; border-color: #fde047; }
+[data-theme="light"] .status.pending  { background: #fef9c3; color: #a16207; border-color: #fde047; }
+[data-theme="light"] .status.breached { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+[data-theme="light"] .status.critical { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+
 
