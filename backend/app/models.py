@@ -139,6 +139,18 @@ def init_db():
         );
     ''')
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ticket_attachments (
+            id SERIAL PRIMARY KEY,
+            ticket_id INTEGER NOT NULL REFERENCES tickets(id),
+            user_id INTEGER NOT NULL REFERENCES users(id),
+            file_name TEXT NOT NULL,
+            mime_type TEXT NOT NULL,
+            file_data TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+    ''')
+
     # Create chat tables
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS chat_groups (
@@ -594,3 +606,17 @@ def get_admin_stats():
     except Exception as e:
         _debug_log('ADMIN_STATS_FATAL', 'models.py', str(e), {})
         return stats
+
+def add_attachment(ticket_id, user_id, file_name, mime_type, file_data):
+    execute_query("INSERT INTO ticket_attachments (ticket_id, user_id, file_name, mime_type, file_data) VALUES (%s, %s, %s, %s, %s)", 
+                  (ticket_id, user_id, file_name, mime_type, file_data), commit=True)
+    execute_query("INSERT INTO audit_logs (action, details, icon, color, user_id, ticket_id) VALUES (%s, %s, %s, %s, %s, %s)",
+                  ('File Attached', f'Attached {file_name}', 'fa-paperclip', '#6b7280', user_id, ticket_id), commit=True)
+
+def get_ticket_attachments(ticket_id):
+    attachments = execute_query("SELECT a.id, a.file_name, a.mime_type, a.created_at, a.user_id, u.full_name as user_name FROM ticket_attachments a JOIN users u ON a.user_id = u.id WHERE a.ticket_id = %s ORDER BY a.created_at ASC", (ticket_id,))
+    return [dict(a) for a in (attachments or [])]
+
+def get_attachment_data(attachment_id):
+    attachment = execute_query("SELECT file_data, file_name, mime_type FROM ticket_attachments WHERE id = %s", (attachment_id,), fetchone=True)
+    return dict(attachment) if attachment else None

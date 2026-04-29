@@ -235,7 +235,7 @@ function populateQueue(tickets) {
                     <div class="action-group">
                         ${t.status === 'Open' ? `<button class="primary-btn sm" title="Accept" onclick="event.stopPropagation(); updateStatus(${t.id}, 'In Progress')"><i class="fas fa-play"></i> Accept</button>` : ''}
                         ${t.status === 'In Progress' ? `
-                            <button class="primary-btn sm" style="background:#f59e0b; color:#0f172a;" title="Submit for Approval" onclick="event.stopPropagation(); updateStatus(${t.id}, 'Pending Approval')"><i class="fas fa-paper-plane"></i> Submit</button>
+                            <button class="primary-btn sm" style="background:#f59e0b; color:#0f172a;" title="Submit for Approval" onclick="event.stopPropagation(); openSubmitApprovalModal(${t.id})"><i class="fas fa-paper-plane"></i> Submit</button>
                             ${!slaBreached ? `<button class="primary-btn sm" style="background:rgba(99,102,241,0.85); color:#fff;" title="Request SLA Extension" onclick="event.stopPropagation(); openSlaExtModal(${t.id})"><i class="fas fa-clock"></i> Extend SLA</button>` : ''}
                         ` : ''}
                         ${t.status === 'Pending Approval' ? `<span style="font-size:11px; color:#f59e0b; font-weight:600;"><i class="fas fa-hourglass-half"></i> Awaiting Admin</span>` : ''}
@@ -391,6 +391,27 @@ async function openTicketDetail(ticketId) {
             `).join('');
         } else {
             commentsDiv.innerHTML = '<div style="color:var(--text-secondary); font-size:12px;">No activity logged yet.</div>';
+        }
+
+        // Attachments
+        const attachmentsDiv = document.getElementById('modal-attachments');
+        if (data.attachments && data.attachments.length > 0) {
+            attachmentsDiv.innerHTML = data.attachments.map(att => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="fas fa-file-alt" style="color:var(--text-secondary);"></i>
+                        <div>
+                            <div style="font-size:12px; color:var(--text-primary); font-weight:600;">${att.file_name}</div>
+                            <div style="font-size:10px; color:var(--text-secondary);">${parseDate(att.created_at).toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <a href="${API_BASE}/api/tickets/attachments/${att.id}" target="_blank" class="primary-btn sm" style="text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                </div>
+            `).join('');
+        } else {
+            attachmentsDiv.innerHTML = '<div style="color:var(--text-secondary); font-size:12px;">No attachments.</div>';
         }
 
         openModal('ticket-detail-modal');
@@ -564,6 +585,89 @@ window.submitSlaExtension = async function() {
         }
     } catch (err) {
         errEl.textContent = 'Network error. Please try again.';
+    }
+};
+
+// ─── Submit Approval Modal ──────────────────────────────────────────────────
+let _submitApprovalTicketId = null;
+
+window.openSubmitApprovalModal = function(ticketId) {
+    _submitApprovalTicketId = ticketId;
+    const idEl = document.getElementById('submit-approval-ticket-id');
+    if (idEl) idEl.textContent = `#INC-${ticketId}`;
+    const attachEl = document.getElementById('submit-approval-attachment');
+    const errEl = document.getElementById('submit-approval-error');
+    if (attachEl) attachEl.value = '';
+    if (errEl) errEl.textContent = '';
+    openModal('submit-approval-modal');
+};
+
+window.submitForApproval = async function() {
+    const errEl = document.getElementById('submit-approval-error');
+    const btn = document.getElementById('submit-approval-btn');
+    const fileInput = document.getElementById('submit-approval-attachment');
+    
+    let fileName = null;
+    let fileType = null;
+    let fileData = null;
+
+    if (fileInput && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+            errEl.textContent = 'File size must be less than 5MB.';
+            return;
+        }
+        fileName = file.name;
+        fileType = file.type || 'application/octet-stream';
+        
+        try {
+            fileData = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        } catch (err) {
+            errEl.textContent = 'Failed to read the file. Please try again.';
+            return;
+        }
+    }
+    
+    errEl.textContent = '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    }
+
+    try {
+        const payload = { submitForApproval: true };
+        if (fileName && fileData) {
+            payload.fileName = fileName;
+            payload.fileType = fileType;
+            payload.fileData = fileData;
+        }
+
+        const res = await fetch(`${API_BASE}/api/tickets/${_submitApprovalTicketId}/attachments`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            closeModal('submit-approval-modal');
+            alert(`Ticket #INC-${_submitApprovalTicketId} submitted for approval.`);
+            refreshData();
+        } else {
+            errEl.textContent = data.message || 'Request failed.';
+        }
+    } catch (err) {
+        errEl.textContent = 'Network error. Please try again.';
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
+        }
     }
 };
 

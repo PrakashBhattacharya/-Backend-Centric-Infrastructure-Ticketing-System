@@ -6,7 +6,8 @@ from flask import Blueprint, jsonify, request
 from .auth import token_required
 from ..models import (
     create_ticket, get_tickets, get_ticket_by_id, 
-    update_ticket_status, assign_ticket, add_comment, get_comments
+    update_ticket_status, assign_ticket, add_comment, get_comments,
+    add_attachment, get_ticket_attachments, get_attachment_data
 )
 
 tickets_bp = Blueprint('tickets', __name__, url_prefix='/api/tickets')
@@ -20,11 +21,18 @@ def submit_ticket(current_user):
     service_area = data.get('serviceArea', 'Other')
     environment = data.get('environment', 'Production')
     priority = data.get('priority', 'Medium')
+    file_name = data.get('fileName')
+    file_type = data.get('fileType')
+    file_data = data.get('fileData')
 
     if not subject:
         return jsonify({'success': False, 'message': 'Subject is required'}), 400
 
     ticket = create_ticket(subject, description, service_area, environment, priority, current_user['id'])
+    
+    if file_name and file_type and file_data:
+        add_attachment(ticket['id'], current_user['id'], file_name, file_type, file_data)
+
     return jsonify({'success': True, 'ticket': ticket}), 201
 
 @tickets_bp.route('/my', methods=['GET'])
@@ -53,7 +61,8 @@ def get_ticket(current_user, ticket_id):
         return jsonify({'message': 'Unauthorized'}), 403
         
     comments = get_comments(ticket_id)
-    return jsonify({'success': True, 'ticket': ticket, 'comments': comments})
+    attachments = get_ticket_attachments(ticket_id)
+    return jsonify({'success': True, 'ticket': ticket, 'comments': comments, 'attachments': attachments})
 
 @tickets_bp.route('/<int:ticket_id>/status', methods=['PUT'])
 @token_required
@@ -100,3 +109,32 @@ def post_comment(current_user, ticket_id):
     
     add_comment(ticket_id, current_user['id'], text)
     return jsonify({'success': True})
+
+@tickets_bp.route('/<int:ticket_id>/attachments', methods=['POST'])
+@token_required
+def post_attachment(current_user, ticket_id):
+    data = request.json
+    file_name = data.get('fileName')
+    file_type = data.get('fileType')
+    file_data = data.get('fileData')
+    submit_for_approval = data.get('submitForApproval')
+    
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket: return jsonify({'success': False, 'message': 'Ticket not found'}), 404
+    
+    if file_name and file_type and file_data:
+        add_attachment(ticket_id, current_user['id'], file_name, file_type, file_data)
+        
+    if submit_for_approval and current_user['role'] == 'engineer':
+        update_ticket_status(ticket_id, 'Resolved', current_user['id'])
+        
+    return jsonify({'success': True})
+
+@tickets_bp.route('/attachments/<int:attachment_id>', methods=['GET'])
+@token_required
+def download_attachment(current_user, attachment_id):
+    attachment = get_attachment_data(attachment_id)
+    if not attachment:
+        return jsonify({'message': 'Attachment not found'}), 404
+        
+    return jsonify({'success': True, 'attachment': attachment})

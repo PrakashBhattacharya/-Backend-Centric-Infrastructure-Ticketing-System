@@ -465,6 +465,41 @@ async function openTicketDetail(ticketId) {
         }
 
         document.getElementById('modal-created').textContent = parseDate(t.created_at).toLocaleDateString();
+        
+        // Activity Feed (Comments)
+        const commentsDiv = document.getElementById('modal-comments');
+        if (data.comments && data.comments.length > 0) {
+            commentsDiv.innerHTML = data.comments.map(c => `
+                <div class="timeline-item">
+                    <div class="timeline-point"></div>
+                    <div class="timeline-info">${c.author_name} | ${parseDate(c.created_at).toLocaleString()}</div>
+                    <div class="timeline-action">${c.text}</div>
+                </div>
+            `).join('');
+        } else {
+            commentsDiv.innerHTML = '<div style="color:var(--text-secondary); font-size:12px;">No activity logged yet.</div>';
+        }
+
+        // Attachments
+        const attachmentsDiv = document.getElementById('modal-attachments');
+        if (data.attachments && data.attachments.length > 0) {
+            attachmentsDiv.innerHTML = data.attachments.map(att => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:6px; border:1px solid rgba(255,255,255,0.05); margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="fas fa-file-alt" style="color:var(--text-secondary);"></i>
+                        <div>
+                            <div style="font-size:12px; color:var(--text-primary); font-weight:600;">${att.file_name}</div>
+                            <div style="font-size:10px; color:var(--text-secondary);">${parseDate(att.created_at).toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <a href="${API_BASE}/api/tickets/attachments/${att.id}" target="_blank" class="primary-btn sm" style="text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                </div>
+            `).join('');
+        } else {
+            attachmentsDiv.innerHTML = '<div style="color:var(--text-secondary); font-size:12px;">No attachments.</div>';
+        }
 
         modal.style.display = 'flex';
     } catch (err) {
@@ -498,11 +533,54 @@ async function submitNewTicket(e) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
     }
 
+    const fileInput = document.getElementById('ticket-attachment');
+    let fileName = null;
+    let fileType = null;
+    let fileData = null;
+
+    if (fileInput && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Incident';
+            }
+            return;
+        }
+        fileName = file.name;
+        fileType = file.type || 'application/octet-stream';
+        
+        try {
+            fileData = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        } catch (err) {
+            console.error('Error reading file:', err);
+            alert('Failed to read the file. Please try again.');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Incident';
+            }
+            return;
+        }
+    }
+
     try {
+        const payload = { subject, description, serviceArea: service_area, environment, priority };
+        if (fileName && fileData) {
+            payload.fileName = fileName;
+            payload.fileType = fileType;
+            payload.fileData = fileData;
+        }
+
         const res = await fetch(`${API_BASE}/api/tickets`, {
             method: 'POST',
             headers: authHeaders(),
-            body: JSON.stringify({ subject, description, service_area, environment, priority })
+            body: JSON.stringify(payload)
         });
 
         const data = await res.json();

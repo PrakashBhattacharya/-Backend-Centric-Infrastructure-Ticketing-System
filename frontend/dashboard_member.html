@@ -383,6 +383,12 @@
                     <div class="sla-banner-right" id="sla-breach-info"></div>
                 </div>
 
+                <!-- Attachment -->
+                <div class="form-group">
+                    <label>Attachment (Optional)</label>
+                    <input type="file" id="ticket-attachment" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; color: var(--text-primary); font-family: inherit;">
+                </div>
+
                 <!-- Description -->
                 <div class="form-group">
                     <label>Description &amp; Error Codes</label>
@@ -871,17 +877,13 @@
                     </p>
 
                     <h4 style="margin-bottom: 10px;">Activity Log</h4>
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-point"></div>
-                            <div class="timeline-info">Admin | 10-Feb-2026 09:00</div>
-                            <div class="timeline-action">Ticket Created</div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-point"></div>
-                            <div class="timeline-info">System | 10-Feb-2026 09:05</div>
-                            <div class="timeline-action">Assigned to Engineer: Alex Smith</div>
-                        </div>
+                    <div class="timeline" id="modal-comments" style="margin-bottom: 25px;">
+                        <div style="color:var(--text-secondary); font-size:12px;">No activity logged yet.</div>
+                    </div>
+
+                    <h4 style="margin-bottom: 10px;">Attachments</h4>
+                    <div id="modal-attachments" style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="color:var(--text-secondary); font-size:12px;">No attachments.</div>
                     </div>
                 </div>
 
