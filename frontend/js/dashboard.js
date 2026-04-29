@@ -65,3 +65,34 @@ document.addEventListener('click', function (event) {
         event.target.style.display = 'none';
     }
 })
+
+// ─── Toast Notification System ───────────────────────────────────────────────
+(function() {
+    function getContainer() {
+        let c = document.getElementById('toast-container');
+        if (!c) {
+            c = document.createElement('div');
+            c.id = 'toast-container';
+            document.body.appendChild(c);
+        }
+        return c;
+    }
+
+    window.showToast = function(message, type = 'info', duration = 3500) {
+        const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+        const container = getContainer();
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <i class="fas ${icons[type] || icons.info} toast-icon"></i>
+            <span class="toast-msg">${message}</span>
+            <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('toast-out');
+            setTimeout(() => toast.remove(), 260);
+        }, duration);
+        return toast;
+    };
+})();
