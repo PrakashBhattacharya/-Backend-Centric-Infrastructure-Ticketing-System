@@ -26,6 +26,10 @@
       "dest": "/frontend/js/$1"
     },
     {
+      "src": "/img/(.*)",
+      "dest": "/frontend/img/$1"
+    },
+    {
       "src": "/(dashboard\\.css|login\\.css|signup\\.css|chat\\.css)",
       "dest": "/frontend/$1"
     },
